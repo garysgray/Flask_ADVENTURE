@@ -34,7 +34,8 @@ class DB_Player(db.Model):
 def index():
 
     #fix cleaner way of doing this
-    my_ctrl.run_cmd_now = False
+    #my_ctrl.run_cmd_now = False
+    print("in index")
     my_ctrl.State = State.LOAD
     my_ctrl.player.pos_x = 0
     my_ctrl.player.pos_y = 0
@@ -63,7 +64,7 @@ def index():
 @app.route('/game/<int:id>', methods=['GET','POST'])
 def game(id):
 
-    cmd = ""
+    
     try:
         db_player = DB_Player.query.get_or_404(id)
     except:
@@ -72,49 +73,52 @@ def game(id):
     match my_ctrl.State:
         case State.LOAD:   
             my_ctrl.load_stuff(db_player)
-            cmd_info = my_ctrl.parse_it("help")
-            my_ctrl.run_the_cmd(cmd_info)
+            # cmd_info = my_ctrl.parse_it("help")
+            # print("hellooooo")
+            # print("cmd", cmd)
+            # my_ctrl.run_the_cmd(cmd_info)
+            cmd = "help"
             my_ctrl.State = State.PLAY 
         case State.PLAY:
-            my_ctrl.load_stuff(db_player)
+            #my_ctrl.load_stuff(db_player)
             cmd = db_player.cmd_info
     
-    if my_ctrl.run_cmd_now:
-        print("TEST")
+    #if my_ctrl.run_cmd_now:
+    print("TEST")
 
-        cmd_info = my_ctrl.parse_it(cmd)
-        my_ctrl.run_the_cmd(cmd_info)
-        my_ctrl.run_cmd_now = False
+    cmd_info = my_ctrl.parse_it(cmd)
+    my_ctrl.run_the_cmd(cmd_info)
+    #my_ctrl.run_cmd_now = False
 
-        #SAVING STUFF TO DB
-        player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
-        db_player.location = player_loc_dumped
-        db_player.player_inventory = player_inventory_dumped
-        db_player.room_inventory = rooms_inventories_dumped
+    #SAVING STUFF TO DB
+    player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
+    db_player.location = player_loc_dumped
+    db_player.player_inventory = player_inventory_dumped
+    db_player.room_inventory = rooms_inventories_dumped
 
-        try:
-            db.session.commit()  
-        except:
-            return 'issues saving after running cmd'
+    try:
+        db.session.commit()  
+    except:
+        return 'issues saving after running cmd'
 
     if request.method == 'POST':
 
         cmd = request.form['cmd']
-        if cmd != "":
-            db_player.cmd_info = cmd
-            my_ctrl.run_cmd_now = True
+        #if cmd != "":
+        db_player.cmd_info = cmd
+        #my_ctrl.run_cmd_now = True
 
-            try:
-                db.session.commit()
-                return redirect(url_for('game',id=db_player.id))
-            except:
-                return 'issues saving cmd and redirecting'
+        try:
+            db.session.commit()
+            return redirect(url_for('game',id=db_player.id))
+        except:
+            return 'issues saving cmd and redirecting'
 
-        my_ctrl.run_cmd_now = False
-        return redirect(url_for('game',id=db_player.id))
+        # my_ctrl.run_cmd_now = False
+        # return redirect(url_for('game',id=db_player.id))
 
     else:
-        my_ctrl.run_cmd_now = False
+        #my_ctrl.run_cmd_now = False
         debug1 = my_ctrl.room_info
         return render_template('game.html', cmd=cmd , db_player=db_player, debug1= debug1, player_inv= my_ctrl.player.inventory)
 
