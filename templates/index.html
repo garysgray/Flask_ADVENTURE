@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Game Portal</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Game Portal</h1>
+    {% if players|length < 1 %}
+    <h4 style="text-align: center">There are no Players. Create one below!</h4>
+    {% else %}
+    <table>
+        <tr>
+            <th>USERNAME</th>
+            <th>Added</th>
+            <th>GAME</th>
+        </tr>
+        {% for player in players %}
+            <tr>
+                <td>{{ player.username }}</td> 
+                <td>{{ player.date_create.date() }}</td>
+                <td><a  href="/game/{{player.id}}">PLAY ME</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+    <br>
+    <div class="form">
+        <form action="/" method="POST" style="text-align: center">
+            <input type="text" name="username" id="username" autofocus autocomplete="false">
+            <input type="submit" value="New Player">
+        </form>
+    </div>
+    <div class="content">
+        <h1 style="text-align: center">Lets Play A Game</h1>
+           
+    </div>
+</div>
+{% endblock %}

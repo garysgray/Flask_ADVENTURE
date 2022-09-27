@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Adventure Game</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Adventure Game</h1>
+    <div class="form">
+        <form action="/game/{{db_player.id}}" method="POST" style="text-align: center">
+            <input class="input-element" type="text" name="cmd" id="cmd" autofocus autocomplete="off">
+            <input class="button" type="submit" value="CMD">
+        </form>
+    </div>
+    <br>
+    {% if debug1 %}
+        <div>OUTPUT:  {{ debug1['CMD_RESPONSE'] }}</div>
+        <br>
+        <div>ROOM:    {{ debug1['ROOM_DESCRIPTION']}}</div>
+        <br>
+        <div>EXITS:    {{ debug1['ROOM_EXITS'] }}</div>
+        <br>
+        <div>ROOM ITEMS:</div>
+            {% for item in debug1['ROOM_INVENTORY'] %}
+            {{ item.name }},
+            {% endfor %}
+    {% endif %} 
+    <br>
+    <br>
+    <div>PLAYER INVENTORY:</div>
+    {% if player_inv %}
+        {% for item in player_inv %}
+            {{  item.name }},
+        {% endfor %}
+    {% endif %} 
+    <br>
+    <br>
+    <div style="text-align: center"><a  href="{{ url_for('index') }}">Back to Game Portal</a></div>
+    <h1 style="text-align: center">Debugging</h1>
+     
+    <div>PLAYER IN DATABASE</div>
+    <div>ID: {{ db_player['id'] }}</div>
+    <div>USER: {{ db_player['username'] }}</div>
+    <div>LOCATION: {{ db_player['location'] }}</div>
+    <div>DB CMD: {{ db_player['cmd_info'] }}</div>
+    <br>
+    <div>INVENTORY:</div>
+    <div>{{ db_player['player_inventory'] }}</div>
+    <br>
+    <div>ALL_ROOM_ITEMS: {{ db_player['room_inventory'] }}</div>
+    <br>
+    <br>
+</div>
+
+{% endblock %}
