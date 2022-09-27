@@ -46,7 +46,7 @@ def index():
         username = request.form['username']
         if username != "":
 
-            player_loc_dumped,  player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
+            player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
                 
             new_db_player = DB_Player(username, player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped, "NONE" )
             try:
@@ -76,13 +76,14 @@ def game(id):
             my_ctrl.run_the_cmd(cmd_info)
             my_ctrl.State = State.PLAY 
         case State.PLAY:
+            my_ctrl.load_stuff(db_player)
             cmd = db_player.cmd_info
     
     if my_ctrl.run_cmd_now:
-        
+        print("TEST")
+
         cmd_info = my_ctrl.parse_it(cmd)
         my_ctrl.run_the_cmd(cmd_info)
-        print("TEST")
         my_ctrl.run_cmd_now = False
 
         #SAVING STUFF TO DB
@@ -113,6 +114,7 @@ def game(id):
         return redirect(url_for('game',id=db_player.id))
 
     else:
+        my_ctrl.run_cmd_now = False
         debug1 = my_ctrl.room_info
         return render_template('game.html', cmd=cmd , db_player=db_player, debug1= debug1, player_inv= my_ctrl.player.inventory)
 
