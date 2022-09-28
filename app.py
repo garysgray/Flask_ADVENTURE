@@ -45,26 +45,23 @@ def index():
     if request.method == 'POST':
 
         username = request.form['username']
-        if username != "":
-
-            player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
-                
-            new_db_player = DB_Player(username, player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped, "NONE" )
-            try:
-                db.session.add(new_db_player)
-                db.session.commit()
-                return redirect('/')
-            except:
-                return 'issues here mannn. like.. wow man!'
-        return redirect('/')
+    
+        player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
+            
+        new_db_player = DB_Player(username, player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped, "NONE" )
+        try:
+            db.session.add(new_db_player)
+            db.session.commit()
+            return redirect('/')
+        except:
+            return 'issues here mannn. like.. wow man!'
+        
     else:
         players = DB_Player.query.order_by(DB_Player.date_create).all()
         return render_template('index.html', players=players)
 
 @app.route('/game/<int:id>', methods=['GET','POST'])
 def game(id):
-
-    #time.sleep(.2)
 
     try:
         db_player = DB_Player.query.get_or_404(id)
@@ -80,12 +77,12 @@ def game(id):
             my_ctrl.load_stuff(db_player)
             cmd = db_player.cmd_info
 
-    time.sleep(.2)
+    time.sleep(.3)
 
     cmd_info = my_ctrl.parse_it(cmd)
     my_ctrl.run_the_cmd(cmd_info)
 
-    time.sleep(.2)
+    time.sleep(.3)
 
     #SAVING STUFF TO DB
     player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
