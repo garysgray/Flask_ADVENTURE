@@ -101,7 +101,7 @@ def game(id):
     if request.method == 'POST':
 
         cmd = request.form['cmd']
-        db_player.cmd_info = cmd
+        db_player.cmd_info = cmd.lower()
    
         try:
             db.session.commit()
