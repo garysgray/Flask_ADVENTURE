@@ -6,13 +6,10 @@ import json
 class State(Enum):
     LOAD = 0
     PLAY = 1
-    SAVE_LOC = 2 
-    SAVE_INV = 3
 
 class Controller:
     def __init__(self):
         self.State = State.LOAD
-        self.run_cmd_now = False
         self.map = Map()
         self.player = Player()
         self.level = 0
