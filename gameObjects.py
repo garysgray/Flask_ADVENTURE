@@ -20,7 +20,7 @@ class Map:
         comic = Item('comic',"its a classic")
         watch = Item('watch',"its ticking")
         knife = Item('knife',"its sharp")
-        beer = Item('beer',"its tasty")
+        beer = Item('beer',"its looks tasty")
         skateboard =Item('skateboard',"its an IOU board!!!!")
         sword = Item('sword',"its well balanced")
         phone = Item('phone',"its the latest and greatest")
