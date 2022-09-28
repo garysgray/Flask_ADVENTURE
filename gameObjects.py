@@ -26,7 +26,7 @@ class Map:
         phone = Item('phone',"its the latest and greatest")
 
         red_room = Room('red', ['south','east'], "Its a reddish in color room", [baseball, speaker])
-        blue_room = Room('blue',  ['south','west'], "Its a blueish in color room,", [beer])
+        blue_room = Room('blue',  ['south','west', 'east'], "Its a blueish in color room,", [beer])
         yellow_room = Room('yellow', ['north', 'east'], "Its a yellowish in color room", [axe, skateboard])
         green_room = Room('green',  ['north','west', 'east' ], "Its a greenish in color room", [comic])
         orange_room = Room('orange',  ['south','west' ], "Its a orangeish in color room", [sword])
