@@ -76,14 +76,16 @@ def game(id):
         case State.PLAY:
             my_ctrl.load_stuff(db_player)
             cmd = db_player.cmd_info
-
+    
+    #let loading catch up
     time.sleep(.3)
 
     cmd_info = my_ctrl.parse_it(cmd)
     my_ctrl.run_the_cmd(cmd_info)
 
+    #let run_cmd catch up
     time.sleep(.3)
-
+    
     #SAVING STUFF TO DB
     player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
     db_player.location = player_loc_dumped

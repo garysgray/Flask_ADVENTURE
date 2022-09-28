@@ -13,26 +13,32 @@ class Room:
 class Map:
     def __init__(self):
 
-        ball = Item('ball',"its red")
-        bat = Item('bat',"its wooden")
-        piano = Item('piano',"its fancy")
-        axe = Item('axe',"its sharp")
-        book = Item('book',"its a classic")
-        watch =Item('watch',"its ticking")
-        knife =Item('knife',"its sharp")
+        baseball = Item('baseball',"its an official MLB")
+        bat = Item('bat',"its a nice wooden bat")
+        speaker = Item('speaker',"its bluetooth")
+        axe = Item('axe',"its a trust axe")
+        comic = Item('comic',"its a classic")
+        watch = Item('watch',"its ticking")
+        knife = Item('knife',"its sharp")
+        beer = Item('beer',"its tasty")
+        skateboard =Item('skateboard',"its an IOU board!!!!")
+        sword = Item('sword',"its well balanced")
+        phone = Item('phone',"its the latest and greatest")
 
-        red_room = Room('red', ['south','east'], "Its a reddish in color room", [ball, piano])
-        blue_room = Room('blue',  ['south','west'], "Its a blueish in color room,", [piano])
-        yellow_room = Room('yellow', ['north', 'east'], "Its a yellowish in color room", [axe])
-        green_room = Room('green',  ['north','west' ], "Its a greenish in color room", [book])
+        red_room = Room('red', ['south','east'], "Its a reddish in color room", [baseball, speaker])
+        blue_room = Room('blue',  ['south','west'], "Its a blueish in color room,", [beer])
+        yellow_room = Room('yellow', ['north', 'east'], "Its a yellowish in color room", [axe, skateboard])
+        green_room = Room('green',  ['north','west', 'east' ], "Its a greenish in color room", [comic])
+        orange_room = Room('orange',  ['south','west' ], "Its a orangeish in color room", [sword])
+        purple_room = Room('purple',  ['north','west' ], "Its a purpleish in color room", [phone])
         
-        self.floor_1 =[ [red_room, blue_room],
-                        [yellow_room, green_room]]
+        self.floor_1 =[ [red_room, blue_room, orange_room],
+                        [yellow_room, green_room, purple_room]]
 
         self.game_map = [self.floor_1]
 
-        self.list_of_rooms = [red_room, blue_room, yellow_room, green_room]
+        self.list_of_rooms = [red_room, blue_room, yellow_room, green_room, orange_room, purple_room]
 
-        self.list_of_items = [ball, bat, piano, axe, book, watch, knife]
+        self.list_of_items = [baseball, bat, speaker, axe, comic, watch, knife, beer, skateboard, sword, phone]
 
-        self.player_start_invent = [watch,knife]
+        self.player_start_invent = [watch, knife]
