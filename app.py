@@ -77,10 +77,10 @@ def game(id):
             cmd = "help"
             my_ctrl.State = State.PLAY 
         case State.PLAY:
-            my_ctrl.load_stuff(db_player)
+            #my_ctrl.load_stuff(db_player)
             cmd = db_player.cmd_info
 
-    time.sleep(1.5)
+    time.sleep(1)
 
     cmd_info = my_ctrl.parse_it(cmd)
     my_ctrl.run_the_cmd(cmd_info)
