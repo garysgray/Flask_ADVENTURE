@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from controller import Controller, State
+import time
+
 
 app = Flask(__name__)
 
@@ -61,6 +63,8 @@ def index():
 
 @app.route('/game/<int:id>', methods=['GET','POST'])
 def game(id):
+
+    time.sleep(2)
 
     try:
         db_player = DB_Player.query.get_or_404(id)
