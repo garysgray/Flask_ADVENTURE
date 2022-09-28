@@ -69,7 +69,7 @@ def game(id):
 
     match my_ctrl.State:
         case State.LOAD:   
-            # my_ctrl.load_stuff(db_player)
+            my_ctrl.load_stuff(db_player)
             cmd = "help"
             my_ctrl.State = State.PLAY 
         case State.PLAY:
