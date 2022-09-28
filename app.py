@@ -64,7 +64,7 @@ def index():
 @app.route('/game/<int:id>', methods=['GET','POST'])
 def game(id):
 
-    time.sleep(2)
+    
 
     try:
         db_player = DB_Player.query.get_or_404(id)
@@ -79,7 +79,9 @@ def game(id):
         case State.PLAY:
             my_ctrl.load_stuff(db_player)
             cmd = db_player.cmd_info
-    
+
+    time.sleep(1.5)
+
     cmd_info = my_ctrl.parse_it(cmd)
     my_ctrl.run_the_cmd(cmd_info)
 
