@@ -64,7 +64,7 @@ def index():
 @app.route('/game/<int:id>', methods=['GET','POST'])
 def game(id):
 
-    time.sleep(.3)
+    time.sleep(.2)
 
     try:
         db_player = DB_Player.query.get_or_404(id)
@@ -80,12 +80,12 @@ def game(id):
             my_ctrl.load_stuff(db_player)
             cmd = db_player.cmd_info
 
-    time.sleep(.3)
+    time.sleep(.2)
 
     cmd_info = my_ctrl.parse_it(cmd)
     my_ctrl.run_the_cmd(cmd_info)
 
-    time.sleep(.3)
+    time.sleep(.2)
 
     #SAVING STUFF TO DB
     player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
