@@ -93,8 +93,6 @@ def game(id):
     db_player.player_inventory = player_inventory_dumped
     db_player.room_inventory = rooms_inventories_dumped
 
-    time.sleep(.3)
-
     try:
         db.session.commit()  
     except:
