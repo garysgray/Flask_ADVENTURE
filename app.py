@@ -64,7 +64,7 @@ def index():
 @app.route('/game/<int:id>', methods=['GET','POST'])
 def game(id):
 
-    time.sleep(.2)
+    #time.sleep(.2)
 
     try:
         db_player = DB_Player.query.get_or_404(id)
