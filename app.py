@@ -63,6 +63,7 @@ def index():
 @app.route('/game/<int:id>', methods=['GET','POST'])
 def game(id):
 
+    time.sleep(.3)
     try:
         db_player = DB_Player.query.get_or_404(id)
     except:
@@ -78,19 +79,21 @@ def game(id):
             cmd = db_player.cmd_info
     
     #let loading catch up
-    time.sleep(.4)
+    time.sleep(.3)
 
     cmd_info = my_ctrl.parse_it(cmd)
     my_ctrl.run_the_cmd(cmd_info)
 
     #let run_cmd catch up
-    time.sleep(.4)
+    time.sleep(.3)
 
     #SAVING STUFF TO DB
     player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
     db_player.location = player_loc_dumped
     db_player.player_inventory = player_inventory_dumped
     db_player.room_inventory = rooms_inventories_dumped
+
+    time.sleep(.3)
 
     try:
         db.session.commit()  
