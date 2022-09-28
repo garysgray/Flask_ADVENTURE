@@ -78,13 +78,13 @@ def game(id):
             cmd = db_player.cmd_info
     
     #let loading catch up
-    time.sleep(.3)
+    time.sleep(.4)
 
     cmd_info = my_ctrl.parse_it(cmd)
     my_ctrl.run_the_cmd(cmd_info)
 
     #let run_cmd catch up
-    time.sleep(.3)
+    time.sleep(.4)
 
     #SAVING STUFF TO DB
     player_loc_dumped, player_inventory_dumped, rooms_inventories_dumped = my_ctrl.save_stuff()
@@ -104,7 +104,6 @@ def game(id):
    
         try:
             db.session.commit()
-            time.sleep(.2)
             return redirect(url_for('game',id=db_player.id))
         except:
             return 'issues saving cmd and redirecting'
