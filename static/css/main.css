@@ -1,50 +1,208 @@
+/* =========================
+   Base styles
+   ========================= */
 body, html {
     margin: 0;
-    font-family: sans-serif;
-    background-color: lightblue;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #a0e9ff, #80d0f0);
+    color: #333;
 }
 
+/* =========================
+   Content box
+   ========================= */
 .content {
     margin: 0 auto;
-    width: 350px;
-    font-size: 18px; 
+    width: 90%;           /* wider page */
+    max-width: 1200px;    /* don’t go crazy on huge screens */
+    font-size: 16px;
+}
+/* =========================
+   Headings
+   ========================= */
+h1 {
+    text-align: center;
+    color: #0077b6;
+    margin-bottom: 15px;
 }
 
-table, td, th {
-    border: 1px solid #aaa;
+h4 {
+    text-align: center;
+    color: #555;
+    margin-bottom: 25px;
 }
 
+/* =========================
+   Table styles
+   ========================= */
 table {
-    border-collapse: collapse;
     width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
 }
 
 th {
-    height: 30px;
+    background-color: #0096c7;
+    color: #fff;
+    font-weight: 600;
 }
 
 td {
-    text-align: center;
-    padding: 5px;
+    background-color: #f1f5f9;
 }
 
-.form {
-    margin-top: 20px;
+tr:nth-child(even) td {
+    background-color: #e0f7fa;
 }
 
-#content {
-    width: 70%;
+a {
+    color: #0077b6;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
 }
 
-.input-element{
-    font-size: 25px; 
+a:hover {
+    color: #023e8a;
+    text-decoration: underline;
+}
+
+/* =========================
+   Form & Inputs
+   ========================= */
+.form form {
+    display: flex;
+    justify-content: center;  /* centers the items horizontally */
+    gap: 10px;                /* space between input and button */
+    flex-wrap: wrap;          /* keeps it responsive on small screens */
+}
+
+.input-element {
+    font-size: 16px; 
     height: 35px;
-    width:60%;
+    width: 65%;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s;
+}
 
-    }
+.input-element:focus {
+    border-color: #0096c7;
+    box-shadow: 0 0 6px rgba(0,150,199,0.3);
+}
 
-.button{
+/* =========================
+   Buttons
+   ========================= */
+.button {
     height: 35px;
-    text-align: center;
-    padding: 5px; 
+    padding: 0 15px;
+    margin-left: 5px;
+    border: none;
+    border-radius: 8px;
+    background-color: #0096c7;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.button:hover {
+    background-color: #0077b6;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* =========================
+   Small text-style buttons (like "Let's Play A Game")
+   ========================= */
+.button-small {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+
+/* =========================
+   Game output boxes
+   ========================= */
+.game-output {
+    background-color: #f0f8ff;
+    border-radius: 8px;          /* slightly smaller radius */
+    padding: 10px;               /* less padding */
+    margin-bottom: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;             /* smaller font */
+    color: #003366;
+    line-height: 1.4;            /* tighter spacing */
+    white-space: pre-wrap;
+    max-height: 200px;           /* smaller max height */
+    overflow-y: auto;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* lighter shadow */
+}
+
+.game-output.items {
+    background-color: #f0f8ff;
+    border-radius: 8px;
+    padding: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #003366;
+    line-height: 1.4;
+    white-space: nowrap;       /* keep everything in one line */
+    overflow-x: auto;          /* scroll horizontally if too long */
+    overflow-y: hidden;        /* no vertical scroll */
+}
+
+
+/* Section headers */
+.game-section {
+    font-weight: 600;
+    color: #0077b6;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+/* Inline list pills for inventory or room items */
+.inline-list {
+    background-color: #e0f7fa;
+    border-radius: 3px;       /* smaller pill */
+    padding: 2px 4px;         /* tiny padding */
+    margin: 0 2px 2px 0;      /* small spacing */
+    display: inline-block;
+    font-size: 15px;          /* smaller font */
+    color: #005066;
+}
+
+
+.game-debug {
+    background-color: #fff3e0;
+    border-radius: 6px;
+    padding: 4px 8px;       /* less padding */
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #663300;
+    line-height: 1.15;       /* tight vertical spacing */
+    white-space: pre-wrap;
+    width: 100%;            /* fills the content container */
+    box-sizing: border-box; /* ensures padding doesn’t overflow */
+}
+
+.game-output.events {
+    max-height: 100px;      /* same height as output window */
+    overflow-y: auto;       /* scroll if it gets bigger */
+    padding: 5px;           /* small padding */
+    border: 1px solid #ccc; /* optional, just like output box */
 }

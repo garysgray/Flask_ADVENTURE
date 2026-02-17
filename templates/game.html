@@ -7,50 +7,78 @@
 {% block body %}
 <div class="content">
     <h1 style="text-align: center">Adventure Game</h1>
-    <div class="form">
-        <form action="/game/{{db_player.id}}" method="POST" style="text-align: center">
+
+    <!-- Command Input -->
+    <div class="form" style="text-align: center;">
+        {% if cmd %}
+            <div class="last-cmd" style="margin-bottom: 10px;">
+                Last Command: <strong>{{ cmd }}</strong>
+            </div>
+        {% endif %}
+
+        <form action="/game/{{ db_player.id }}" method="POST">
             <input class="input-element" type="text" name="cmd" id="cmd" autofocus autocomplete="off" required>
             <input class="button" type="submit" value="CMD">
         </form>
     </div>
-    <br>
-    {% if debug1 %}
-        <div>OUTPUT:  {{ debug1['CMD_RESPONSE'] }}</div>
-        <br>
-        <div>ROOM:    {{ debug1['ROOM_DESCRIPTION']}}</div>
-        <br>
-        <div>EXITS:    {{ debug1['ROOM_EXITS'] }}</div>
-        <br>
-        <div>ROOM ITEMS:</div>
-            {% for item in debug1['ROOM_INVENTORY'] %}
-            {{ item.name }},
-            {% endfor %}
-    {% endif %} 
-    <br>
-    <br>
-    <div>PLAYER INVENTORY:</div>
-    {% if player_inv %}
-        {% for item in player_inv %}
-            {{  item.name }},
-        {% endfor %}
-    {% endif %} 
-    <br>
-    <br>
-    <div style="text-align: center"><a  href="{{ url_for('index') }}">Back to Game Portal</a></div>
-    <h1 style="text-align: center">Debugging</h1>
-     
-    <div>PLAYER IN DATABASE</div>
-    <div>ID: {{ db_player['id'] }}</div>
-    <div>USER: {{ db_player['username'] }}</div>
-    <div>LOCATION: {{ db_player['location'] }}</div>
-    <div>DB CMD: {{ db_player['cmd_info'] }}</div>
-    <br>
-    <div>INVENTORY:</div>
-    <div>{{ db_player['player_inventory'] }}</div>
-    <br>
-    <div>ALL_ROOM_ITEMS: {{ db_player['room_inventory'] }}</div>
-    <br>
-    <br>
-</div>
 
+    <br>
+
+    <!-- Game Output -->
+    {% if debug1 %}
+        <div class="game-section">OUTPUT</div>
+        <div class="game-output">{{ debug1['CMD_RESPONSE'] }}</div>
+
+        <!-- Event Messages: below OUTPUT -->
+        {% if debug1['EVENT_MESSAGES'] and debug1['EVENT_MESSAGES']|length > 0 %}
+        <div class="game-section">EVENTS</div>
+        <div class="game-output" style="max-height: 60px; overflow-y: auto; font-size:0.9em; color: darkorange; margin-top:3px;">
+            {% for message in debug1['EVENT_MESSAGES'] %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="game-section">ROOM DESCRIPTION</div>
+        <div class="game-output">{{ debug1['ROOM_DESCRIPTION'] }}</div>
+
+        <div class="game-section">EXITS</div>
+        <div class="game-output">{{ debug1['ROOM_EXITS'] }}</div>
+
+        <div class="game-section">ROOM ITEMS</div>
+        <div class="game-output items">
+            {% for item in debug1['ROOM_INVENTORY'] %}
+                <span class="inline-list">{{ item.name }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Player Inventory -->
+    <div class="game-section">PLAYER INVENTORY</div>
+    <div class="game-output items">
+        {% if player_inv %}
+            {% for item in player_inv %}
+                <span class="inline-list">{{ item.name }}</span>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <br>
+
+    <!-- Back Button -->
+    <div style="text-align: center">
+        <a href="{{ url_for('index') }}" class="button-small">Back to Game Portal</a>
+    </div>
+
+    <!-- Debugging Section -->
+    <h1 style="text-align: center">Debugging</h1>
+    <div class="game-debug">
+        <div>ID: {{ db_player['id'] }}</div>
+        <div>USER: {{ db_player['username'] }}</div>
+        <div>LOCATION: {{ db_player['location'] }}</div>
+        <div>DB CMD: {{ db_player['cmd_info'] }}</div>
+        <div>INVENTORY: {{ db_player['player_inventory'] }}</div>
+        <div>ALL ROOM ITEMS: {{ db_player['room_inventory'] }}</div>
+    </div>
+</div>
 {% endblock %}
