@@ -1,19 +1,16 @@
-# Virtual environments
-env/
-venv/
-
 # Python cache
 __pycache__/
 *.pyc
 
-# Database
+# Environment / local settings
+env/
 instance/
 *.db
 
-# Local / temp
-filelist.txt
+# Temporary or personal files
 stuff/
+filelist.txt
 
-# OS junk
+# VSCode / OS specific
+.vscode/
 .DS_Store
-Thumbs.db
