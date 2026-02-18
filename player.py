@@ -1,16 +1,15 @@
 class Player:
-    def __init__(self, game_map=None):
+    def __init__(self, game_map=None, use_responses=None):
         self.id = None
         self.pos_x = 0
         self.pos_y = 0
         self.level = 0
         self.inventory = []
         self.directions = ['north', 'south', 'east', 'west', 'up', 'down']
-
         self.visited_rooms = []       # Rooms the player has visited
         self.completed_events = []    # Completed in-game events
-
         self.game_map = game_map
+        self.use_responses = use_responses or {}
 
     def get_location(self):
         """Return current player coordinates."""
@@ -80,22 +79,7 @@ class Player:
         return False  # Invalid move
 
     def use(self, possible_item):
-        """Use an item from inventory and return its effect text."""
-        use_responses = {
-            'knife': "You slash the air menacingly. The knife feels sharp.",
-            'watch': "It reads 3:47pm, time is passing...",
-            'beer': "You drink it. Warm and flat but hits the spot. The bottle is now empty.",
-            'skateboard': "You ride it down the hall, feeling rad!",
-            'baseball': "You toss it up and catch it.",
-            'bat': "You swing it through the air. Whoosh!",
-            'speaker': "You turn it on. Music fills the room.",
-            'axe': "You swing it. It feels heavy and powerful.",
-            'comic': "You flip through it. Looks interesting.",
-            'sword': "You swing it. It gleams in the light.",
-            'phone': "You turn it on. No signal.",
-        }
-
         for obj in self.inventory:
             if obj.name in possible_item:
-                return use_responses.get(obj.name, f"You use the {obj.name}.")
+                return self.use_responses.get(obj.name, f"You use the {obj.name}.")
         return False

@@ -1,0 +1,52 @@
+{
+        "items": {
+        "knife":      {"description": "It's sharp",                  "use": "You slash the air menacingly. The knife feels sharp."},
+        "watch":      {"description": "It's ticking",                "use": "It reads 3:47pm, time is passing..."},
+        "beer":       {"description": "It looks tasty",              "use": "You drink it. Warm and flat but hits the spot."},
+        "skateboard": {"description": "It's an IOU board!!!!",       "use": "You ride it down the hall, feeling rad!"},
+        "baseball":   {"description": "It's an official MLB baseball","use": "You toss it up and catch it."},
+        "bat":        {"description": "It's a nice wooden bat",      "use": "You swing it through the air. Whoosh!"},
+        "speaker":    {"description": "It's a bluetooth speaker",    "use": "You turn it on. Music fills the room."},
+        "axe":        {"description": "It's a trusty axe",           "use": "You swing it. It feels heavy and powerful."},
+        "comic":      {"description": "It's a classic comic book",   "use": "You flip through it. Looks interesting."},
+        "sword":      {"description": "It's well balanced",          "use": "You swing it. It gleams in the light."},
+        "phone":      {"description": "It's the latest and greatest","use": "You turn it on. No signal."}
+    },
+
+    "rooms": [
+        {"name": "red",    "exits": ["south", "east"],       "description": "It's a reddish colored room",                          "items": ["baseball", "speaker"], "exit_destinations": {}},
+        {"name": "blue",   "exits": ["south", "west"],       "description": "It's a blueish colored room",                          "items": ["beer"],                "exit_destinations": {}},
+        {"name": "yellow", "exits": ["north", "east"],       "description": "It's a yellow room with a locked door to the west.", "items": ["axe", "skateboard"], "exit_destinations": {}},
+        {"name": "green",  "exits": ["north", "west"],       "description": "It's a greenish colored room",                         "items": ["comic"],               "exit_destinations": {}},
+        {"name": "black",  "exits": ["east"],                "description": "It's a dark black room",                               "items": ["sword"],               "exit_destinations": {}},
+        {"name": "white",  "exits": ["west", "east"],        "description": "It's a bright white room",                             "items": ["phone"],               "exit_destinations": {}},
+        {"name": "purple", "exits": ["west"],                "description": "It's a bright purple room",                            "items": ["bat"],                 "exit_destinations": {}}
+    ],
+
+
+    "events": [
+        {
+            "id": "all_rooms_visited", "type": "achievement", "check_type": "all_rooms_visited",
+            "parameters": {"required_rooms": ["red", "blue", "yellow", "green"]},
+            "result": {
+                "open_exit": [
+                    {"room": "red",   "direction": "up",   "destination": {"floor": 1, "x": 0, "y": 0}},
+                    {"room": "black", "direction": "down", "destination": {"floor": 0, "x": 0, "y": 0}}
+                ],
+                "message": "You hear a grinding sound from above..."
+            }
+        },
+        {
+            "id": "key_opens_door", "type": "puzzle", "check_type": "item_used_with",
+            "parameters": {"item": "axe", "target": "door", "room": "yellow"},
+            "result": {
+                "open_exit": [
+                    {"room": "yellow", "direction": "west", "destination": {"floor": 1, "x": 2, "y": 0}},
+                    {"room": "purple", "direction": "east", "destination": {"floor": 0, "x": 0, "y": 1}}
+                ],
+                "message": "You smash the door open with the axe!"
+            }
+        }
+    ]
+}
+

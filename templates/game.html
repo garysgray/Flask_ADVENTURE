@@ -20,9 +20,11 @@
             <input class="input-element" type="text" name="cmd" id="cmd" autofocus autocomplete="off" required>
             <input class="button" type="submit" value="CMD">
         </form>
-    </div>
 
-    <br>
+        <div style="font-size: 1em; color: darkblue; margin-top: 4px; text-align: center;">
+            Tip: Type <strong>help</strong> to see commands.
+        </div>
+    </div>
 
     <!-- Game Output -->
     {% if debug1 %}
@@ -32,7 +34,7 @@
         <!-- Event Messages: below OUTPUT -->
         {% if debug1['EVENT_MESSAGES'] and debug1['EVENT_MESSAGES']|length > 0 %}
         <div class="game-section">EVENTS</div>
-        <div class="game-output" style="max-height: 60px; overflow-y: auto; font-size:0.9em; color: darkorange; margin-top:3px;">
+        <div class="game-output" style="font-size:0.9em; color: darkorange; margin-top:3px;">
             {% for message in debug1['EVENT_MESSAGES'] %}
                 {{ message }}<br>
             {% endfor %}

@@ -132,7 +132,6 @@ a:hover {
     font-size: 13px;
 }
 
-
 /* =========================
    Game output boxes
    ========================= */
@@ -145,7 +144,7 @@ a:hover {
     font-size: 13px;             /* smaller font */
     color: #003366;
     line-height: 1.4;            /* tighter spacing */
-    white-space: pre-wrap;
+    white-space: normal;
     max-height: 200px;           /* smaller max height */
     overflow-y: auto;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* lighter shadow */
@@ -163,7 +162,6 @@ a:hover {
     overflow-x: auto;          /* scroll horizontally if too long */
     overflow-y: hidden;        /* no vertical scroll */
 }
-
 
 /* Section headers */
 .game-section {
@@ -185,7 +183,6 @@ a:hover {
     font-size: 15px;          /* smaller font */
     color: #005066;
 }
-
 
 .game-debug {
     background-color: #fff3e0;

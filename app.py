@@ -31,42 +31,26 @@ class DB_Player(db.Model):
     def __repr__(self):
         return f'<DB_Player {self.id}>'
 
-
 # -------------------------------
 # Controller management
 # -------------------------------
-def get_controller():
-    """Get or create a controller for this session."""
-    if 'controller_id' not in session:
-        session['controller_id'] = id(Controller())
-
+def get_controller(player_id):
     if not hasattr(app, 'controllers'):
         app.controllers = {}
-
-    if session['controller_id'] not in app.controllers:
-        app.controllers[session['controller_id']] = Controller()
-
-    return app.controllers[session['controller_id']]
-
+    if player_id not in app.controllers:
+        app.controllers[player_id] = Controller()
+    return app.controllers[player_id]
 
 # -------------------------------
 # Routes
 # -------------------------------
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    ctrl = get_controller()
-    ctrl.State = State.LOAD
-    ctrl.player.pos_x = 0
-    ctrl.player.pos_y = 0
-    ctrl.player.inventory = ctrl.map.player_start_invent
-    ctrl.player.visited_rooms = []
-    ctrl.player.completed_events = []
-    ctrl.player.level = 0
-    ctrl.get_new_map()
-
     if request.method == 'POST':
         username = request.form['username']
-        loc, inv, rooms = ctrl.save_stuff_to_data_base()
+        temp_ctrl = Controller()
+        temp_ctrl.player.inventory = temp_ctrl.map.player_start_invent
+        loc, inv, rooms = temp_ctrl.save_stuff_to_data_base()
         new_player = DB_Player(username, loc, inv, rooms, "NONE")
         try:
             db.session.add(new_player)
@@ -78,10 +62,9 @@ def index():
     players = DB_Player.query.order_by(DB_Player.date_create).all()
     return render_template('index.html', players=players)
 
-
 @app.route('/game/<int:id>', methods=['GET', 'POST'])
 def game(id):
-    ctrl = get_controller()
+    ctrl = get_controller(id)
     db_player = DB_Player.query.get_or_404(id)
 
     if request.method == 'POST':
@@ -109,10 +92,6 @@ def game(id):
         db_player.cmd_info = "help"
         db.session.commit()
 
-    current_room = ctrl.get_room()
-    if current_room:
-        print(f"[DEBUG] Floor: {ctrl.player.level}, Y: {ctrl.player.pos_y}, X: {ctrl.player.pos_x} -> {current_room.name}")
-
     return render_template(
         'game.html',
         cmd=db_player.cmd_info,
@@ -120,7 +99,6 @@ def game(id):
         debug1=ctrl.room_info,
         player_inv=ctrl.player.inventory
     )
-
 
 @app.route('/delete/<int:id>')
 def delete(id):
@@ -131,7 +109,6 @@ def delete(id):
         return redirect('/')
     except Exception as e:
         return f'Error deleting player: {e}'
-
 
 if __name__ == "__main__":
     app.run(debug=True)
