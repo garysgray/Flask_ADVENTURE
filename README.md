@@ -1,3 +1,4 @@
+![Game Splash](static/images/flask_splash.png)
 # Flask Adventure
 
 A browser-based text adventure game engine built with Flask. Started as a simple experiment and evolved into a structured, session-driven adventure engine — built from the ground up, not copied from tutorials.
