@@ -1,30 +1,27 @@
 {% extends 'base.html' %}
-
 {% block head %}
     <title>Game Portal</title>
 {% endblock %}
-
 {% block body %}
 <div class="content">
     <h1>Game Portal</h1>
 
     {% if players|length < 1 %}
-        <h4>There are no Players. Create one below!</h4>
+        <h2>No players yet — create one below</h2>
     {% else %}
         <table>
             <tr>
-                <th>USERNAME</th>
-                <th>Added</th>
-                <th>GAME</th>
-                <th>DELETE</th>
+                <th>Username</th>
+                <th>Created</th>
+                <th>Play</th>
+                <th>Delete</th>
             </tr>
             {% for player in players %}
             <tr>
                 <td>{{ player.username }}</td>
                 <td>{{ player.date_create.date() }}</td>
-                <td><a href="/game/{{player.id}}" class="button-small">PLAY ME</a></td>
+                <td><a href="/game/{{ player.id }}" class="button-small">Play</a></td>
                 <td><a href="/delete/{{ player.id }}">Delete</a></td>
-                
             </tr>
             {% endfor %}
         </table>
@@ -32,24 +29,12 @@
 
     <div class="form">
         <form action="/" method="POST">
-            <input 
-            type="text" 
-            class="input-element" 
-            name="username" 
-            id="username" 
-            placeholder="Enter username" 
-            autocomplete="off" 
-            autocorrect="off" 
-            autocapitalize="none" 
-            spellcheck="false"
-            required
-        >
+            <input type="text" class="input-element" name="username" id="username"
+                placeholder="Enter username" autocomplete="off" autocorrect="off"
+                autocapitalize="none" spellcheck="false" required>
             <input type="submit" class="button" value="New Player">
         </form>
     </div>
 
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="/play" class="button-small">Let's Play A Game</a>
-    </div>
 </div>
 {% endblock %}

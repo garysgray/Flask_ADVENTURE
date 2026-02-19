@@ -27,9 +27,13 @@ class Controller:
         try:
             floor = self.map.game_map[self.player.level]
             room = floor[self.player.pos_y][self.player.pos_x]
+            pos = (self.player.level, self.player.pos_y, self.player.pos_x)
+            if pos not in self.player.visited_rooms:
+                self.player.visited_rooms.append(pos)
             return room
         except:
             return False
+
 
     def get_new_map(self):
         self.map = Map()

@@ -1,205 +1,363 @@
 /* =========================
-   Base styles
+   Import Fonts
    ========================= */
-body, html {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #a0e9ff, #80d0f0);
-    color: #333;
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Share+Tech+Mono&display=swap');
+
+/* =========================
+   CSS Variables
+   ========================= */
+:root {
+    --bg-dark:      #111114;
+    --bg-panel:     #1a1a24;
+    --bg-input:     #22223a;
+    --border:       #333350;
+    --border-glow:  #6a5f8b;
+    --accent:       #e0ba5a;
+    --accent-dim:   #7a6030;
+    --accent-glow:  rgba(224,186,90,0.15);
+    --text-main:    #e0d5bc;
+    --text-dim:     #9a9080;
+    --text-bright:  #f8f0d8;
+    --green:        #5fd68a;
+    --green-glow:   rgba(95,214,138,0.3);
+    --blue:         #4a7fa5;
+    --danger:       #c94c4c;
+    --section-font: 'MedievalSharp', serif;
+    --body-font:    'Crimson Text', Georgia, serif;
+    --mono-font:    'Share Tech Mono', monospace;
 }
 
 /* =========================
-   Content box
+   Base
+   ========================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body, html {
+    font-family: var(--body-font);
+    background-color: var(--bg-dark);
+    background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(74,63,107,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(224,186,90,0.07) 0%, transparent 60%);
+    color: var(--text-main);
+    min-height: 100vh;
+}
+
+/* =========================
+   Content
    ========================= */
 .content {
     margin: 0 auto;
-    width: 90%;           /* wider page */
-    max-width: 1200px;    /* don’t go crazy on huge screens */
+    width: 92%;
+    max-width: 900px;
+    padding: 20px 0 40px;
     font-size: 16px;
 }
+
 /* =========================
    Headings
    ========================= */
 h1 {
+    font-family: var(--section-font);
     text-align: center;
-    color: #0077b6;
-    margin-bottom: 15px;
-}
-
-h4 {
-    text-align: center;
-    color: #555;
-    margin-bottom: 25px;
-}
-
-/* =========================
-   Table styles
-   ========================= */
-table {
-    width: 100%;
-    border-collapse: collapse;
+    color: var(--accent);
+    font-size: 2.2em;
+    letter-spacing: 3px;
     margin-bottom: 20px;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-shadow: 0 0 20px rgba(224,186,90,0.5), 0 0 40px rgba(224,186,90,0.15);
 }
 
-th, td {
-    padding: 10px;
+h2 {
+    font-family: var(--section-font);
     text-align: center;
-}
-
-th {
-    background-color: #0096c7;
-    color: #fff;
-    font-weight: 600;
-}
-
-td {
-    background-color: #f1f5f9;
-}
-
-tr:nth-child(even) td {
-    background-color: #e0f7fa;
-}
-
-a {
-    color: #0077b6;
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-a:hover {
-    color: #023e8a;
-    text-decoration: underline;
+    color: var(--accent);
+    font-size: 1.3em;
+    letter-spacing: 2px;
+    margin: 20px 0 10px;
+    text-shadow: 0 0 10px rgba(224,186,90,0.3);
 }
 
 /* =========================
-   Form & Inputs
+   Links
    ========================= */
+a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s, text-shadow 0.2s;
+}
+a:hover {
+    color: var(--text-bright);
+    text-shadow: 0 0 8px var(--accent);
+}
+
+/* =========================
+   Form & Input
+   ========================= */
+.form { text-align: center; margin-bottom: 15px; }
+
 .form form {
     display: flex;
-    justify-content: center;  /* centers the items horizontally */
-    gap: 10px;                /* space between input and button */
-    flex-wrap: wrap;          /* keeps it responsive on small screens */
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
+
+.last-cmd {
+    font-family: var(--mono-font);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+.last-cmd strong { color: var(--accent); }
 
 .input-element {
-    font-size: 16px; 
-    height: 35px;
+    font-family: var(--mono-font);
+    font-size: 15px;
+    height: 38px;
     width: 65%;
-    padding: 0 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    padding: 0 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-glow);
+    border-radius: 4px;
+    color: var(--text-bright);
     outline: none;
     transition: all 0.2s;
+    letter-spacing: 1px;
 }
-
 .input-element:focus {
-    border-color: #0096c7;
-    box-shadow: 0 0 6px rgba(0,150,199,0.3);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow), inset 0 0 8px rgba(224,186,90,0.05);
 }
+.input-element::placeholder { color: var(--text-dim); }
+
+.tip-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-style: italic;
+}
+.tip-text strong { color: var(--accent-dim); }
 
 /* =========================
    Buttons
    ========================= */
 .button {
-    height: 35px;
-    padding: 0 15px;
-    margin-left: 5px;
-    border: none;
-    border-radius: 8px;
-    background-color: #0096c7;
-    color: white;
+    height: 38px;
+    padding: 0 18px;
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    background: linear-gradient(135deg, #2a2010, #1a1508);
+    color: var(--accent);
+    font-family: var(--mono-font);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
+    letter-spacing: 1px;
     transition: all 0.2s;
 }
-
 .button:hover {
-    background-color: #0077b6;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    background: linear-gradient(135deg, #3a3015, #2a2010);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+    color: var(--text-bright);
 }
 
-/* =========================
-   Small text-style buttons (like "Let's Play A Game")
-   ========================= */
 .button-small {
-    height: 30px;
-    padding: 0 12px;
-    font-size: 13px;
+    height: 32px;
+    padding: 0 14px;
+    font-size: 12px;
+    border: 1px solid var(--border-glow);
+    border-radius: 4px;
+    background: var(--bg-input);
+    color: var(--text-dim);
+    font-family: var(--mono-font);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+.button-small:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    text-shadow: none;
 }
 
 /* =========================
-   Game output boxes
+   Game Sections
+   ========================= */
+.game-section {
+    font-family: var(--section-font);
+    font-weight: normal;
+    color: var(--accent);
+    margin-top: 14px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 1;
+}
+
+/* =========================
+   Game Output Boxes
    ========================= */
 .game-output {
-    background-color: #f0f8ff;
-    border-radius: 8px;          /* slightly smaller radius */
-    padding: 10px;               /* less padding */
-    margin-bottom: 10px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;             /* smaller font */
-    color: #003366;
-    line-height: 1.4;            /* tighter spacing */
-    white-space: normal;
-    max-height: 200px;           /* smaller max height */
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-glow);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    font-family: var(--body-font);
+    font-size: 16px;
+    color: var(--text-main);
+    line-height: 1.6;
     overflow-y: auto;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* lighter shadow */
 }
 
 .game-output.items {
-    background-color: #f0f8ff;
-    border-radius: 8px;
-    padding: 8px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    color: #003366;
-    line-height: 1.4;
-    white-space: nowrap;       /* keep everything in one line */
-    overflow-x: auto;          /* scroll horizontally if too long */
-    overflow-y: hidden;        /* no vertical scroll */
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 12px;
 }
 
-/* Section headers */
-.game-section {
-    font-weight: 600;
-    color: #0077b6;
-    margin-top: 12px;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    font-size: 14px;
-}
-
-/* Inline list pills for inventory or room items */
+/* =========================
+   Inline Item Pills
+   ========================= */
 .inline-list {
-    background-color: #e0f7fa;
-    border-radius: 3px;       /* smaller pill */
-    padding: 2px 4px;         /* tiny padding */
-    margin: 0 2px 2px 0;      /* small spacing */
+    background: var(--bg-input);
+    border: 1px solid var(--border-glow);
+    border-radius: 3px;
+    padding: 2px 8px;
+    margin: 0 3px 2px 0;
     display: inline-block;
-    font-size: 15px;          /* smaller font */
-    color: #005066;
-}
-
-.game-debug {
-    background-color: #fff3e0;
-    border-radius: 6px;
-    padding: 4px 8px;       /* less padding */
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--mono-font);
     font-size: 13px;
-    color: #663300;
-    line-height: 1.15;       /* tight vertical spacing */
-    white-space: pre-wrap;
-    width: 100%;            /* fills the content container */
-    box-sizing: border-box; /* ensures padding doesn’t overflow */
+    color: var(--accent);
+    letter-spacing: 0.5px;
 }
 
-.game-output.events {
-    max-height: 100px;      /* same height as output window */
-    overflow-y: auto;       /* scroll if it gets bigger */
-    padding: 5px;           /* small padding */
-    border: 1px solid #ccc; /* optional, just like output box */
+/* =========================
+   Debug Box
+   ========================= */
+.game-debug {
+    background: #0a0a0d;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: var(--mono-font);
+    font-size: 12px;
+    color: #e4d1d1;
+    line-height: 1.6;
+    width: 100%;
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+/* =========================
+   Divider
+   ========================= */
+.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+    opacity: 0.5;
+}
+
+/* =========================
+   Map
+   ========================= */
+.map-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 12px auto;
+}
+.map-row {
+    display: flex;
+    gap: 4px;
+}
+.map-cell {
+    width: 44px;
+    height: 44px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--mono-font);
+    font-size: 11px;
+    font-weight: bold;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+.map-cell.hidden {
+    background: #0a0a0d;
+    border-color: #1a1a20;
+}
+.map-cell.room {
+    background: var(--bg-input);
+    border-color: var(--border-glow);
+    color: var(--text-dim);
+}
+.map-cell.player {
+    background: linear-gradient(135deg, #1a3a20, #0d2010);
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 10px var(--green-glow), inset 0 0 8px rgba(95,214,138,0.1);
+    font-size: 13px;
+}
+
+/* =========================
+   Table (index page)
+   ========================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-family: var(--body-font);
+}
+th {
+    background: var(--bg-input);
+    color: var(--accent);
+    font-family: var(--section-font);
+    font-weight: normal;
+    letter-spacing: 1px;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-glow);
+    text-align: center;
+}
+td {
+    background: var(--bg-panel);
+    color: var(--text-main);
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+}
+tr:hover td { background: var(--bg-input); }
+
+@media (max-width: 600px) {
+    .content {
+        width: 96%;
+        font-size: 14px;
+        padding: 8px 0 20px;
+    }
+    h1 { font-size: 1.4em; margin-bottom: 10px; }
+    h2 { font-size: 1em; margin: 10px 0 6px; }
+    .form { margin-bottom: 8px; }
+    .input-element { width: 68%; font-size: 13px; height: 34px; }
+    .button { height: 34px; font-size: 12px; padding: 0 12px; }
+    .game-output { font-size: 15px; padding: 6px 8px; margin-bottom: 4px; }
+    .game-section { font-size: 13px; margin-top: 8px; margin-bottom: 2px; }
+    .map-cell { width: 32px; height: 32px; font-size: 9px; }
+    .map-grid { margin: 6px auto; gap: 3px; }
+    .map-row { gap: 3px; }
+    .inline-list { font-size: 14px; padding: 1px 5px; }
+    table { font-size: 12px; }
+    td, th { padding: 5px; }
+    .game-debug { font-size: 10px; padding: 5px 8px; }
+    .content { font-size: 15px; }
 }

@@ -21,24 +21,48 @@
             <input class="button" type="submit" value="CMD">
         </form>
 
-        <div style="font-size: 1em; color: darkblue; margin-top: 4px; text-align: center;">
+        <div class="tip-text">
             Tip: Type <strong>help</strong> to see commands.
         </div>
     </div>
+
+    <!-- Player Map -->
+    <h2>Player Map</h2>
+    <div class="map-grid">
+        {% for row in map_layout %}
+            <div class="map-row">
+                {% for cell_data in row %}
+                    {% set pos = cell_data['pos'] %}
+                    <div class="map-cell
+                        {% if pos == player_pos %}player
+                        {% elif pos in visited_rooms %}room
+                        {% else %}hidden{% endif %}">
+                        
+                        {% if pos == player_pos %}P{% endif %}
+                        {% if cell_data['cell'] and (pos in visited_rooms or pos == player_pos) %}
+                            {% if 'up' in cell_data['cell'].exits %}⬆{% endif %}
+                            {% if 'down' in cell_data['cell'].exits %}⬇{% endif %}
+                            {% if 'west' in cell_data['cell'].exit_destinations or 'east' in cell_data['cell'].exit_destinations %}✦{% endif %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+    
 
     <!-- Game Output -->
     {% if debug1 %}
         <div class="game-section">OUTPUT</div>
         <div class="game-output">{{ debug1['CMD_RESPONSE'] }}</div>
 
-        <!-- Event Messages: below OUTPUT -->
-        {% if debug1['EVENT_MESSAGES'] and debug1['EVENT_MESSAGES']|length > 0 %}
-        <div class="game-section">EVENTS</div>
-        <div class="game-output" style="font-size:0.9em; color: darkorange; margin-top:3px;">
-            {% for message in debug1['EVENT_MESSAGES'] %}
-                {{ message }}<br>
-            {% endfor %}
-        </div>
+        {% if debug1['EVENT_MESSAGES'] %}
+            <div class="game-section">EVENTS</div>
+            <div class="game-output" style="color: var(--accent); border-left-color: var(--accent);">
+                {% for message in debug1['EVENT_MESSAGES'] %}
+                    {{ message }}<br>
+                {% endfor %}
+            </div>
         {% endif %}
 
         <div class="game-section">ROOM DESCRIPTION</div>
@@ -64,13 +88,16 @@
             {% endfor %}
         {% endif %}
     </div>
-
     <br>
 
     <!-- Back Button -->
-    <div style="text-align: center">
+    <div style="text-align: center; margin-top: 10px;">
         <a href="{{ url_for('index') }}" class="button-small">Back to Game Portal</a>
     </div>
+
+    <br>
+    <br>
+    <br>
 
     <!-- Debugging Section -->
     <h1 style="text-align: center">Debugging</h1>

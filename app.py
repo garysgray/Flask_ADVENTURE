@@ -92,12 +92,35 @@ def game(id):
         db_player.cmd_info = "help"
         db.session.commit()
 
+    # Safe map variable
+    map_layout = getattr(ctrl.map, 'game_map', [])
+    current_floor = ctrl.player.level
+    player_pos = (current_floor, ctrl.player.pos_y, ctrl.player.pos_x)
+
+    visited_rooms = []
+    for pos in ctrl.player.visited_rooms:
+        if isinstance(pos, (list, tuple)) and len(pos) == 3:
+            visited_rooms.append((pos[0], pos[1], pos[2]))
+
+    map_with_indices = []
+    for r_idx, row in enumerate(map_layout[current_floor]):
+        row_with_indices = []
+        for c_idx, cell in enumerate(row):
+            row_with_indices.append({
+                'pos': (current_floor, r_idx, c_idx),
+                'cell': cell
+            })
+        map_with_indices.append(row_with_indices)
+
     return render_template(
         'game.html',
         cmd=db_player.cmd_info,
         db_player=db_player,
         debug1=ctrl.room_info,
-        player_inv=ctrl.player.inventory
+        player_inv=ctrl.player.inventory,
+        map_layout=map_with_indices,
+        player_pos=player_pos,
+        visited_rooms=visited_rooms
     )
 
 @app.route('/delete/<int:id>')
