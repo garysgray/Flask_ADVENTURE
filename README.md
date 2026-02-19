@@ -1,4 +1,4 @@
-![Game Splash](Flask_ADVENTURE/static/images/flask_splash.png)
+![Game Splash](static/images/flask_splash.png)
 
 # Flask Adventure
 
