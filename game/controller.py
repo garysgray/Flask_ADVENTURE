@@ -1,11 +1,10 @@
-from gameObjects import Map
-from player import Player
+from game.gameObjects import Map
+from game.player import Player
+from game.parser import Parser
+from game.actions import ActionHandler
+from game.events import EventManager
+from game.persistence import PersistenceManager
 from enum import Enum
-
-from parser import Parser
-from actions import ActionHandler
-from events import EventManager
-from persistence import PersistenceManager
 
 class State(Enum):
     LOAD = 0

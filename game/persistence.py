@@ -1,5 +1,5 @@
 import json
-from gameObjects import Item
+from game.gameObjects import Item
 
 class PersistenceManager:
     def __init__(self, controller):

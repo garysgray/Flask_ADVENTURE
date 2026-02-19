@@ -67,6 +67,6 @@ class Map:
 
     def _load_data(self):
         import os
-        path = os.path.join(os.path.dirname(__file__), 'data\game_data.json')
+        path = os.path.join(os.path.dirname(__file__), '..', 'data', 'game_data.json')
         with open(path) as f:
             return json.load(f)

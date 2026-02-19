@@ -106,16 +106,20 @@ Map supports multiple floors with teleport-style exit destinations between floor
 
 ```
 flask_adventure/
+│
 ├── static/
 │   ├── css/
 │   │   └── main.css
 │   └── images/
+│
 ├── templates/
 │   ├── base.html
 │   ├── index.html
 │   └── game.html
+│
 ├── data/
 │   └── game_data.json
+│
 ├── game/
 │   ├── __init__.py
 │   ├── controller.py
@@ -125,8 +129,10 @@ flask_adventure/
 │   ├── persistence.py
 │   ├── gameObjects.py
 │   └── player.py
+│
 ├── instance/
 │   └── test.db
+│
 ├── app.py
 ├── Procfile
 └── requirements.txt

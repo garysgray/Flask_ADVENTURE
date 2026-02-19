@@ -7,17 +7,18 @@
    CSS Variables
    ========================= */
 :root {
-    --bg-dark:      #111114;
-    --bg-panel:     #1a1a24;
-    --bg-input:     #22223a;
-    --border:       #333350;
-    --border-glow:  #6a5f8b;
-    --accent:       #e0ba5a;
+    --bg-dark:      #0a0d14;
+    --bg-panel:     rgba(12, 16, 28, 0.75);
+    --bg-input:     rgba(18, 22, 40, 0.85);
+    --bg-glass:     rgba(10, 14, 26, 0.6);
+    --border:       rgba(80, 90, 130, 0.3);
+    --border-glow:  rgba(140, 120, 180, 0.5);
+    --accent:       #e8c46a;
     --accent-dim:   #7a6030;
-    --accent-glow:  rgba(224,186,90,0.15);
-    --text-main:    #e0d5bc;
-    --text-dim:     #9a9080;
-    --text-bright:  #f8f0d8;
+    --accent-glow:  rgba(232,196,106,0.2);
+    --text-main:    #ddd5be;
+    --text-dim:     #8a8070;
+    --text-bright:  #f5ecd8;
     --green:        #5fd68a;
     --green-glow:   rgba(95,214,138,0.3);
     --blue:         #4a7fa5;
@@ -34,12 +35,15 @@
 
 body, html {
     font-family: var(--body-font);
-    background-color: var(--bg-dark);
-    background-image:
-        radial-gradient(ellipse at 20% 20%, rgba(74,63,107,0.2) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(224,186,90,0.07) 0%, transparent 60%);
     color: var(--text-main);
     min-height: 100vh;
+    background:
+        linear-gradient(to bottom, rgba(5,8,18,0.45) 0%, rgba(5,8,18,0.2) 50%, rgba(5,8,18,0.55) 100%),
+        url("/static/images/background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 /* =========================
@@ -63,7 +67,10 @@ h1 {
     font-size: 2.2em;
     letter-spacing: 3px;
     margin-bottom: 20px;
-    text-shadow: 0 0 20px rgba(224,186,90,0.5), 0 0 40px rgba(224,186,90,0.15);
+    text-shadow:
+        0 0 20px rgba(232,196,106,0.6),
+        0 0 60px rgba(232,196,106,0.2),
+        0 2px 4px rgba(0,0,0,0.8);
 }
 
 h2 {
@@ -73,7 +80,7 @@ h2 {
     font-size: 1.3em;
     letter-spacing: 2px;
     margin: 20px 0 10px;
-    text-shadow: 0 0 10px rgba(224,186,90,0.3);
+    text-shadow: 0 0 10px rgba(232,196,106,0.4), 0 2px 4px rgba(0,0,0,0.8);
 }
 
 /* =========================
@@ -107,6 +114,7 @@ a:hover {
     color: var(--text-dim);
     margin-bottom: 8px;
     letter-spacing: 1px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
 .last-cmd strong { color: var(--accent); }
 
@@ -123,10 +131,12 @@ a:hover {
     outline: none;
     transition: all 0.2s;
     letter-spacing: 1px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 .input-element:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 12px var(--accent-glow), inset 0 0 8px rgba(224,186,90,0.05);
+    box-shadow: 0 0 16px var(--accent-glow), inset 0 0 8px rgba(232,196,106,0.05);
 }
 .input-element::placeholder { color: var(--text-dim); }
 
@@ -135,6 +145,7 @@ a:hover {
     color: var(--text-dim);
     margin-top: 6px;
     font-style: italic;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
 }
 .tip-text strong { color: var(--accent-dim); }
 
@@ -146,7 +157,7 @@ a:hover {
     padding: 0 18px;
     border: 1px solid var(--accent-dim);
     border-radius: 4px;
-    background: linear-gradient(135deg, #2a2010, #1a1508);
+    background: rgba(42, 32, 16, 0.85);
     color: var(--accent);
     font-family: var(--mono-font);
     font-weight: 600;
@@ -154,11 +165,13 @@ a:hover {
     cursor: pointer;
     letter-spacing: 1px;
     transition: all 0.2s;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 .button:hover {
-    background: linear-gradient(135deg, #3a3015, #2a2010);
+    background: rgba(58, 48, 21, 0.9);
     border-color: var(--accent);
-    box-shadow: 0 0 12px var(--accent-glow);
+    box-shadow: 0 0 16px var(--accent-glow);
     color: var(--text-bright);
 }
 
@@ -168,7 +181,7 @@ a:hover {
     font-size: 12px;
     border: 1px solid var(--border-glow);
     border-radius: 4px;
-    background: var(--bg-input);
+    background: rgba(18, 22, 40, 0.8);
     color: var(--text-dim);
     font-family: var(--mono-font);
     cursor: pointer;
@@ -176,6 +189,8 @@ a:hover {
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 .button-small:hover {
     border-color: var(--accent);
@@ -196,16 +211,19 @@ a:hover {
     letter-spacing: 2px;
     text-transform: uppercase;
     opacity: 1;
+    text-shadow: 0 0 8px rgba(232,196,106,0.3), 0 1px 3px rgba(0,0,0,0.9);
 }
 
 /* =========================
-   Game Output Boxes
+   Game Output Boxes — Frosted Glass
    ========================= */
 .game-output {
     background: var(--bg-panel);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border);
-    border-left: 3px solid var(--border-glow);
-    border-radius: 4px;
+    border-left: 3px solid rgba(232, 196, 106, 0.7);
+    border-radius: 6px;
     padding: 10px 14px;
     margin-bottom: 6px;
     font-family: var(--body-font);
@@ -213,6 +231,7 @@ a:hover {
     color: var(--text-main);
     line-height: 1.6;
     overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .game-output.items {
@@ -226,7 +245,7 @@ a:hover {
    Inline Item Pills
    ========================= */
 .inline-list {
-    background: var(--bg-input);
+    background: rgba(18, 22, 40, 0.8);
     border: 1px solid var(--border-glow);
     border-radius: 3px;
     padding: 2px 8px;
@@ -242,13 +261,15 @@ a:hover {
    Debug Box
    ========================= */
 .game-debug {
-    background: #0a0a0d;
+    background: rgba(5, 5, 10, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 8px 12px;
     font-family: var(--mono-font);
     font-size: 12px;
-    color: #e4d1d1;
+    color: #c4b1b1;
     line-height: 1.6;
     width: 100%;
     margin-top: 20px;
@@ -291,22 +312,24 @@ a:hover {
     font-size: 11px;
     font-weight: bold;
     transition: all 0.2s;
-    border: 1px solid transparent;
+    border: 3px solid transparent;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 .map-cell.hidden {
-    background: #0a0a0d;
-    border-color: #1a1a20;
+    background: rgba(5, 5, 10, 0.7);
+    border-color: rgba(30, 30, 50, 0.8);
 }
 .map-cell.room {
-    background: var(--bg-input);
-    border-color: var(--border-glow);
+    background: rgba(18, 22, 40, 0.75);
+    border-color: rgba(140,120,180,0.5);
     color: var(--text-dim);
 }
 .map-cell.player {
-    background: linear-gradient(135deg, #1a3a20, #0d2010);
+    background: rgba(20, 50, 30, 0.85);
     border-color: var(--green);
     color: var(--green);
-    box-shadow: 0 0 10px var(--green-glow), inset 0 0 8px rgba(95,214,138,0.1);
+    box-shadow: 0 0 12px var(--green-glow), inset 0 0 8px rgba(95,214,138,0.1);
     font-size: 13px;
 }
 
@@ -320,7 +343,9 @@ table {
     font-family: var(--body-font);
 }
 th {
-    background: var(--bg-input);
+    background: rgba(18, 22, 40, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: var(--accent);
     font-family: var(--section-font);
     font-weight: normal;
@@ -330,21 +355,24 @@ th {
     text-align: center;
 }
 td {
-    background: var(--bg-panel);
+    background: rgba(12, 16, 28, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: var(--text-main);
     padding: 10px;
     text-align: center;
     border-bottom: 1px solid var(--border);
     font-size: 15px;
 }
-tr:hover td { background: var(--bg-input); }
+tr:hover td {
+    background: rgba(18, 22, 40, 0.85);
+}
 
+/* =========================
+   Mobile
+   ========================= */
 @media (max-width: 600px) {
-    .content {
-        width: 96%;
-        font-size: 14px;
-        padding: 8px 0 20px;
-    }
+    .content { width: 96%; font-size: 14px; padding: 8px 0 20px; }
     h1 { font-size: 1.4em; margin-bottom: 10px; }
     h2 { font-size: 1em; margin: 10px 0 6px; }
     .form { margin-bottom: 8px; }
@@ -359,5 +387,4 @@ tr:hover td { background: var(--bg-input); }
     table { font-size: 12px; }
     td, th { padding: 5px; }
     .game-debug { font-size: 10px; padding: 5px 8px; }
-    .content { font-size: 15px; }
 }
