@@ -26,29 +26,42 @@
         </div>
     </div>
 
-    <!-- Player Map -->
-    <h2>Player Map</h2>
-    <div class="map-grid">
-        {% for row in map_layout %}
-            <div class="map-row">
-                {% for cell_data in row %}
-                    {% set pos = cell_data['pos'] %}
-                    <div class="map-cell
-                        {% if pos == player_pos %}player
-                        {% elif pos in visited_rooms %}room
-                        {% else %}hidden{% endif %}">
-                        
-                        {% if pos == player_pos %}P{% endif %}
-                        {% if cell_data['cell'] and (pos in visited_rooms or pos == player_pos) %}
-                            {% if 'up' in cell_data['cell'].exits %}⬆{% endif %}
-                            {% if 'down' in cell_data['cell'].exits %}⬇{% endif %}
-                            {% if 'west' in cell_data['cell'].exit_destinations or 'east' in cell_data['cell'].exit_destinations %}✦{% endif %}
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endfor %}
+<h2>Player Map</h2>
+<div style="display: flex; justify-content: center;">
+    <div style="position: relative;">
+        <div style="position: absolute; right: 100%; top: 50%; transform: translateY(-50%); padding-right: 8px; font-family: var(--section-font); color: var(--accent); font-size: 13px; letter-spacing: 1px; text-align: center; opacity: 0.8;">
+            Floor<br>{{ player_pos[0] + 1 }}
+        </div>
+        <div class="map-grid">
+            {% for row in map_layout %}
+                <div class="map-row">
+                    {% for cell_data in row %}
+                        {% set pos = cell_data['pos'] %}
+                        <div class="map-cell
+                            {% if pos == player_pos %}player
+                            {% elif pos in visited_rooms %}room
+                            {% else %}hidden{% endif %}">
+
+                            {% if pos == player_pos %}P{% endif %}
+                            {% if cell_data['cell'] and (pos in visited_rooms or pos == player_pos) %}
+                                {% if 'up' in cell_data['cell'].exits %}⬆{% endif %}
+                                {% if 'down' in cell_data['cell'].exits %}⬇{% endif %}
+
+                                {% set has_teleport = namespace(found=false) %}
+                                {% for dir in cell_data['cell'].exit_destinations %}
+                                    {% if dir in ['north', 'south', 'east', 'west'] %}
+                                        {% set has_teleport.found = true %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if has_teleport.found %}✦{% endif %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
     </div>
+</div>
     
 
     <!-- Game Output -->
@@ -66,7 +79,7 @@
         {% endif %}
 
         <div class="game-section">ROOM DESCRIPTION</div>
-        <div class="game-output">{{ debug1['ROOM_DESCRIPTION'] }}</div>
+        <div class="game-output">{{ debug1['ROOM_DESCRIPTION'] | safe }}</div>
 
         <div class="game-section">EXITS</div>
         <div class="game-output">{{ debug1['ROOM_EXITS'] }}</div>
@@ -102,6 +115,15 @@
     <!-- Debugging Section -->
     <h1 style="text-align: center">Debugging</h1>
     <div class="game-debug">
+        {% for row in map_layout %}
+    {% for cell_data in row %}
+        {% if cell_data['cell'] and cell_data['cell'].name == 'gallery' %}
+            <div>GALLERY DEST: {{ cell_data['cell'].exit_destinations }}</div>
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+<div>CURRENT ROOM: {{ debug1['ROOM_NAME'] }}</div>
+<div>CURRENT EXITS DEST: {{ debug1['ROOM_EXITS'] }}</div>
         <div>ID: {{ db_player['id'] }}</div>
         <div>USER: {{ db_player['username'] }}</div>
         <div>LOCATION: {{ db_player['location'] }}</div>

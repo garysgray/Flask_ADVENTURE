@@ -120,7 +120,7 @@ def game(id):
         player_inv=ctrl.player.inventory,
         map_layout=map_with_indices,
         player_pos=player_pos,
-        visited_rooms=visited_rooms
+        visited_rooms=visited_rooms,
     )
 
 @app.route('/delete/<int:id>')

@@ -6,16 +6,20 @@ class EventManager:
         if not isinstance(exits_to_open, list):
             exits_to_open = [exits_to_open]
         for exit_data in exits_to_open:
+            matched = False
             for room in self.ctrl.map.list_of_rooms:
                 if room.name == exit_data['room']:
+                    matched = True
                     if exit_data['direction'] not in room.exits:
                         room.exits.append(exit_data['direction'])
-                        room.exit_destinations[exit_data['direction']] = {
-                            'floor': exit_data['destination']['floor'],
-                            'x': exit_data['destination']['x'],
-                            'y': exit_data['destination']['y']
-                        }
-
+                    room.exit_destinations[exit_data['direction']] = {
+                        'floor': exit_data['destination']['floor'],
+                        'x': exit_data['destination']['x'],
+                        'y': exit_data['destination']['y']
+                    }
+            if not matched:
+                print(f"[EXIT ERROR] Room not found: {exit_data['room']}")
+                    
     def check_events(self):
         messages = []
         current_room = self.ctrl.get_room()

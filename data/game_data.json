@@ -1,52 +1,112 @@
 {
-        "items": {
-        "knife":      {"description": "It's sharp",                  "use": "You slash the air menacingly. The knife feels sharp."},
-        "watch":      {"description": "It's ticking",                "use": "It reads 3:47pm, time is passing..."},
-        "beer":       {"description": "It looks tasty",              "use": "You drink it. Warm and flat but hits the spot."},
-        "skateboard": {"description": "It's an IOU board!!!!",       "use": "You ride it down the hall, feeling rad!"},
-        "baseball":   {"description": "It's an official MLB baseball","use": "You toss it up and catch it."},
-        "bat":        {"description": "It's a nice wooden bat",      "use": "You swing it through the air. Whoosh!"},
-        "speaker":    {"description": "It's a bluetooth speaker",    "use": "You turn it on. Music fills the room."},
-        "axe":        {"description": "It's a trusty axe",           "use": "You swing it. It feels heavy and powerful."},
-        "comic":      {"description": "It's a classic comic book",   "use": "You flip through it. Looks interesting."},
-        "sword":      {"description": "It's well balanced",          "use": "You swing it. It gleams in the light."},
-        "phone":      {"description": "It's the latest and greatest","use": "You turn it on. No signal."}
+    "items": {
+        "watch":        {"description": "It's ticking",                                                     "use": "It reads 3:47pm. It has read 3:47pm every time you check."},
+        "lantern":      {"description": "A dusty oil lantern. It still has oil in it.",                     "use": "You hold the lantern up. Shadows retreat from its warm glow."},
+        "matches":      {"description": "A box of old matches. Most still work.",                           "use": "You strike a match. It flares briefly then dies."},
+        "key":          {"description": "A tarnished iron key with a skull engraving.",                     "use": "You turn the key over in your hand. It fits something nearby..."},
+        "journal":      {"description": "A leather journal. The last entry reads: 'It knows my name now.'", "use": "You read it again. The handwriting gets more frantic towards the end."},
+        "candlestick":  {"description": "A heavy silver candlestick. Still warm as if just used.",          "use": "You raise it defensively. Something about it feels wrong."},
+        "rope":         {"description": "A coil of sturdy rope, about 20 feet long.",                       "use": "You uncoil the rope. Could be useful for climbing or binding."},
+        "locket":       {"description": "A gold locket. Inside: a portrait and a folded note.",             "use": "The note reads: 'The well knows the way. Drop what you love most.'"},
+        "knife":        {"description": "A kitchen knife. Old but sharp. Initials carved in the handle: E.M.", "use": "You grip the knife. Whose initials are E.M.?"},
+        "tome":         {"description": "A thick book bound in dark leather. Title worn away.",             "use": "You open it to a random page: 'To break the seal, reunite what was separated.'"},
+        "ring":         {"description": "A plain iron ring. Ice cold to the touch.",                        "use": "You slip it on. The room seems darker. You take it off quickly."},
+        "letter":       {"description": "A sealed letter addressed to 'The Last Guest'.",                   "use": "You read it: 'Leave now. The house remembers everyone who stays.'"},
+        "candle":       {"description": "A half-melted white candle.",                                      "use": "The candle flickers even though there is no wind."},
+        "portrait":     {"description": "A painting taken from the wall. A woman in black. Her face has been scratched out.", "use": "You hold it up. In the scratched face you think you see your own reflection."},
+        "music_box":    {"description": "A small ornate music box. The dancer inside is missing her head.", "use": "You wind it. It plays three notes then stops. The same three notes, over and over."},
+        "wax_seal":     {"description": "A broken wax seal stamped with a rose.",                          "use": "It came from a letter that was never meant to be read."},
+        "old_coin":     {"description": "A coin with no markings on either side.",                         "use": "You flip it. It lands on its edge and stays there."},
+        "mirror_shard": {"description": "A shard of mirror. Your reflection moves a half second after you do.", "use": "You stare into it too long. You look away first."},
+        "bone":         {"description": "A small animal bone. Clean and very old.",                        "use": "You feel uneasy holding it."},
+        "map":          {"description": "A hand-drawn map of the mansion. One room is marked with a cross and the word 'DO NOT'.", "use": "The room marked is one you have already been in."}
     },
-
     "rooms": [
-        {"name": "red",    "exits": ["south", "east"],       "description": "It's a reddish colored room",                          "items": ["baseball", "speaker"], "exit_destinations": {}},
-        {"name": "blue",   "exits": ["south", "west"],       "description": "It's a blueish colored room",                          "items": ["beer"],                "exit_destinations": {}},
-        {"name": "yellow", "exits": ["north", "east"],       "description": "It's a yellow room with a locked door to the west.", "items": ["axe", "skateboard"], "exit_destinations": {}},
-        {"name": "green",  "exits": ["north", "west"],       "description": "It's a greenish colored room",                         "items": ["comic"],               "exit_destinations": {}},
-        {"name": "black",  "exits": ["east"],                "description": "It's a dark black room",                               "items": ["sword"],               "exit_destinations": {}},
-        {"name": "white",  "exits": ["west", "east"],        "description": "It's a bright white room",                             "items": ["phone"],               "exit_destinations": {}},
-        {"name": "purple", "exits": ["west"],                "description": "It's a bright purple room",                            "items": ["bat"],                 "exit_destinations": {}}
+        {"name": "entrance",  "exits": ["south", "east"],  "description": "The grand entrance hall. A chandelier hangs dark overhead. Dust covers everything. The front door has slammed shut behind you. A grandfather clock on the wall has stopped at 3:47.",               "items": ["lantern", "letter", "watch"], "exit_destinations": {}},
+        {"name": "parlour",   "exits": ["south", "west"],  "description": "A sitting room frozen in time. Tea cups set for four guests, though the house has been empty for decades. A portrait of a woman in black hangs above the fireplace. Her eyes follow you.",         "items": ["locket", "candle", "portrait"], "exit_destinations": {}},
+        {"name": "library",   "exits": ["north", "east"],  "description": "Floor to ceiling bookshelves, most rotted. One shelf has been cleared and arranged — the books spell something in their spines but you can't quite read it in the dark.",                         "items": ["tome", "journal", "map"],     "exit_destinations": {}},
+        {"name": "kitchen",   "exits": ["north", "west"],  "description": "A large stone kitchen. A pot hangs over a cold hearth but the contents are still warm. A door to the pantry is nailed shut from this side. Someone wanted to keep something in.",                "items": ["knife", "matches"],           "exit_destinations": {}},
+        {"name": "cellar",    "exits": ["east"],            "description": "A cold stone cellar. The floor is damp. In the far corner something has been digging up from below. The hole is fresh.",                                                                          "items": ["rope", "bone"],               "exit_destinations": {}},
+        {"name": "chapel",    "exits": ["west", "east"],   "description": "A small private chapel. The pews face an altar draped in black cloth. Thirteen candles burn here. No one lit them. The air smells of roses and something underneath the roses.",                   "items": ["candlestick", "wax_seal"],    "exit_destinations": {}},
+        {"name": "vault",     "exits": ["west"],            "description": "A room behind the chapel. Iron shelves hold valuables but one locked iron <em>box</em> sits apart, humming at a frequency you feel in your teeth more than hear.",                               "items": ["key", "old_coin"],            "exit_destinations": {}},
+        {"name": "attic",     "exits": ["south", "east"],  "description": "A low dusty attic. Trunks line the walls, all open, all empty. A child's rocking horse moves slowly in the corner. There is no draft.",                                                           "items": ["music_box", "ring"],          "exit_destinations": {}},
+        {"name": "gallery",   "exits": ["south", "west"],  "description": "A long gallery of portraits. Every face in every painting has been scratched out. At the far end, one empty <em>frame</em> hangs on the wall.",                                                  "items": ["mirror_shard"],               "exit_destinations": {}},
+        {"name": "study",     "exits": ["north", "east"],  "description": "A private study. A desk covered in papers, all the same letter written over and over in different handwriting: 'I should not have come here.' A chair faces the window. Someone sat here recently.", "items": [],                             "exit_destinations": {}},
+        {"name": "well_room", "exits": ["north", "west"],  "description": "A room built around an indoor <em>well</em>. The water below is perfectly black. Something at the bottom catches the light. The air here is very still.",                                          "items": [],                             "exit_destinations": {}}
     ],
-
-
     "events": [
         {
-            "id": "all_rooms_visited", "type": "achievement", "check_type": "all_rooms_visited",
-            "parameters": {"required_rooms": ["red", "blue", "yellow", "green"]},
+            "id": "light_lantern",
+            "type": "puzzle",
+            "check_type": "item_used_with",
+            "parameters": {"item": "matches", "target": "lantern", "room": "entrance"},
             "result": {
                 "open_exit": [
-                    {"room": "red",   "direction": "up",   "destination": {"floor": 1, "x": 0, "y": 0}},
-                    {"room": "black", "direction": "down", "destination": {"floor": 0, "x": 0, "y": 0}}
+                    {"room": "entrance", "direction": "up", "destination": {"floor": 1, "x": 0, "y": 0}},
+                    {"room": "cellar",   "direction": "down", "destination": {"floor": 0, "x": 0, "y": 0}}
                 ],
-                "message": "You hear a grinding sound from above..."
+                "message": "You light the lantern. The hall floods with light — a hidden door to the north swings open, and somewhere below the cellar floor a passage clears."
             }
         },
         {
-            "id": "key_opens_door", "type": "puzzle", "check_type": "item_used_with",
-            "parameters": {"item": "axe", "target": "door", "room": "yellow"},
+            "id": "unlock_vault",
+            "type": "puzzle",
+            "check_type": "item_used_with",
+            "parameters": {"item": "key", "target": "box", "room": "vault"},
             "result": {
                 "open_exit": [
-                    {"room": "yellow", "direction": "west", "destination": {"floor": 1, "x": 2, "y": 0}},
-                    {"room": "purple", "direction": "east", "destination": {"floor": 0, "x": 0, "y": 1}}
+                    {"room": "vault",  "direction": "north", "destination": {"floor": 2, "x": 0, "y": 1}},
+                    {"room": "study",  "direction": "south", "destination": {"floor": 1, "x": 2, "y": 0}}
                 ],
-                "message": "You smash the door open with the axe!"
+                "add_item": {"item": "ring", "room": "vault"},
+                "message": "The box clicks open. A passage opens to the north. Somewhere far above a door grinds open."
+            }
+        },
+        {
+            "id": "all_rooms_floor0",
+            "type": "achievement",
+            "check_type": "all_rooms_visited",
+            "parameters": {"required_rooms": ["entrance", "parlour", "library", "kitchen"]},
+            "result": {
+                "open_exit": [
+                    {"room": "library", "direction": "up", "destination": {"floor": 2, "x": 0, "y": 0}},
+                    {"room": "attic",   "direction": "down", "destination": {"floor": 0, "x": 0, "y": 1}}
+                ],
+                "message": "You feel the house shift around you. It knows you have been in every room on this floor. A hidden door opens in the library with a sound like an exhaled breath."
+            }
+        },
+        {
+            "id": "locket_into_well",
+            "type": "puzzle",
+            "check_type": "item_used_with",
+            "parameters": {"item": "locket", "target": "well", "room": "well_room"},
+            "result": {
+                "open_exit": [
+                    {"room": "well_room", "direction": "south",  "destination": {"floor": 1, "x": 1, "y": 0}},
+                    {"room": "chapel",    "direction": "north",  "destination": {"floor": 2, "x": 1, "y": 1}}
+                ],
+                "add_item": {"item": "map", "room": "well_room"},
+                "message": "You drop the locket into the well. It falls for much longer than it should. Then silence. Then a door in the east wall opens."
+            }
+        },
+        {
+            "id": "mirror_in_gallery",
+            "type": "puzzle",
+            "check_type": "item_used_with",
+            "parameters": {"item": "mirror_shard", "target": "frame", "room": "gallery"},
+            "result": {
+                "open_exit": [
+                    {"room": "gallery", "direction": "east", "destination": {"floor": 2, "x": 0, "y": 1}},
+                    {"room": "study",   "direction": "west", "destination": {"floor": 2, "x": 1, "y": 0}}
+                ],
+                "message": "You hold the mirror shard up to the empty frame. For a moment you see a room that is not this room. Then the wall opens."
             }
         }
+    ],
+    "floors": [
+        [[0, 1], [2, 3]],
+        [[4, 5, 6]],
+        [[7, 8], [9, 10]]
     ]
-}
 
+}

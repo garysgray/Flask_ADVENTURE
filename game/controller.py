@@ -53,7 +53,8 @@ class Controller:
             'ROOM_DESCRIPTION': room.description,
             'ROOM_INVENTORY': room.inventory,
             'SENT_CMD': cmd,
-            'EVENT_MESSAGES': event_messages
+            'EVENT_MESSAGES': event_messages,
+            'ROOM_EXIT_DEST': room.exit_destinations,
         }
 
     def check_use_with_events(self, item, target):

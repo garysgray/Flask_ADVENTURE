@@ -21,11 +21,12 @@ class Map:
         self.item_recipes = data['items']
         self.room_recipes = data['rooms']
         self.event_recipes = data['events']
-
+        self.floor_recipes = data['floors']
         rooms = self.create_fresh_rooms_from_recipes()
         self.rebuild_from_rooms(rooms)
         self.list_of_items = [self.make_item(name) for name in self.item_recipes]
         self.player_start_invent = [self.make_item('watch'), self.make_item('knife')]
+
 
     def make_item(self, item_name):
         data = self.item_recipes[item_name]
@@ -57,13 +58,15 @@ class Map:
             )
             rooms.append(room)
         return rooms
-    
+
     def rebuild_from_rooms(self, fresh_rooms):
         self.list_of_rooms = fresh_rooms
-        self.floor_1 = [[fresh_rooms[0], fresh_rooms[1]],
-                        [fresh_rooms[2], fresh_rooms[3]]]
-        self.floor_2 = [[fresh_rooms[4], fresh_rooms[5], fresh_rooms[6]]]
-        self.game_map = [self.floor_1, self.floor_2]
+        self.game_map = []
+        for floor_layout in self.floor_recipes:
+            floor = []
+            for row in floor_layout:
+                floor.append([fresh_rooms[i] for i in row])
+            self.game_map.append(floor)
 
     def _load_data(self):
         import os
