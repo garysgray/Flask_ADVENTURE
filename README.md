@@ -1,5 +1,3 @@
-![Game Splash](static/images/flask_splash.png)
-
 # Flask Adventure
 
 A browser-based text adventure game engine built with Flask. Started as a simple experiment and evolved into a structured, session-driven adventure engine — built from the ground up, not copied from tutorials.
@@ -52,7 +50,7 @@ use axe with door
 help
 ```
 
-The parser converts input into a structured command dict which the action handler executes.
+The parser converts input into a structured command dict which the action handler executes. Supports direction synonyms, multiple pickup words, and `use [item] with [target]` syntax.
 
 ### Event System
 
@@ -79,16 +77,23 @@ Each player ID gets its own controller instance, so multiple players can run sim
 
 The map is defined entirely in `game_data.json` — no hardcoded room data in Python. Items, rooms, events, and use responses are all data-driven. Adding a new room or item requires only editing the JSON file.
 
-Map supports multiple floors with teleport-style exit destinations between floors.
+- Floor layout defined via `floors` array in JSON — fully dynamic, no hardcoded room counts
+- Supports multiple floors with stair and teleport connections between them
+- Teleport exits using cardinal directions show ✦ on the mini map
+- Stair exits using up/down show ⬆⬇ on the mini map
+- All exit connections defined in events — rooms start locked and open through gameplay
 
 ### UI Features
 
 - Dark dungeon-themed CSS with medieval fonts and gold accents
+- Frosted glass UI panels over atmospheric background image
 - Mini map showing explored rooms, current position, and floor-aware tracking
-- Up/down arrows on map cells for vertical exits
-- Portal indicator for unlocked special exits
+- Floor indicator displayed alongside the mini map
+- ⬆⬇ arrows on map cells for stair exits
+- ✦ portal indicator for unlocked teleport exits
 - Mobile responsive layout
 - Event messages displayed inline with output
+- Interactable targets highlighted in room descriptions
 
 ---
 
@@ -155,9 +160,9 @@ Open in browser: `http://127.0.0.1:5000`
 
 ## Planned Improvements
 
+- Login system with admin and player accounts
 - Room images displayed per room
 - NPC interactions
-- Improved command parsing (synonyms, multi-word targets)
 - Room builder tool integration with live game data
 - Turn this into a clean, shareable Flask adventure engine template
 
