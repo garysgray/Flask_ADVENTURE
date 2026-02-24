@@ -14,7 +14,8 @@ class Controller:
     def __init__(self):
         self.State = State.LOAD
         self.map = Map()
-        self.player = Player(self.map.game_map, {k: v['use'] for k, v in self.map.item_recipes.items()})
+        # self.player = Player(self.map.game_map, {k: v['use'] for k, v in self.map.item_recipes.items()})
+        self.player = Player(self.map.game_map, {k: v['states']['default']['use'] for k, v in self.map.item_recipes.items()})
         self.room_info = {}
 
         self.parser = Parser(self)

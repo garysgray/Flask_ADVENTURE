@@ -36,11 +36,6 @@ class EventManager:
                 print(f"[EXIT ERROR] Room not found: {target_room_name}")
 
     def _fire_event(self, event):
-        """
-        Shared logic for firing any event once it has been triggered.
-        Opens exits, appends event message, marks event as completed.
-        Returns the event message or None.
-        """
         result = event.result
 
         if 'open_exit' in result:
@@ -53,8 +48,14 @@ class EventManager:
                 if room.name == destination_room:
                     room.inventory.append(new_item)
 
-        self.ctrl.player.completed_events.append(event.id)
+        if 'set_state' in result:
+            for state_change in result['set_state']:
+                for room in self.ctrl.map.list_of_rooms:
+                    if room.name == state_change['room']:
+                        room.set_state(state_change['state'])
 
+        # these must be OUTSIDE all the if blocks
+        self.ctrl.player.completed_events.append(event.id)
         return result.get('message', None)
 
     def check_events(self):

@@ -3,18 +3,44 @@ from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent
 
 class Item:
     """Represents an item in the game."""
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
+    def __init__(self, name, states=None):
+        self.name          = name
+        self.states        = states if states is not None else {}
+        self.current_state = 'default'
+
+    @property
+    def description(self):
+        return self.states.get(self.current_state, {}).get('description', '')
+
+    @property
+    def use_text(self):
+        return self.states.get(self.current_state, {}).get('use', '')
+
+    def set_state(self, state):
+        if state in self.states:
+            self.current_state = state
+        else:
+            print(f"[STATE ERROR] Item '{self.name}' has no state '{state}'")
 
 class Room:
     """Represents a room in the game map."""
-    def __init__(self, name, exits, description, inventory, exit_destinations=None):
-        self.name = name
-        self.exits = exits
-        self.description = description
-        self.inventory = inventory
+    def __init__(self, name, exits, inventory, exit_destinations=None, states=None):
+        self.name              = name
+        self.exits             = exits
+        self.inventory         = inventory
         self.exit_destinations = exit_destinations if exit_destinations is not None else {}
+        self.states            = states if states is not None else {}
+        self.current_state     = 'default'
+
+    @property
+    def description(self):
+        return self.states.get(self.current_state, '')
+
+    def set_state(self, state):
+        if state in self.states:
+            self.current_state = state
+        else:
+            print(f"[STATE ERROR] Room '{self.name}' has no state '{state}'")
 
 class Map:
     def __init__(self):
@@ -29,10 +55,9 @@ class Map:
         self.list_of_items = [self.make_item(name) for name in self.item_recipes]
         self.player_start_invent = [self.make_item('watch'), self.make_item('knife')]
 
-
     def make_item(self, item_name):
         data = self.item_recipes[item_name]
-        return Item(item_name, data['description'])
+        return Item(item_name, data['states'])
 
     def create_fresh_rooms_from_recipes(self):
         rooms = []
@@ -40,9 +65,9 @@ class Map:
             room = Room(
                 name=recipe['name'],
                 exits=recipe['exits'].copy(),
-                description=recipe['description'],
                 inventory=[self.make_item(name) for name in recipe['items']],
-                exit_destinations=recipe['exit_destinations'].copy()
+                exit_destinations=recipe['exit_destinations'].copy(),
+                states=recipe.get('states', {})
             )
             rooms.append(room)
         return rooms
@@ -72,9 +97,11 @@ class Map:
 
     def _load_data(self):
         import os
-        path = os.path.join(os.path.dirname(__file__), '..', 'data', 'game_data.json')
+        import yaml
+        path = os.path.join(os.path.dirname(__file__), '..', 'data', 'game_data.yaml')
         with open(path) as f:
-            return json.load(f)
+            return yaml.safe_load(f)
+
         
     def make_event(self, data):
         if data['check_type'] == 'all_rooms_visited':
