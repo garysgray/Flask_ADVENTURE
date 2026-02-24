@@ -1,4 +1,5 @@
 import json
+from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent
 
 class Item:
     """Represents an item in the game."""
@@ -20,7 +21,8 @@ class Map:
         data = self._load_data()
         self.item_recipes = data['items']
         self.room_recipes = data['rooms']
-        self.event_recipes = data['events']
+        #self.event_recipes = data['events']
+        self.event_recipes = [self.make_event(e) for e in data['events']]
         self.floor_recipes = data['floors']
         rooms = self.create_fresh_rooms_from_recipes()
         self.rebuild_from_rooms(rooms)
@@ -73,3 +75,58 @@ class Map:
         path = os.path.join(os.path.dirname(__file__), '..', 'data', 'game_data.json')
         with open(path) as f:
             return json.load(f)
+        
+    def make_event(self, data):
+        if data['check_type'] == 'all_rooms_visited':
+            return AllRoomsVisitedEvent(
+                data['id'],
+                data['result'],
+                data['parameters']['required_rooms']
+            )
+        if data['check_type'] == 'item_used_with':
+            return ItemUsedWithEvent(
+                data['id'],
+                data['result'],
+                data['parameters']['item'],
+                data['parameters']['target'],
+                data['parameters']['room']
+            )
+        # all other event types stay as raw dicts for now
+        return data
+        
+# =============================================================================
+# MAP LAYOUT - as the player would experience it
+# =============================================================================
+#
+# FLOOR 2 (attic level) - rooms[7] through rooms[10]
+#
+#          WEST          EAST
+#   NORTH [ attic[7]  | gallery[8] ]
+#   SOUTH [ study[9]  | well_room[10] ]
+#
+# FLOOR 1 (ground level) - rooms[4] through rooms[6]
+#
+#          WEST       MID        EAST
+#        [ cellar[4] | chapel[5] | vault[6] ]
+#
+# FLOOR 0 (basement level) - rooms[0] through rooms[3]
+#
+#          WEST          EAST
+#   NORTH [ entrance[0] | parlour[1] ]
+#   SOUTH [ library[2]  | kitchen[3] ]
+#
+# =============================================================================
+# HOW MOVEMENT WORKS
+# =============================================================================
+#
+# On the same floor, exits like north/south/east/west move between grid cells.
+# For example on floor 0:
+#   standing in entrance[0] and going EAST  → parlour[1]
+#   standing in entrance[0] and going SOUTH → library[2]
+#
+# UP and DOWN move between floors entirely, and only unlock via events:
+#   entrance[0]  UP   → cellar[4]    (event: light_lantern)
+#   library[2]   UP   → attic[7]     (event: all_rooms_floor0)
+#   vault[6]     NORTH → attic[7]    (event: unlock_vault)
+#
+# =============================================================================

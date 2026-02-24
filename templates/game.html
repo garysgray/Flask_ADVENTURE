@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'macros.html' import cell_class, cell_contents %}
 
 {% block head %}
     <title>Adventure Game</title>
@@ -8,7 +9,9 @@
 <div class="content">
     <h1 style="text-align: center">Adventure Game</h1>
 
-    <!-- Command Input -->
+    <!-- =====================
+         Command Input
+         ===================== -->
     <div class="form" style="text-align: center;">
         {% if cmd %}
             <div class="last-cmd" style="margin-bottom: 10px;">
@@ -26,45 +29,43 @@
         </div>
     </div>
 
-<h2>Player Map</h2>
-<div style="display: flex; justify-content: center;">
-    <div style="position: relative;">
-        <div style="position: absolute; right: 100%; top: 50%; transform: translateY(-50%); padding-right: 8px; font-family: var(--section-font); color: var(--accent); font-size: 13px; letter-spacing: 1px; text-align: center; opacity: 0.8;">
-            Floor<br>{{ player_pos[0] + 1 }}
-        </div>
-        <div class="map-grid">
-            {% for row in map_layout %}
-                <div class="map-row">
-                    {% for cell_data in row %}
-                        {% set pos = cell_data['pos'] %}
-                        <div class="map-cell
-                            {% if pos == player_pos %}player
-                            {% elif pos in visited_rooms %}room
-                            {% else %}hidden{% endif %}">
 
-                            {% if pos == player_pos %}P{% endif %}
-                            {% if cell_data['cell'] and (pos in visited_rooms or pos == player_pos) %}
-                                {% if 'up' in cell_data['cell'].exits %}⬆{% endif %}
-                                {% if 'down' in cell_data['cell'].exits %}⬇{% endif %}
-
-                                {% set has_teleport = namespace(found=false) %}
-                                {% for dir in cell_data['cell'].exit_destinations %}
-                                    {% if dir in ['north', 'south', 'east', 'west'] %}
-                                        {% set has_teleport.found = true %}
-                                    {% endif %}
-                                {% endfor %}
-                                {% if has_teleport.found %}✦{% endif %}
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
     
 
-    <!-- Game Output -->
+    <!-- =====================
+         Player Map
+         ===================== -->
+    <h2>Player Map</h2>
+    <div style="display: flex; justify-content: center;">
+        <div style="position: relative;">
+
+            <div style="position: absolute; right: 100%; top: 50%; transform: translateY(-50%);
+                        padding-right: 8px; font-family: var(--section-font); color: var(--accent);
+                        font-size: 13px; letter-spacing: 1px; text-align: center; opacity: 0.8;">
+                Floor<br>{{ player_pos[0] + 1 }}
+            </div>
+
+            <div class="map-grid">
+                {% for row in map_layout %}
+                    <div class="map-row">
+                        {% for cell_data in row %}
+                            {% set pos  = cell_data['pos'] %}
+                            {% set cell = cell_data['cell'] %}
+                            <div class="map-cell {{ cell_class(pos, player_pos, visited_rooms) }}">
+                                {{ cell_contents(pos, cell, player_pos, visited_rooms) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- =====================
+         Game Output
+         ===================== -->
     {% if debug1 %}
         <div class="game-section">OUTPUT</div>
         <div class="game-output">{{ debug1['CMD_RESPONSE'] }}</div>
@@ -92,7 +93,10 @@
         </div>
     {% endif %}
 
-    <!-- Player Inventory -->
+
+    <!-- =====================
+         Player Inventory
+         ===================== -->
     <div class="game-section">PLAYER INVENTORY</div>
     <div class="game-output items">
         {% if player_inv %}
@@ -103,33 +107,33 @@
     </div>
     <br>
 
-    <!-- Back Button -->
     <div style="text-align: center; margin-top: 10px;">
         <a href="{{ url_for('index') }}" class="button-small">Back to Game Portal</a>
     </div>
 
-    <br>
-    <br>
-    <br>
+    <br><br><br>
 
-    <!-- Debugging Section -->
-    <h1 style="text-align: center">Debugging</h1>
+    <!-- =====================
+         Debug Section
+         ===================== -->
+    <!-- <h1 style="text-align: center">Debugging</h1>
     <div class="game-debug">
         {% for row in map_layout %}
-    {% for cell_data in row %}
-        {% if cell_data['cell'] and cell_data['cell'].name == 'gallery' %}
-            <div>GALLERY DEST: {{ cell_data['cell'].exit_destinations }}</div>
-        {% endif %}
-    {% endfor %}
-{% endfor %}
-<div>CURRENT ROOM: {{ debug1['ROOM_NAME'] }}</div>
-<div>CURRENT EXITS DEST: {{ debug1['ROOM_EXITS'] }}</div>
+            {% for cell_data in row %}
+                {% if cell_data['cell'] and cell_data['cell'].name == 'gallery' %}
+                    <div>GALLERY DEST: {{ cell_data['cell'].exit_destinations }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+        <div>CURRENT ROOM: {{ debug1['ROOM_NAME'] }}</div>
+        <div>CURRENT EXITS DEST: {{ debug1['ROOM_EXITS'] }}</div>
         <div>ID: {{ db_player['id'] }}</div>
         <div>USER: {{ db_player['username'] }}</div>
         <div>LOCATION: {{ db_player['location'] }}</div>
         <div>DB CMD: {{ db_player['cmd_info'] }}</div>
         <div>INVENTORY: {{ db_player['player_inventory'] }}</div>
         <div>ALL ROOM ITEMS: {{ db_player['room_inventory'] }}</div>
-    </div>
+    </div> -->
+
 </div>
 {% endblock %}

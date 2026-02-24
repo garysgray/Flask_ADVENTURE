@@ -62,40 +62,36 @@ class ActionHandler:
             item = possible_item['item']
             target = possible_item['target']
             if not self.has_item(item):
-                return f"You don't have {item}."
+                return f"You don't have {item}.", None
             event_result = self.ctrl.check_use_with_events(item, target)
             if event_result:
-                return event_result
-            return f"You can't use {item} with {target}."
+                return self.help(), event_result
+            return f"You can't use {item} with {target}.", None
 
         # use [item]
         words = [w for w in possible_item if w != 'use']
         item_name = words[0] if words else None
         if not item_name:
-            return "Use what?"
+            return "Use what?", None
         if not self.has_item(item_name):
-            return f"You don't have {item_name}."
+            return f"You don't have {item_name}.", None
         result = self.ctrl.player.use(possible_item)
-        return result if result else f"Nothing happens with {item_name}."
+        return (result if result else f"Nothing happens with {item_name}."), None
     
+
     def execute(self, cmd, possible_item):
         dispatch = {
-            'drop':      lambda: self.drop(possible_item),
-            'pickup':    lambda: self.pick_up(possible_item),
-            'look':      lambda: self.look(possible_item),
-            'help':      lambda: self.help(),
-            'use':       lambda: self.use_item(possible_item),
-            'changedesc': lambda: self.change_room_description(possible_item),
-            'move':      lambda: self.move_player(
-                            next((d for d in self.ctrl.player.directions if d in possible_item), "")
-                        ),
+            'drop':       lambda: (self.drop(possible_item), None),
+            'pickup':     lambda: (self.pick_up(possible_item), None),
+            'look':       lambda: (self.look(possible_item), None),
+            'help':       lambda: (self.help(), None),
+            'use':        lambda: self.use_item(possible_item),
+            'changedesc': lambda: (self.change_room_description(possible_item), None),
+            'move':       lambda: (self.move_player(next((d for d in self.ctrl.player.directions if d in possible_item), "")), None),
         }
-
         if cmd in self.ctrl.player.directions:
-            return self.move_player(cmd)
-
+            return self.move_player(cmd), None
         handler = dispatch.get(cmd)
         if handler:
             return handler()
-
-        return f"I don't understand: {cmd}. Try 'help' for commands."
+        return f"I don't understand: {cmd}. Try 'help' for commands.", None

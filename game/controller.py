@@ -2,7 +2,7 @@ from game.gameObjects import Map
 from game.player import Player
 from game.parser import Parser
 from game.actions import ActionHandler
-from game.events import EventManager
+from game.event_manager import EventManager
 from game.persistence import PersistenceManager
 from enum import Enum
 
@@ -43,18 +43,24 @@ class Controller:
     def run_the_cmd(self, input_dict):
         cmd = input_dict.get("CMD", "")
         possible_item = input_dict.get("OBJ", "")
-        cmd_response = self.actions.execute(cmd, possible_item)
+
+        cmd_response, use_event_message = self.actions.execute(cmd, possible_item)
         event_messages = self.events.check_events()
+
+        # merge any event triggered by use_item with the rest
+        if use_event_message:
+            event_messages.append(use_event_message)
+
         room = self.get_room()
         self.room_info = {
-            'CMD_RESPONSE': cmd_response,
-            'ROOM_NAME': room.name,
-            'ROOM_EXITS': room.exits,
+            'CMD_RESPONSE':    cmd_response,
+            'ROOM_NAME':       room.name,
+            'ROOM_EXITS':      room.exits,
             'ROOM_DESCRIPTION': room.description,
-            'ROOM_INVENTORY': room.inventory,
-            'SENT_CMD': cmd,
-            'EVENT_MESSAGES': event_messages,
-            'ROOM_EXIT_DEST': room.exit_destinations,
+            'ROOM_INVENTORY':  room.inventory,
+            'SENT_CMD':        cmd,
+            'EVENT_MESSAGES':  event_messages,
+            'ROOM_EXIT_DEST':  room.exit_destinations,
         }
 
     def check_use_with_events(self, item, target):
@@ -64,4 +70,4 @@ class Controller:
         self.persistence.load(db_player)
 
     def save_stuff_to_data_base(self):
-        return self.persistence.save()
+        return self.persistence.save()#

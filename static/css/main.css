@@ -33,11 +33,10 @@
    ========================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-    background-color: #0a0d14;
-}
+/* html only needs the base background color to prevent white flash while body loads */
+html { background-color: var(--bg-dark); }
 
-body, html {
+body {
     font-family: var(--body-font);
     color: var(--text-main);
     min-height: 100vh;
@@ -63,29 +62,22 @@ body, html {
 
 /* =========================
    Headings
+   -- shared styles on h1, h2
+   -- sizes and spacing overridden individually
    ========================= */
-h1 {
+h1, h2 {
     font-family: var(--section-font);
+    font-weight: normal;
     text-align: center;
     color: var(--accent);
-    font-size: 2.2em;
-    letter-spacing: 3px;
-    margin-bottom: 20px;
+    letter-spacing: 2px;
     text-shadow:
         0 0 20px rgba(232,196,106,0.6),
         0 0 60px rgba(232,196,106,0.2),
         0 2px 4px rgba(0,0,0,0.8);
 }
-
-h2 {
-    font-family: var(--section-font);
-    text-align: center;
-    color: var(--accent);
-    font-size: 1.3em;
-    letter-spacing: 2px;
-    margin: 20px 0 10px;
-    text-shadow: 0 0 10px rgba(232,196,106,0.4), 0 2px 4px rgba(0,0,0,0.8);
-}
+h1 { font-size: 2.2em; letter-spacing: 3px; margin-bottom: 20px; }
+h2 { font-size: 1.3em; margin: 20px 0 10px; }
 
 /* =========================
    Links
@@ -155,22 +147,30 @@ a:hover {
 
 /* =========================
    Buttons
+   -- .button and .button-small share base styles
+   -- sizing and colors overridden individually
    ========================= */
-.button {
-    height: 38px;
-    padding: 0 18px;
-    border: 1px solid var(--accent-dim);
+.button, .button-small {
     border-radius: 4px;
-    background: rgba(42, 32, 16, 0.85);
-    color: var(--accent);
     font-family: var(--mono-font);
     font-weight: 600;
-    font-size: 13px;
     cursor: pointer;
     letter-spacing: 1px;
     transition: all 0.2s;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.button {
+    height: 38px;
+    padding: 0 18px;
+    border: 1px solid var(--accent-dim);
+    background: rgba(42, 32, 16, 0.85);
+    color: var(--accent);
+    font-size: 13px;
 }
 .button:hover {
     background: rgba(58, 48, 21, 0.9);
@@ -184,17 +184,8 @@ a:hover {
     padding: 0 14px;
     font-size: 12px;
     border: 1px solid var(--border-glow);
-    border-radius: 4px;
     background: rgba(18, 22, 40, 0.8);
     color: var(--text-dim);
-    font-family: var(--mono-font);
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
 }
 .button-small:hover {
     border-color: var(--accent);
@@ -214,7 +205,6 @@ a:hover {
     font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
-    opacity: 1;
     text-shadow: 0 0 8px rgba(232,196,106,0.3), 0 1px 3px rgba(0,0,0,0.9);
 }
 
@@ -237,12 +227,17 @@ a:hover {
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
 }
-
 .game-output.items {
     white-space: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
     padding: 8px 12px;
+}
+
+.game-output em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 600;
 }
 
 /* =========================
@@ -300,10 +295,9 @@ a:hover {
     gap: 4px;
     margin: 12px auto;
 }
-.map-row {
-    display: flex;
-    gap: 4px;
-}
+.map-row { display: flex; gap: 4px; }
+
+/* shared map cell base styles */
 .map-cell {
     width: 44px;
     height: 44px;
@@ -326,7 +320,7 @@ a:hover {
 }
 .map-cell.room {
     background: rgba(18, 22, 40, 0.75);
-    border-color: rgba(140,120,180,0.5);
+    border-color: var(--border-glow);
     color: var(--text-dim);
 }
 .map-cell.player {
@@ -346,6 +340,12 @@ table {
     margin-bottom: 20px;
     font-family: var(--body-font);
 }
+
+/* shared th/td base */
+th, td {
+    padding: 10px;
+    text-align: center;
+}
 th {
     background: rgba(18, 22, 40, 0.85);
     backdrop-filter: blur(8px);
@@ -354,42 +354,35 @@ th {
     font-family: var(--section-font);
     font-weight: normal;
     letter-spacing: 1px;
-    padding: 10px;
     border-bottom: 1px solid var(--border-glow);
-    text-align: center;
 }
 td {
     background: rgba(12, 16, 28, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: var(--text-main);
-    padding: 10px;
-    text-align: center;
     border-bottom: 1px solid var(--border);
     font-size: 15px;
 }
-tr:hover td {
-    background: rgba(18, 22, 40, 0.85);
-}
+tr:hover td { background: rgba(18, 22, 40, 0.85); }
 
 /* =========================
    Mobile
    ========================= */
 @media (max-width: 600px) {
-    .content { width: 96%; font-size: 14px; padding: 8px 0 20px; }
-    h1 { font-size: 1.4em; margin-bottom: 10px; }
-    h2 { font-size: 1em; margin: 10px 0 6px; }
-    .form { margin-bottom: 8px; }
-    .input-element { width: 68%; font-size: 13px; height: 34px; }
-    .button { height: 34px; font-size: 12px; padding: 0 12px; }
-    .game-output { font-size: 15px; padding: 6px 8px; margin-bottom: 4px; }
-    .game-section { font-size: 13px; margin-top: 8px; margin-bottom: 2px; }
-    .map-cell { width: 32px; height: 32px; font-size: 9px; }
-    .map-grid { margin: 6px auto; gap: 3px; }
-    .map-row { gap: 3px; }
-    .inline-list { font-size: 14px; padding: 1px 5px; }
-    table { font-size: 12px; }
-    td, th { padding: 5px; }
-    .game-debug { font-size: 10px; padding: 5px 8px; }
+    .content        { width: 96%; font-size: 14px; padding: 8px 0 20px; }
+    h1              { font-size: 1.4em; margin-bottom: 10px; }
+    h2              { font-size: 1em; margin: 10px 0 6px; }
+    .form           { margin-bottom: 8px; }
+    .input-element  { width: 68%; font-size: 13px; height: 34px; }
+    .button         { height: 34px; font-size: 12px; padding: 0 12px; }
+    .game-output    { font-size: 15px; padding: 6px 8px; margin-bottom: 4px; }
+    .game-section   { font-size: 13px; margin-top: 8px; margin-bottom: 2px; }
+    .map-cell       { width: 32px; height: 32px; font-size: 9px; }
+    .map-grid       { margin: 6px auto; gap: 3px; }
+    .map-row        { gap: 3px; }
+    .inline-list    { font-size: 14px; padding: 1px 5px; }
+    table           { font-size: 12px; }
+    td, th          { padding: 5px; }
+    .game-debug     { font-size: 10px; padding: 5px 8px; }
 }
-
