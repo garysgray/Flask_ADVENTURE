@@ -48,11 +48,32 @@ class EventManager:
                 if room.name == destination_room:
                     room.inventory.append(new_item)
 
+        if 'remove_item' in result:
+            for item_data in result['remove_item']:
+                self.ctrl.player.inventory = [
+                    i for i in self.ctrl.player.inventory 
+                    if i.name != item_data['item']
+                ]
+
         if 'set_state' in result:
             for state_change in result['set_state']:
                 for room in self.ctrl.map.list_of_rooms:
                     if room.name == state_change['room']:
                         room.set_state(state_change['state'])
+
+        if 'set_item_state' in result:
+            for state_change in result['set_item_state']:
+                item_name = state_change['item']
+                new_state = state_change['state']
+                # check player inventory first
+                for item in self.ctrl.player.inventory:
+                    if item.name == item_name:
+                        item.set_state(new_state)
+                # also check all rooms
+                for room in self.ctrl.map.list_of_rooms:
+                    for item in room.inventory:
+                        if item.name == item_name:
+                            item.set_state(new_state)
 
         # these must be OUTSIDE all the if blocks
         self.ctrl.player.completed_events.append(event.id)

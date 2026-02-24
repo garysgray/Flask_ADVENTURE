@@ -1,17 +1,29 @@
+# class Player:
+#     DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down']
+
+#     def __init__(self, game_map=None, use_responses=None):
+#         self.id = None
+#         self.pos_x = 0
+#         self.pos_y = 0
+#         self.level = 0
+#         self.inventory = []
+#         self.directions = self.DIRECTIONS
+#         self.visited_rooms = []
+#         self.completed_events = []
+#         self.game_map = game_map
+#         self.use_responses = use_responses or {}
 class Player:
     DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down']
-
-    def __init__(self, game_map=None, use_responses=None):
-        self.id = None
-        self.pos_x = 0
-        self.pos_y = 0
-        self.level = 0
-        self.inventory = []
-        self.directions = self.DIRECTIONS
-        self.visited_rooms = []
+    def __init__(self, game_map=None):
+        self.id               = None
+        self.pos_x            = 0
+        self.pos_y            = 0
+        self.level            = 0
+        self.inventory        = []
+        self.directions       = self.DIRECTIONS
+        self.visited_rooms    = []
         self.completed_events = []
-        self.game_map = game_map
-        self.use_responses = use_responses or {}
+        self.game_map         = game_map
 
     def get_location(self):
         return {'X': self.pos_x, 'Y': self.pos_y}
@@ -61,8 +73,13 @@ class Player:
             return True
         return False
 
+    # def use(self, possible_item):
+    #     for obj in self.inventory:
+    #         if obj.name in possible_item:
+    #             return self.use_responses.get(obj.name, f"You use the {obj.name}.")
+    #     return False
     def use(self, possible_item):
         for obj in self.inventory:
             if obj.name in possible_item:
-                return self.use_responses.get(obj.name, f"You use the {obj.name}.")
+                return obj.use_text
         return False

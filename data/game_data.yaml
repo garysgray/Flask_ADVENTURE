@@ -140,7 +140,7 @@ rooms:
     exits: [south, east]
     states:
       default: "The grand entrance hall. A chandelier hangs dark overhead. Dust covers everything. The front door has slammed shut behind you. A grandfather clock on the wall has stopped at 3:47."
-      changed: "The grand entrance hall. The lantern floods the room with warm light. An entrance to the north is now unhidden. The grandfather clock on the wall, is still stopped at 3:47."
+      changed: "The grand entrance hall. The lantern floods the room with warm light. An entrance leading upward is now unhidden. The grandfather clock on the wall, is still stopped at 3:47."
     items: [lantern, letter, watch]
     exit_destinations: {}
 
@@ -155,7 +155,7 @@ rooms:
     exits: [north, east]
     states:
       default: "Floor to ceiling bookshelves, most rotted. One shelf has been cleared and arranged — the books spell something in their spines but you can't quite read it in the dark."
-      changed: "Floor to ceiling bookshelves, most rotted. The hidden door in the north wall hangs open. A draft comes through it that smells of somewhere else."
+      changed: "Floor to ceiling bookshelves, most rotted. The hidden starway leading up hangs open. A draft comes through it that smells of somewhere else."
     items: [tome, journal, map]
     exit_destinations: {}
 
@@ -236,6 +236,11 @@ events:
           state: changed
         - room: cellar
           state: changed
+      set_item_state:
+        - item: lantern
+          state: changed
+        - item: matches
+          state: changed
       open_exit:
         - room: entrance
           direction: up
@@ -257,6 +262,9 @@ events:
         - room: vault
           state: changed
         - room: study
+          state: changed
+      set_item_state:
+        - item: key
           state: changed
       open_exit:
         - room: vault
@@ -303,6 +311,11 @@ events:
           state: changed
         - room: chapel
           state: changed
+      set_item_state:
+        - item: locket
+          state: changed
+      remove_item:
+        - item: locket
       open_exit:
         - room: well_room
           direction: south
@@ -327,6 +340,9 @@ events:
         - room: gallery
           state: changed
         - room: study
+          state: changed
+      set_item_state:
+        - item: mirror_shard
           state: changed
       open_exit:
         - room: gallery
