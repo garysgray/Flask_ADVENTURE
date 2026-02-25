@@ -3,9 +3,10 @@ from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent
 
 class Item:
     """Represents an item in the game."""
-    def __init__(self, name, states=None):
+    def __init__(self, name, states=None, keywords=None):
         self.name          = name
         self.states        = states if states is not None else {}
+        self.keywords      = keywords if keywords is not None else [name]
         self.current_state = 'default'
 
     @property
@@ -47,7 +48,6 @@ class Map:
         data = self._load_data()
         self.item_recipes = data['items']
         self.room_recipes = data['rooms']
-        #self.event_recipes = data['events']
         self.event_recipes = [self.make_event(e) for e in data['events']]
         self.floor_recipes = data['floors']
         rooms = self.create_fresh_rooms_from_recipes()
@@ -55,9 +55,20 @@ class Map:
         self.list_of_items = [self.make_item(name) for name in self.item_recipes]
         self.player_start_invent = [self.make_item('watch'), self.make_item('knife')]
 
+        self.win_conditions = data['win_conditions']
+
+    # def make_item(self, item_name):
+    #     data = self.item_recipes[item_name]
+    #     return Item(item_name, data['states'])
+    
     def make_item(self, item_name):
         data = self.item_recipes[item_name]
-        return Item(item_name, data['states'])
+        return Item(
+            name=item_name,
+            states=data['states'],
+            keywords=data.get('keywords', [item_name])
+        )
+
 
     def create_fresh_rooms_from_recipes(self):
         rooms = []

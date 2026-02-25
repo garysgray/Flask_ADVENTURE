@@ -29,9 +29,6 @@
         </div>
     </div>
 
-
-    
-
     <!-- =====================
          Player Map
          ===================== -->
@@ -61,7 +58,21 @@
 
         </div>
     </div>
-
+    
+    <!-- =====================
+            win game
+            ===================== -->
+    {% if debug1 and debug1['GAME_WON'] %}
+        <div class="game-section">YOU HAVE ESCAPED</div>
+        <div class="game-output" style="color: var(--green); border-left-color: var(--green); text-align: center;">
+            <br>
+            The house releases you. You step out into cold air and do not look back.<br>
+            The door closes behind you. It does not make a sound.<br>
+            <br>
+            <strong>You have escaped Ashwood Manor.</strong>
+            <br><br>
+        </div>
+    {% endif %}
 
     <!-- =====================
          Game Output

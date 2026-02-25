@@ -14,8 +14,6 @@ class Controller:
     def __init__(self):
         self.State = State.LOAD
         self.map = Map()
-        # self.player = Player(self.map.game_map, {k: v['use'] for k, v in self.map.item_recipes.items()})
-        #self.player = Player(self.map.game_map, {k: v['states']['default']['use'] for k, v in self.map.item_recipes.items()})
         self.player = Player(self.map.game_map)
         
         self.room_info = {}
@@ -54,6 +52,9 @@ class Controller:
         if use_event_message:
             event_messages.append(use_event_message)
 
+        # check if the player has won
+        game_won = self.events.check_win()
+
         room = self.get_room()
         self.room_info = {
             'CMD_RESPONSE':    cmd_response,
@@ -64,6 +65,7 @@ class Controller:
             'SENT_CMD':        cmd,
             'EVENT_MESSAGES':  event_messages,
             'ROOM_EXIT_DEST':  room.exit_destinations,
+            'GAME_WON':        game_won,
         }
 
     def check_use_with_events(self, item, target):

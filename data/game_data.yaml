@@ -1,12 +1,21 @@
+win_conditions:
+  - light_lantern
+  - unlock_vault
+  - all_rooms_floor0
+  - locket_into_well
+  - mirror_in_gallery
 
 items:
+
   watch:
+    keywords: [check, read, examine]
     states:
       default:
         description: "It's ticking"
         use: "It reads 3:47pm. It has read 3:47pm every time you check."
 
   lantern:
+    keywords: [light, hang, raise, hold]
     states:
       default:
         description: "A dusty oil lantern. It still has oil in it."
@@ -16,6 +25,7 @@ items:
         use: "The lantern is already lit. It burns steadily."
 
   matches:
+    keywords: [light, ignite, strike, burn]
     states:
       default:
         description: "A box of old matches. Most still work."
@@ -25,6 +35,7 @@ items:
         use: "You strike one of the last matches. It flares briefly then dies."
 
   key:
+    keywords: [unlock, open, turn, insert]
     states:
       default:
         description: "A tarnished iron key with a skull engraving."
@@ -34,48 +45,56 @@ items:
         use: "The key is spent. It won't fit anything now."
 
   journal:
+    keywords: [read, open, examine, study]
     states:
       default:
         description: "A leather journal. The last entry reads: 'It knows my name now.'"
         use: "You read it again. The handwriting gets more frantic towards the end."
 
   candlestick:
+    keywords: [raise, swing, hold, brandish]
     states:
       default:
         description: "A heavy silver candlestick. Still warm as if just used."
         use: "You raise it defensively. Something about it feels wrong."
 
   rope:
+    keywords: [tie, bind, throw, attach, climb]
     states:
       default:
         description: "A coil of sturdy rope, about 20 feet long."
         use: "You uncoil the rope. Could be useful for climbing or binding."
 
   locket:
+    keywords: [drop, throw, sacrifice, toss, give]
     states:
       default:
         description: "A gold locket. Inside: a portrait and a folded note."
         use: "The note reads: 'The well knows the way. Drop what you love most.'"
 
   knife:
+    keywords: [cut, stab, carve, slash]
     states:
       default:
         description: "A kitchen knife. Old but sharp. Initials carved in the handle: E.M."
         use: "You grip the knife. Whose initials are E.M.?"
 
   tome:
+    keywords: [read, open, study, examine]
     states:
       default:
         description: "A thick book bound in dark leather. Title worn away."
         use: "You open it to a random page: 'To break the seal, reunite what was separated.'"
 
   ring:
+    keywords: [wear, put, slip, place]
     states:
       default:
         description: "A plain iron ring. Ice cold to the touch."
         use: "You slip it on. The room seems darker. You take it off quickly."
 
   letter:
+    keywords: [read, open, unseal, examine]
     states:
       default:
         description: "A sealed letter addressed to 'The Last Guest'."
@@ -85,36 +104,42 @@ items:
         use: "You already read it. The message has not changed."
 
   candle:
+    keywords: [light, ignite, burn, place]
     states:
       default:
         description: "A half-melted white candle."
         use: "The candle flickers even though there is no wind."
 
   portrait:
+    keywords: [hang, place, examine, hold]
     states:
       default:
         description: "A painting taken from the wall. A woman in black. Her face has been scratched out."
         use: "You hold it up. In the scratched face you think you see your own reflection."
 
   music_box:
+    keywords: [wind, open, play, turn]
     states:
       default:
         description: "A small ornate music box. The dancer inside is missing her head."
         use: "You wind it. It plays three notes then stops. The same three notes, over and over."
 
   wax_seal:
+    keywords: [examine, press, read, study]
     states:
       default:
         description: "A broken wax seal stamped with a rose."
         use: "It came from a letter that was never meant to be read."
 
   old_coin:
+    keywords: [flip, toss, examine, drop]
     states:
       default:
         description: "A coin with no markings on either side."
         use: "You flip it. It lands on its edge and stays there."
 
   mirror_shard:
+    keywords: [place, hold, press, insert, put]
     states:
       default:
         description: "A shard of mirror. Your reflection moves a half second after you do."
@@ -124,12 +149,14 @@ items:
         use: "Whatever was in the reflection is gone now."
 
   bone:
+    keywords: [examine, hold, place, study]
     states:
       default:
         description: "A small animal bone. Clean and very old."
         use: "You feel uneasy holding it."
 
   map:
+    keywords: [read, examine, study, unfold]
     states:
       default:
         description: "A hand-drawn map of the mansion. One room is marked with a cross and the word 'DO NOT'."

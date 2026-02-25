@@ -128,3 +128,14 @@ class EventManager:
                 return self._fire_event(event)
 
         return None
+    
+    def check_win(self):
+        """
+        Checks if all win condition events have been completed.
+        Returns True if the player has won, False otherwise.
+        """
+        return all(
+            event_id in self.ctrl.player.completed_events
+            for event_id in self.ctrl.map.win_conditions
+        )
+    

@@ -1,17 +1,4 @@
-# class Player:
-#     DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down']
 
-#     def __init__(self, game_map=None, use_responses=None):
-#         self.id = None
-#         self.pos_x = 0
-#         self.pos_y = 0
-#         self.level = 0
-#         self.inventory = []
-#         self.directions = self.DIRECTIONS
-#         self.visited_rooms = []
-#         self.completed_events = []
-#         self.game_map = game_map
-#         self.use_responses = use_responses or {}
 class Player:
     DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down']
     def __init__(self, game_map=None):
