@@ -33,9 +33,9 @@ The game is split into focused modules:
 
 ### Game Objects
 
-- `Item` — name, states (description + use text per state), current state
+- `Item` — name, states (description + use text per state), current state, action and solo keywords
 - `Room` — name, states (description per state), exits, inventory, exit destinations
-- `Map` — floors, rooms, events, loaded from `game_data.yaml`
+- `Map` — floors, rooms, events, win conditions, loaded from `game_data.yaml`
 
 Rooms and items support a state system — descriptions and use text change dynamically as the player progresses through the game.
 
@@ -48,11 +48,37 @@ go south / south
 get knife / pickup knife
 drop knife
 look knife
-use axe with door
+read map
+wind music_box
+light lantern with matches
+open box with key
+drop locket into well
+use matches with lantern
 help
 ```
 
-The parser converts input into a structured command dict which the action handler executes. Supports direction synonyms, multiple pickup words, and `use [item] with [target]` syntax.
+The parser converts input into a structured command dict which the action handler executes. Supports:
+- Direction synonyms and move words
+- Multiple pickup words
+- Solo keywords — single item actions e.g. `read map`, `wind music_box`
+- Action keywords — two item interactions e.g. `light lantern with matches`
+- Connectors — `with`, `into`, `onto`
+- Inventory-aware resolution — parser checks player inventory to determine which word is the item and which is the target
+- Fallback `use [item] with [target]` always works regardless of keywords
+
+### Item Keywords
+
+Items define two keyword types in `game_data.yaml`:
+
+```yaml
+lantern:
+  solo_keywords:   [raise, hold]       # work alone e.g. "hold lantern"
+  action_keywords: [light, hang]       # require a connector e.g. "light lantern with matches"
+```
+
+- `solo_keywords` trigger single item use with no target required
+- `action_keywords` only trigger when used with a connector and a target
+- Item name is always a valid fallback — `use lantern` always works
 
 ### Event System
 
@@ -99,6 +125,21 @@ Events in `game_data.yaml` support the following result keys:
 | `set_state` | Changes a room to a new state |
 | `set_item_state` | Changes an item to a new state |
 | `message` | Displays a message to the player |
+
+### Win Conditions
+
+Win conditions are defined in `game_data.yaml` as a list of event IDs that must all be completed:
+
+```yaml
+win_conditions:
+  - light_lantern
+  - unlock_vault
+  - all_rooms_floor0
+  - locket_into_well
+  - mirror_in_gallery
+```
+
+After every action the engine checks if all win conditions are in the player's completed events. If yes, a win message is displayed. This separates required puzzle events from optional flavour events — a game can have many events but only a subset need to be completed to win.
 
 ### State System
 
@@ -151,7 +192,7 @@ Each player ID gets its own controller instance so multiple players can run simu
 
 ### Map System
 
-The map is defined entirely in `game_data.yaml` — no hardcoded room data in Python. Items, rooms, events, states, and use responses are all data-driven. Adding a new room or item requires only editing the YAML file.
+The map is defined entirely in `game_data.yaml` — no hardcoded room data in Python. Items, rooms, events, states, keywords, and use responses are all data-driven. Adding a new room or item requires only editing the YAML file.
 
 - Floor layout defined via `floors` array — fully dynamic
 - Supports multiple floors with stair and teleport connections between them
@@ -159,6 +200,7 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 - Teleport exits using cardinal directions show ✦ on the mini map
 - Stair exits using up/down show ⬆⬇ on the mini map
 - Interactable targets highlighted in room descriptions via `<em>` tags
+- Em tags also used by parser to identify valid room targets
 
 ### UI Features
 
@@ -169,6 +211,7 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 - Mobile responsive layout
 - Event messages displayed separately from command responses
 - Interactable targets highlighted in gold in room descriptions
+- Win screen displayed when all win conditions are met
 
 ---
 
@@ -238,14 +281,15 @@ Open in browser: `http://127.0.0.1:5000`
 
 ## Planned Improvements
 
-- **Win conditions** — define a win state in YAML, game detects and responds when all required events are completed
 - **Journal system** — player journal object that logs all triggered events, supports `look journal` command, and gives meaningful "you already did that" responses instead of silent skips
-- **Item keywords** — items get aliases so `light lantern with matches` works the same as `use matches with lantern`, making commands feel more natural
-- Login system with admin and player accounts
-- Room images displayed per room
-- NPC interactions
-- Room builder tool integration with live game data
-- Turn this into a clean, shareable Flask adventure engine template
+- **Room images** — optional image field per room in YAML, displayed when player enters
+- **NPC system** — characters with dialogue states using existing event class pattern
+- **Conditional item combinations** — items that only work in certain room states
+- **Polish parser** — fuzzy matching, filler word stripping, better unknown command responses
+- **Command history** — press up arrow to cycle previous commands
+- **Admin panel** — edit rooms, items, events without touching YAML
+- **Login system** — proper accounts with admin and player roles
+- **Deploy to cloud** — Railway, Render, or Heroku using existing Procfile
 
 ---
 
