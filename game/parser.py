@@ -28,26 +28,25 @@ class Parser:
         1. Player inventory item names
         2. Item recipe names
         3. Room em tags
-        4. Item keywords
-        Returns (name, source) where source is 'inventory', 'recipe', 'emtag' or 'keyword'
+        4. Item action_keywords (only used in connector commands)
         """
-        player_items  = self._get_player_item_names()
-        room_targets  = self._get_room_targets()
+        player_items = self._get_player_item_names()
+        room_targets = self._get_room_targets()
 
         for word in words:
             if word in player_items:
-                return word, 'inventory'
+                return word
         for word in words:
             if word in self.ctrl.map.item_recipes:
-                return word, 'recipe'
+                return word
         for word in words:
             if word in room_targets:
-                return word, 'emtag'
+                return word
         for word in words:
             for name, data in self.ctrl.map.item_recipes.items():
-                if word in data.get('keywords', []):
-                    return name, 'keyword'
-        return None, None
+                if word in data.get('action_keywords', []):
+                    return name       
+        return None
 
     def parse(self, user_input):
         words = user_input.lower().strip().split()
@@ -70,16 +69,33 @@ class Parser:
             left_words   = [w for w in words[:conn_i]  if w not in self.STRIP_WORDS]
             right_words  = [w for w in words[conn_i+1:] if w not in self.STRIP_WORDS]
 
-            left_name,  left_src  = self._find_any(left_words)
-            right_name, right_src = self._find_any(right_words)
+            left_name  = self._find_any(left_words)
+            right_name = self._find_any(right_words)
 
             if left_name and right_name:
-                # whichever side has the inventory item is the item being used
                 player_items = self._get_player_item_names()
-                if left_name in player_items:
+                room_targets = self._get_room_targets()
+                
+                # if right side is a room target, left is always the item
+                if right_name in room_targets:
                     return {"CMD": "use", "OBJ": {"item": left_name, "target": right_name}}
-                else:
+                # if left side is a room target, right is always the item
+                if left_name in room_targets:
                     return {"CMD": "use", "OBJ": {"item": right_name, "target": left_name}}
+                # both in inventory — the one with action keywords matching is the target
+                # the one explicitly named after the connector is the item
+                if right_name in player_items and left_name in player_items:
+                    return {"CMD": "use", "OBJ": {"item": right_name, "target": left_name}}
+                
+        # single action keyword + item name e.g. "read map", "wind music_box"
+        item_names = self._get_player_item_names()
+        for word in words:
+            remaining = [w for w in words if w != word]
+            for name in item_names:
+                if name in remaining:
+                    keywords = self.ctrl.map.item_recipes.get(name, {}).get('solo_keywords', [])
+                    if word in keywords:
+                        return {"CMD": "use", "OBJ": [name]}
 
         # keyword commands
         for word in words:

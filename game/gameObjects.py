@@ -57,10 +57,6 @@ class Map:
 
         self.win_conditions = data['win_conditions']
 
-    # def make_item(self, item_name):
-    #     data = self.item_recipes[item_name]
-    #     return Item(item_name, data['states'])
-    
     def make_item(self, item_name):
         data = self.item_recipes[item_name]
         return Item(
@@ -68,7 +64,6 @@ class Map:
             states=data['states'],
             keywords=data.get('keywords', [item_name])
         )
-
 
     def create_fresh_rooms_from_recipes(self):
         rooms = []

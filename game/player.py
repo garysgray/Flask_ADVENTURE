@@ -59,12 +59,7 @@ class Player:
             if dir == 'west':  self.pos_x -= 1
             return True
         return False
-
-    # def use(self, possible_item):
-    #     for obj in self.inventory:
-    #         if obj.name in possible_item:
-    #             return self.use_responses.get(obj.name, f"You use the {obj.name}.")
-    #     return False
+    
     def use(self, possible_item):
         for obj in self.inventory:
             if obj.name in possible_item:
