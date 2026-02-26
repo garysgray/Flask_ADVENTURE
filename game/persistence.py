@@ -16,6 +16,7 @@ class PersistenceManager:
         self.ctrl.player.pos_y            = player_location['Y']
         self.ctrl.player.visited_rooms    = player_location.get('visited_rooms', [])
         self.ctrl.player.completed_events = player_location.get('completed_events', [])
+        self.ctrl.player.journal = player_location.get('journal', [])
 
         # rebuild player inventory from recipes and restore state
         self.ctrl.player.inventory = []
@@ -44,7 +45,8 @@ class PersistenceManager:
             'X': self.ctrl.player.pos_x,
             'Y': self.ctrl.player.pos_y,
             'visited_rooms':    self.ctrl.player.visited_rooms,
-            'completed_events': self.ctrl.player.completed_events
+            'completed_events': self.ctrl.player.completed_events,
+            'journal':          self.ctrl.player.journal
         }
 
         # only save item names, descriptions are rebuilt from recipes on load

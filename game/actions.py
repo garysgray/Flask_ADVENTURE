@@ -55,19 +55,20 @@ class ActionHandler:
                 if i.name == name:
                     return True
             return False
-    
+
     def use_item(self, possible_item):
-        # use [item] with [target]
         if isinstance(possible_item, dict):
-            item = possible_item['item']
+            item   = possible_item['item']
             target = possible_item['target']
+            already_done = self.ctrl.check_use_with_events_already_done(item, target)
+            if already_done:
+                return already_done, None
             if not self.has_item(item):
                 return f"You don't have {item}.", None
             event_result = self.ctrl.check_use_with_events(item, target)
             if event_result:
                 return self.help(), event_result
             return f"You can't use {item} with {target}.", None
-
         # use [item]
         words = [w for w in possible_item if w != 'use']
         item_name = words[0] if words else None
@@ -88,10 +89,16 @@ class ActionHandler:
             'use':        lambda: self.use_item(possible_item),
             'changedesc': lambda: (self.change_room_description(possible_item), None),
             'move':       lambda: (self.move_player(next((d for d in self.ctrl.player.directions if d in possible_item), "")), None),
+            'journal': lambda: (self.read_journal(), None),
+            
         }
+
         if cmd in self.ctrl.player.directions:
             return self.move_player(cmd), None
         handler = dispatch.get(cmd)
         if handler:
             return handler()
         return f"I don't understand: {cmd}. Try 'help' for commands.", None
+    
+    def read_journal(self):
+        return ""

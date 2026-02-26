@@ -11,6 +11,7 @@ class Player:
         self.visited_rooms    = []
         self.completed_events = []
         self.game_map         = game_map
+        self.journal = []
 
     def get_location(self):
         return {'X': self.pos_x, 'Y': self.pos_y}

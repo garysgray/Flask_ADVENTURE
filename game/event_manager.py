@@ -75,6 +75,12 @@ class EventManager:
                         if item.name == item_name:
                             item.set_state(new_state)
 
+        self.ctrl.player.journal.append({
+            'event_id': event.id,
+            'room':     self.ctrl.get_room().name,
+            'message':  result.get('message', '')
+        })
+
         # these must be OUTSIDE all the if blocks
         self.ctrl.player.completed_events.append(event.id)
         return result.get('message', None)
@@ -118,17 +124,18 @@ class EventManager:
         Returns the event message if triggered, or None if nothing matched.
         """
         for event in self.ctrl.map.event_recipes:
-            # this method only handles ItemUsedWithEvent, skip everything else
-            if not isinstance(event, ItemUsedWithEvent):
-                continue
-            if event.id in self.ctrl.player.completed_events:
-                continue
-            # the event checks itself whether item, target and room all match
-            if event.check(self.ctrl, item, target):
-                return self._fire_event(event)
-
+                if not isinstance(event, ItemUsedWithEvent):
+                    continue
+                # check if item and target match regardless of room
+                if event.item == item and event.target == target:
+                    if event.id in self.ctrl.player.completed_events:
+                        return f"You already did this in the {event.room}."
+                if event.id in self.ctrl.player.completed_events:
+                    continue
+                if event.check(self.ctrl, item, target):
+                    return self._fire_event(event)
         return None
-    
+        
     def check_win(self):
         """
         Checks if all win condition events have been completed.
@@ -138,4 +145,13 @@ class EventManager:
             event_id in self.ctrl.player.completed_events
             for event_id in self.ctrl.map.win_conditions
         )
+    
+    def check_use_with_events_already_done(self, item, target):
+        for event in self.ctrl.map.event_recipes:
+            if not isinstance(event, ItemUsedWithEvent):
+                continue
+            if event.item == item and event.target == target:
+                if event.id in self.ctrl.player.completed_events:
+                    return f"You already did this in the {event.room}."
+        return None
     

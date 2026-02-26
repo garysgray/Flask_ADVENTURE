@@ -165,16 +165,18 @@ def game(id):
         map_layout=map_with_indices,
         player_pos=player_pos,
         visited_rooms=visited_rooms,
+        journal=ctrl.player.journal,
     )
-
 
 @app.route('/delete/<int:id>')
 def delete(id):
-    """Deletes a player and their saved data from the database."""
     db_player = DB_Player.query.get_or_404(id)
     try:
         db.session.delete(db_player)
         db.session.commit()
+        # remove controller from memory so new player with same id starts fresh
+        if hasattr(app, 'controllers') and id in app.controllers:
+            del app.controllers[id]
         return redirect('/')
     except Exception as e:
         return f'Error deleting player: {e}'

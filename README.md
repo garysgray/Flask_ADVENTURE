@@ -33,7 +33,7 @@ The game is split into focused modules:
 
 ### Game Objects
 
-- `Item` — name, states (description + use text per state), current state, action and solo keywords
+- `Item` — name, states (description + use text per state), current state, solo and action keywords
 - `Room` — name, states (description per state), exits, inventory, exit destinations
 - `Map` — floors, rooms, events, win conditions, loaded from `game_data.yaml`
 
@@ -54,6 +54,7 @@ light lantern with matches
 open box with key
 drop locket into well
 use matches with lantern
+read journal
 help
 ```
 
@@ -64,6 +65,7 @@ The parser converts input into a structured command dict which the action handle
 - Action keywords — two item interactions e.g. `light lantern with matches`
 - Connectors — `with`, `into`, `onto`
 - Inventory-aware resolution — parser checks player inventory to determine which word is the item and which is the target
+- Already-done detection — repeating a completed event returns a contextual response instead of a generic failure
 - Fallback `use [item] with [target]` always works regardless of keywords
 
 ### Item Keywords
@@ -79,6 +81,7 @@ lantern:
 - `solo_keywords` trigger single item use with no target required
 - `action_keywords` only trigger when used with a connector and a target
 - Item name is always a valid fallback — `use lantern` always works
+- Keywords are action words only — they describe what you do, not what the item is called
 
 ### Event System
 
@@ -141,6 +144,17 @@ win_conditions:
 
 After every action the engine checks if all win conditions are in the player's completed events. If yes, a win message is displayed. This separates required puzzle events from optional flavour events — a game can have many events but only a subset need to be completed to win.
 
+### Journal System
+
+The player has a permanent journal object that cannot be dropped or lost. It records all major events as they happen.
+
+- Events write to the journal automatically when they fire, storing the room name and event message
+- `read journal` command opens a styled panel that slides in from the right
+- Entries are numbered in the order events were completed
+- When a player tries to repeat a completed event, they get a contextual response: "You already did this in the entrance." instead of a generic failure
+- This works even when the item has been removed from inventory (e.g. locket dropped into well)
+- Journal persists between sessions
+
 ### State System
 
 Rooms and items are no longer static — they have states that change as the player interacts with the world.
@@ -185,10 +199,11 @@ Full game state is persisted to SQLite via Flask-SQLAlchemy:
 - Room inventories and room states
 - Visited rooms and completed events
 - Unlocked exits and exit destinations
+- Journal entries
 
 Items and rooms are always rebuilt from YAML recipes on load, with saved state restored on top. This means recipe changes are always picked up cleanly.
 
-Each player ID gets its own controller instance so multiple players can run simultaneously.
+Each player ID gets its own controller instance so multiple players can run simultaneously. Deleting a player also clears their controller from memory so new players with the same ID start completely fresh.
 
 ### Map System
 
@@ -212,6 +227,8 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 - Event messages displayed separately from command responses
 - Interactable targets highlighted in gold in room descriptions
 - Win screen displayed when all win conditions are met
+- Journal panel slides in from the right in a dark parchment style
+- Journal auto-opens when `read journal` command is typed
 
 ---
 
@@ -281,11 +298,11 @@ Open in browser: `http://127.0.0.1:5000`
 
 ## Planned Improvements
 
-- **Journal system** — player journal object that logs all triggered events, supports `look journal` command, and gives meaningful "you already did that" responses instead of silent skips
 - **Room images** — optional image field per room in YAML, displayed when player enters
 - **NPC system** — characters with dialogue states using existing event class pattern
 - **Conditional item combinations** — items that only work in certain room states
 - **Polish parser** — fuzzy matching, filler word stripping, better unknown command responses
+- **Better help & item hints** — richer help command, contextual hints based on item keywords
 - **Command history** — press up arrow to cycle previous commands
 - **Admin panel** — edit rooms, items, events without touching YAML
 - **Login system** — proper accounts with admin and player roles

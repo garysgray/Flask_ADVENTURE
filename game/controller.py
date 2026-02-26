@@ -66,6 +66,7 @@ class Controller:
             'EVENT_MESSAGES':  event_messages,
             'ROOM_EXIT_DEST':  room.exit_destinations,
             'GAME_WON':        game_won,
+            'SHOW_JOURNAL': cmd == 'journal',
         }
 
     def check_use_with_events(self, item, target):
@@ -75,4 +76,7 @@ class Controller:
         self.persistence.load(db_player)
 
     def save_stuff_to_data_base(self):
-        return self.persistence.save()#
+        return self.persistence.save()
+    
+    def check_use_with_events_already_done(self, item, target):
+        return self.events.check_use_with_events_already_done(item, target)
