@@ -1,3 +1,32 @@
+intro:
+  title: "Ashwood Manor"
+  text: |
+    The letter arrived three days ago. No return address, no signature, just
+    your name and a single line: "Come to Ashwood Manor. Come alone. What was
+    taken can be returned."
+
+    You have heard the stories, of course. Everyone in the village has. The
+    manor on the hill has been empty for thirty years, its windows dark, its
+    gates rusted shut. They say the last family to live there simply vanished
+    one night, leaving dinner on the table and a grandfather clock stopped
+    at 3:47.
+
+    But the letter knew things it shouldn't have known. So here you are.
+
+    The front door slammed shut behind you the moment you stepped inside. The
+    chandelier overhead hangs cold and dark. Dust covers everything. Somewhere
+    deeper in the house, something shifts.
+
+    You are not alone.
+
+  instructions: |
+    Explore every room, some doors only open when you do.
+    Examine everything, type: look [item]
+    Items can be combined, type: use [item] with [target]
+    Your journal records everything you discover.
+    Type help for a full list of commands.
+
+
 win_conditions:
   - light_lantern
   - unlock_vault
@@ -200,7 +229,7 @@ rooms:
   - name: library
     exits: [north, east]
     states:
-      default: "Floor to ceiling bookshelves, most rotted. One shelf has been cleared and arranged — the books spell something in their spines but you can't quite read it in the dark."
+      default: "Floor to ceiling bookshelves, most rotted. One shelf has been cleared and arranged, the books spell something in their spines but you can't quite read it in the dark."
       changed: "Floor to ceiling bookshelves, most rotted. The hidden starway leading up hangs open. A draft comes through it that smells of somewhere else."
     items: [tome, journal, map]
     exit_destinations: {}
@@ -398,6 +427,14 @@ events:
           direction: west
           destination: {floor: 2, x: 1, y: 0}
       message: "You hold the mirror shard up to the empty frame. For a moment you see a room that is not this room. Then the wall opens."
+
+  - id: game_won
+    type: achievement
+    check_type: all_events_completed
+    parameters:
+      required_events: [light_lantern, unlock_vault, all_rooms_floor0, locket_into_well, mirror_in_gallery]
+    result:
+      message: "You have done it. The house releases you. You step out into cold air and do not look back. The door closes behind you. It does not make a sound. You have escaped Ashwood Manor."
 
 floors:
   - - [0, 1]

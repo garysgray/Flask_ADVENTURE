@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from game import Controller, State
@@ -9,21 +9,27 @@ app.config['SECRET_KEY'] = 'change-this-secret-in-production'
 db = SQLAlchemy(app)
 
 
-# -------------------------------
-# Database model
-# -------------------------------
+# =============================================================================
+# DATABASE MODEL
+# =============================================================================
+
 class DB_Player(db.Model):
     """
-    Stores the saved state of a player between sessions.
-    The game itself runs in memory via the Controller, but when the player
-    closes the browser or refreshes, this is what gets loaded back in.
+    Persists player state between sessions.
+    The live game runs in memory via Controller. When the browser closes or
+    refreshes, this is what gets loaded back in on the next visit.
+
+    All game state is serialized to JSON strings:
+        location         — player position, visited rooms, completed events, journal
+        player_inventory — items the player is carrying and their current states
+        room_inventory   — all room inventories, exits, and states across the whole map
     """
     id               = db.Column(db.Integer, primary_key=True)
-    username         = db.Column(db.String(30), nullable=False)
-    location         = db.Column(db.String(30))       # serialized player position
-    player_inventory = db.Column(db.String(500))      # serialized player inventory
-    room_inventory   = db.Column(db.String(3000))     # serialized state of all room inventories
-    cmd_info         = db.Column(db.String(30))       # last command the player typed
+    username         = db.Column(db.String(30),   nullable=False)
+    location         = db.Column(db.String(30))
+    player_inventory = db.Column(db.String(500))
+    room_inventory   = db.Column(db.String(3000))
+    cmd_info         = db.Column(db.String(30))
     date_create      = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __init__(self, username, location, player_inventory, room_inventory, cmd):
@@ -37,15 +43,16 @@ class DB_Player(db.Model):
         return f'<DB_Player {self.id}>'
 
 
-# -------------------------------
-# Controller management
-# -------------------------------
+# =============================================================================
+# CONTROLLER MANAGEMENT
+# =============================================================================
+
 def get_controller(player_id):
     """
-    Controllers live in memory on the app object, one per player id.
-    If a controller doesn't exist yet for this player (e.g. first request
-    after server restart), a fresh one is created. The controller holds
-    all live game state: map, player, parser, events etc.
+    Returns the in-memory Controller for the given player ID.
+    Controllers are stored on the app object, one per player.
+    A fresh controller is created if none exists (e.g. after server restart).
+    State is set to LOAD so the game route knows to load from the database.
     """
     if not hasattr(app, 'controllers'):
         app.controllers = {}
@@ -54,23 +61,31 @@ def get_controller(player_id):
     return app.controllers[player_id]
 
 
-# -------------------------------
-# Routes
-# -------------------------------
+# =============================================================================
+# ROUTES
+# =============================================================================
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     """
-    Home page. Shows a list of all saved players.
-    POST: creates a new player, saves their starting state to the database,
-    then redirects back to the player list.
-    GET: just renders the player list.
+    Home page — player list and new player creation.
+
+    POST: Creates a new player with fresh starting state and saves to DB.
+    GET:  Renders the player list.
     """
     if request.method == 'POST':
         username = request.form['username']
 
-        # spin up a temporary controller just to generate the starting save data
+        # spin up a temporary controller just to generate starting save data
         temp_ctrl = Controller()
         temp_ctrl.player.inventory = temp_ctrl.map.player_start_invent
+
+        temp_ctrl.player.journal.append({
+            'event_id': 'intro',
+            'room':    'Ashwood Manor',
+            'message':  temp_ctrl.map.intro.get('text', '') + '\n\n' + temp_ctrl.map.intro.get('instructions', '')
+        })
+
         loc, inv, rooms = temp_ctrl.save_stuff_to_data_base()
 
         new_player = DB_Player(username, loc, inv, rooms, "NONE")
@@ -84,22 +99,32 @@ def index():
     players = DB_Player.query.order_by(DB_Player.date_create).all()
     return render_template('index.html', players=players)
 
+@app.route('/seen_intro/<int:id>', methods=['POST'])
+def seen_intro(id):
+    ctrl = get_controller(id)
+    ctrl.player.has_seen_intro = True
+    loc, inv, rooms = ctrl.save_stuff_to_data_base()
+    db_player = DB_Player.query.get_or_404(id)
+    db_player.location         = loc
+    db_player.player_inventory = inv
+    db_player.room_inventory   = rooms
+    db.session.commit()
+    return '', 204
 
 @app.route('/game/<int:id>', methods=['GET', 'POST'])
 def game(id):
     """
     Main game route.
 
-    POST: player typed a command.
-        - parse and run the command via the controller
-        - save updated state back to the database
-        - redirect back to GET (prevents form resubmission on refresh)
+    POST: Player typed a command.
+        - Parse and run the command via the controller
+        - Save updated state to the database
+        - Redirect back to GET (prevents form resubmission on refresh)
 
-    GET: player is viewing the game page.
-        - if the controller is in LOAD state (first visit this session),
-          load saved data from the database and auto-run 'help'
-        - build the map layout and visited rooms for the template
-        - render the game page
+    GET: Player is viewing the game page.
+        - On first visit (State.LOAD), load saved data from DB and auto-run help
+        - Build the map layout and visited rooms list for the template
+        - Render the game page
     """
     ctrl      = get_controller(id)
     db_player = DB_Player.query.get_or_404(id)
@@ -112,8 +137,7 @@ def game(id):
         cmd_info = ctrl.parse_it(cmd)
         ctrl.run_the_cmd(cmd_info)
 
-        # save the updated game state back to the database after every command
-        loc, inv, rooms = ctrl.save_stuff_to_data_base()
+        loc, inv, rooms        = ctrl.save_stuff_to_data_base()
         db_player.location         = loc
         db_player.player_inventory = inv
         db_player.room_inventory   = rooms
@@ -121,10 +145,8 @@ def game(id):
 
         return redirect(url_for('game', id=db_player.id))
 
-    # GET request
+    # GET — first visit this session: load saved state and show help
     if ctrl.State == State.LOAD:
-        # first visit this session — load saved data and auto-run help
-        # after this, State is set to PLAY and this block never runs again
         ctrl.load_stuff_from_data_base(db_player)
         ctrl.State = State.PLAY
         cmd_info = ctrl.parse_it("help")
@@ -132,20 +154,17 @@ def game(id):
         db_player.cmd_info = "help"
         db.session.commit()
 
-    # build the current floor map with grid positions attached
-    # so the template knows where the player is and which rooms are visited
+    # build map grid with positions so template can highlight current room
+    # and show which rooms have been visited
     map_layout    = getattr(ctrl.map, 'game_map', [])
     current_floor = ctrl.player.level
     player_pos    = (current_floor, ctrl.player.pos_y, ctrl.player.pos_x)
 
-    # normalize visited rooms to tuples so the template can compare them to player_pos
     visited_rooms = []
     for pos in ctrl.player.visited_rooms:
         if isinstance(pos, (list, tuple)) and len(pos) == 3:
             visited_rooms.append((pos[0], pos[1], pos[2]))
 
-    # attach grid position to each cell so the template can highlight
-    # the current room and visited rooms on the map
     map_with_indices = []
     for r_idx, row in enumerate(map_layout[current_floor]):
         row_with_indices = []
@@ -158,23 +177,29 @@ def game(id):
 
     return render_template(
         'game.html',
-        cmd=db_player.cmd_info,
-        db_player=db_player,
-        debug1=ctrl.room_info,
-        player_inv=ctrl.player.inventory,
-        map_layout=map_with_indices,
-        player_pos=player_pos,
-        visited_rooms=visited_rooms,
-        journal=ctrl.player.journal,
+        cmd          = db_player.cmd_info,
+        db_player    = db_player,
+        debug1       = ctrl.room_info,
+        player_inv   = ctrl.player.inventory,
+        map_layout   = map_with_indices,
+        player_pos   = player_pos,
+        visited_rooms= visited_rooms,
+        journal       = list(reversed(ctrl.player.journal)),
+        show_intro   = not ctrl.player.has_seen_intro,
+        intro        = ctrl.map.intro,
     )
+
 
 @app.route('/delete/<int:id>')
 def delete(id):
+    """
+    Deletes a player from the database and removes their controller from memory.
+    Clearing the controller ensures a new player with the same ID starts fresh.
+    """
     db_player = DB_Player.query.get_or_404(id)
     try:
         db.session.delete(db_player)
         db.session.commit()
-        # remove controller from memory so new player with same id starts fresh
         if hasattr(app, 'controllers') and id in app.controllers:
             del app.controllers[id]
         return redirect('/')

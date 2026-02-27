@@ -1,11 +1,15 @@
 {% extends 'base.html' %}
+
 {% block head %}
     <title>Game Portal</title>
 {% endblock %}
+
 {% block body %}
 <div class="content">
+
     <h1>Game Portal</h1>
 
+    {# ── Player Table ──────────────────────────────────────────── #}
     {% if players|length < 1 %}
         <h2>No players yet — create one below</h2>
     {% else %}
@@ -21,17 +25,18 @@
                 <td>{{ player.username }}</td>
                 <td>{{ player.date_create.date() }}</td>
                 <td><a href="/game/{{ player.id }}" class="button-small">Play</a></td>
-                <td><a href="/delete/{{ player.id }}">Delete</a></td>
+                <td><a href="/delete/{{ player.id }}" class="button-small">Delete</a></td>
             </tr>
             {% endfor %}
         </table>
     {% endif %}
 
+    {# ── New Player Form ───────────────────────────────────────── #}
     <div class="form">
         <form action="/" method="POST">
             <input type="text" class="input-element" name="username" id="username"
-                placeholder="Enter username" autocomplete="off" autocorrect="off"
-                autocapitalize="none" spellcheck="false" required>
+                   placeholder="Enter username" autocomplete="off" autocorrect="off"
+                   autocapitalize="none" spellcheck="false" required>
             <input type="submit" class="button" value="New Player">
         </form>
     </div>

@@ -1,14 +1,30 @@
-from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent
+from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent, AllEventsCompletedEvent
+
 
 class EventManager:
+    """
+    Checks and fires game events after every player command.
+
+    Two event types are currently supported:
+        AllRoomsVisitedEvent  — fires when the player has visited all required rooms
+        ItemUsedWithEvent     — fires when item + target + room all match
+
+    Flow per command:
+        1. check_events()                     — checks AllRoomsVisitedEvents
+        2. check_use_with_events()            — checks ItemUsedWithEvents (called from actions.py)
+        3. check_use_with_events_already_done — returns message if event was already completed
+        4. check_win()                        — checks if all win conditions are met
+    """
+
     def __init__(self, controller):
-        # controller gives us access to the map, player, and room state
         self.ctrl = controller
+
+    # ─── Internal Helpers ─────────────────────────────────────────────────────
 
     def _open_exits(self, exits_to_open):
         """
         Opens one or more exits on rooms in the map.
-        Called by events when they need to unlock new paths.
+        Accepts a single exit dict or a list of them.
         Each exit_data looks like:
             { "room": "vault", "direction": "north", "destination": { "floor": 2, "x": 0, "y": 1 } }
         """
@@ -36,6 +52,20 @@ class EventManager:
                 print(f"[EXIT ERROR] Room not found: {target_room_name}")
 
     def _fire_event(self, event):
+        """
+        Executes all result actions for a fired event, then marks it as completed.
+
+        Supported result keys:
+            open_exit      — unlocks an exit on a room
+            add_item       — spawns an item into a room
+            remove_item    — removes an item from player inventory
+            set_state      — changes a room to a new state
+            set_item_state — changes an item to a new state
+            message        — text displayed to the player
+
+        Always writes to player journal and completed_events regardless of result keys.
+        Returns the message string or None.
+        """
         result = event.result
 
         if 'open_exit' in result:
@@ -51,7 +81,7 @@ class EventManager:
         if 'remove_item' in result:
             for item_data in result['remove_item']:
                 self.ctrl.player.inventory = [
-                    i for i in self.ctrl.player.inventory 
+                    i for i in self.ctrl.player.inventory
                     if i.name != item_data['item']
                 ]
 
@@ -65,50 +95,44 @@ class EventManager:
             for state_change in result['set_item_state']:
                 item_name = state_change['item']
                 new_state = state_change['state']
-                # check player inventory first
                 for item in self.ctrl.player.inventory:
                     if item.name == item_name:
                         item.set_state(new_state)
-                # also check all rooms
                 for room in self.ctrl.map.list_of_rooms:
                     for item in room.inventory:
                         if item.name == item_name:
                             item.set_state(new_state)
 
+        # always runs — must stay outside all if blocks above
         self.ctrl.player.journal.append({
             'event_id': event.id,
             'room':     self.ctrl.get_room().name,
             'message':  result.get('message', '')
         })
-
-        # these must be OUTSIDE all the if blocks
         self.ctrl.player.completed_events.append(event.id)
+
         return result.get('message', None)
+
+    # ─── Event Checks ─────────────────────────────────────────────────────────
 
     def check_events(self):
         """
-        Called whenever the player moves into a new room.
-        Loops through all events and fires any AllRoomsVisitedEvents
-        whose required rooms have all been visited.
-        Returns a list of messages to display to the player.
+        Called after every command.
+        Checks AllRoomsVisitedEvents and AllEventsCompletedEvents and fires
+        any whose conditions have been met.
+        visited_rooms tracking is handled by get_room() in controller.py.
+        Returns a list of event messages to display to the player.
         """
         triggered_messages = []
 
-        current_room = self.ctrl.get_room()
-        if not current_room:
+        if not self.ctrl.get_room():
             return triggered_messages
 
-        # track that the player has now visited this room
-        if current_room.name not in self.ctrl.player.visited_rooms:
-            self.ctrl.player.visited_rooms.append(current_room.name)
-
         for event in self.ctrl.map.event_recipes:
-            # this method only handles AllRoomsVisitedEvent, skip everything else
-            if not isinstance(event, AllRoomsVisitedEvent):
+            if not isinstance(event, (AllRoomsVisitedEvent, AllEventsCompletedEvent)):
                 continue
             if event.id in self.ctrl.player.completed_events:
                 continue
-            # the event checks itself whether all required rooms have been visited
             if event.check(self.ctrl):
                 message = self._fire_event(event)
                 if message:
@@ -118,35 +142,26 @@ class EventManager:
 
     def check_use_with_events(self, item, target):
         """
-        Called when the player uses an item on a target (e.g. 'use key on box').
-        Loops through all events and fires any ItemUsedWithEvent
-        whose item, target, and room all match the current situation.
-        Returns the event message if triggered, or None if nothing matched.
+        Called when the player uses an item on a target e.g. 'use key with box'.
+        Fires the first ItemUsedWithEvent whose item, target, and room all match.
+        Returns the event message if triggered, None if nothing matched.
+        Already-completed events are skipped — handled by check_use_with_events_already_done.
         """
         for event in self.ctrl.map.event_recipes:
-                if not isinstance(event, ItemUsedWithEvent):
-                    continue
-                # check if item and target match regardless of room
-                if event.item == item and event.target == target:
-                    if event.id in self.ctrl.player.completed_events:
-                        return f"You already did this in the {event.room}."
-                if event.id in self.ctrl.player.completed_events:
-                    continue
-                if event.check(self.ctrl, item, target):
-                    return self._fire_event(event)
+            if not isinstance(event, ItemUsedWithEvent):
+                continue
+            if event.id in self.ctrl.player.completed_events:
+                continue
+            if event.check(self.ctrl, item, target):
+                return self._fire_event(event)
         return None
-        
-    def check_win(self):
-        """
-        Checks if all win condition events have been completed.
-        Returns True if the player has won, False otherwise.
-        """
-        return all(
-            event_id in self.ctrl.player.completed_events
-            for event_id in self.ctrl.map.win_conditions
-        )
-    
+
     def check_use_with_events_already_done(self, item, target):
+        """
+        Called before the has_item check in use_item so items removed from
+        inventory (e.g. locket dropped into well) still return a meaningful response.
+        Returns an already-done message if this item+target was previously completed.
+        """
         for event in self.ctrl.map.event_recipes:
             if not isinstance(event, ItemUsedWithEvent):
                 continue
@@ -154,4 +169,13 @@ class EventManager:
                 if event.id in self.ctrl.player.completed_events:
                     return f"You already did this in the {event.room}."
         return None
-    
+
+    def check_win(self):
+        """
+        Returns True if all win condition event IDs are in completed_events.
+        Win conditions are defined in game_data.yaml under win_conditions.
+        """
+        return all(
+            event_id in self.ctrl.player.completed_events
+            for event_id in self.ctrl.map.win_conditions
+        )

@@ -35,7 +35,7 @@ The game is split into focused modules:
 
 - `Item` — name, states (description + use text per state), current state, solo and action keywords
 - `Room` — name, states (description per state), exits, inventory, exit destinations
-- `Map` — floors, rooms, events, win conditions, loaded from `game_data.yaml`
+- `Map` — floors, rooms, events, win conditions, intro text, loaded from `game_data.yaml`
 
 Rooms and items support a state system — descriptions and use text change dynamically as the player progresses through the game.
 
@@ -65,6 +65,7 @@ The parser converts input into a structured command dict which the action handle
 - Action keywords — two item interactions e.g. `light lantern with matches`
 - Connectors — `with`, `into`, `onto`
 - Inventory-aware resolution — parser checks player inventory to determine which word is the item and which is the target
+- Event recipe resolution — parser checks event definitions to determine correct item/target order when both sides are in inventory
 - Already-done detection — repeating a completed event returns a contextual response instead of a generic failure
 - Fallback `use [item] with [target]` always works regardless of keywords
 
@@ -89,6 +90,7 @@ Events are defined in `game_data.yaml` and fire based on game conditions:
 
 - `all_rooms_visited` — triggers when required rooms have been visited
 - `item_used_with` — triggers when a specific item is used on a specific target in a specific room
+- `all_events_completed` — triggers when a set of required events have all been completed (used for win event)
 
 Events can:
 - Unlock exits between rooms
@@ -97,6 +99,7 @@ Events can:
 - Change room states
 - Change item states
 - Display messages to the player
+- Write entries to the player journal
 
 #### Event Architecture
 
@@ -105,9 +108,10 @@ All event logic lives in a proper class hierarchy:
 **`event_types.py`** defines a base `Event` class and one class per event type:
 
 ```python
-class Event:                # base class, all events inherit from this
-class AllRoomsVisitedEvent  # fires when a set of rooms have all been visited
-class ItemUsedWithEvent     # fires when item + target + room all match
+class Event                    # base class, all events inherit from this
+class AllRoomsVisitedEvent     # fires when a set of rooms have all been visited
+class AllEventsCompletedEvent  # fires when a set of events have all been completed
+class ItemUsedWithEvent        # fires when item + target + room all match
 ```
 
 Each event class holds its own parameters and knows how to check itself via a `check()` method. Adding a new event type means adding a new class — nothing else changes.
@@ -127,7 +131,7 @@ Events in `game_data.yaml` support the following result keys:
 | `remove_item` | Removes an item from the player's inventory |
 | `set_state` | Changes a room to a new state |
 | `set_item_state` | Changes an item to a new state |
-| `message` | Displays a message to the player |
+| `message` | Displays a message to the player and writes to journal |
 
 ### Win Conditions
 
@@ -142,18 +146,28 @@ win_conditions:
   - mirror_in_gallery
 ```
 
-After every action the engine checks if all win conditions are in the player's completed events. If yes, a win message is displayed. This separates required puzzle events from optional flavour events — a game can have many events but only a subset need to be completed to win.
+After every action the engine checks if all win conditions are in the player's completed events. A separate `game_won` event fires via `AllEventsCompletedEvent` which writes the win message to the journal. This separates required puzzle events from optional flavour events.
 
 ### Journal System
 
-The player has a permanent journal object that cannot be dropped or lost. It records all major events as they happen.
+The player has a permanent journal that cannot be dropped or lost. It records all major events as they happen.
 
-- Events write to the journal automatically when they fire, storing the room name and event message
+- Intro text is pinned as the first journal entry when a new player is created
+- Events write to the journal automatically when they fire
+- Journal shows latest entries at the top, intro always at the bottom
 - `read journal` command opens a styled panel that slides in from the right
-- Entries are numbered in the order events were completed
-- When a player tries to repeat a completed event, they get a contextual response: "You already did this in the entrance." instead of a generic failure
+- When a player tries to repeat a completed event they get a contextual response instead of a generic failure
 - This works even when the item has been removed from inventory (e.g. locket dropped into well)
+- Win event writes to journal when all win conditions are met
 - Journal persists between sessions
+
+### Intro System
+
+- Backstory and instructions are defined in `game_data.yaml` under `intro:`
+- On a new player's first visit the intro panel fades in as a centered modal
+- Player dismisses it by clicking "Enter the Manor"
+- The intro is pinned permanently as the last journal entry
+- Never auto-shows again after dismissal — tracked via `has_seen_intro` flag saved to database
 
 ### State System
 
@@ -181,8 +195,6 @@ lantern:
       use: "The lantern is already lit. It burns steadily."
 ```
 
-Events set states when they fire, so the world reacts to what the player has done. State is persisted between sessions.
-
 ### Action / Response Separation
 
 `use [item] with [target]` events return a tuple of `(cmd_response, event_message)`. This means event messages and regular command responses are cleanly separated before reaching the template:
@@ -197,9 +209,11 @@ Full game state is persisted to SQLite via Flask-SQLAlchemy:
 - Player position and floor
 - Player inventory and item states
 - Room inventories and room states
-- Visited rooms and completed events
+- Visited rooms (tuples) and visited room names (strings) — stored separately
+- Completed events
 - Unlocked exits and exit destinations
 - Journal entries
+- `has_seen_intro` flag
 
 Items and rooms are always rebuilt from YAML recipes on load, with saved state restored on top. This means recipe changes are always picked up cleanly.
 
@@ -207,7 +221,7 @@ Each player ID gets its own controller instance so multiple players can run simu
 
 ### Map System
 
-The map is defined entirely in `game_data.yaml` — no hardcoded room data in Python. Items, rooms, events, states, keywords, and use responses are all data-driven. Adding a new room or item requires only editing the YAML file.
+The map is defined entirely in `game_data.yaml` — no hardcoded room data in Python. Items, rooms, events, states, keywords, use responses, and intro text are all data-driven.
 
 - Floor layout defined via `floors` array — fully dynamic
 - Supports multiple floors with stair and teleport connections between them
@@ -215,7 +229,6 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 - Teleport exits using cardinal directions show ✦ on the mini map
 - Stair exits using up/down show ⬆⬇ on the mini map
 - Interactable targets highlighted in room descriptions via `<em>` tags
-- Em tags also used by parser to identify valid room targets
 
 ### UI Features
 
@@ -229,6 +242,8 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 - Win screen displayed when all win conditions are met
 - Journal panel slides in from the right in a dark parchment style
 - Journal auto-opens when `read journal` command is typed
+- Intro panel fades in on first visit as a centered modal
+- Journal JS moved to static file `journal.js`
 
 ---
 
@@ -239,7 +254,7 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 - SQLite
 - PyYAML
 - Jinja2 Templates
-- HTML5 / CSS3 (no frontend framework)
+- HTML5 / CSS3 / JS (no frontend framework)
 
 ---
 
@@ -249,6 +264,8 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 flask_adventure/
 │
 ├── static/
+│   ├── js/
+│   │   └── journal.js
 │   ├── css/
 │   │   └── main.css
 │   └── images/
@@ -298,11 +315,15 @@ Open in browser: `http://127.0.0.1:5000`
 
 ## Planned Improvements
 
+- **Win screen** — replace UI with win message and play again option, journal remains accessible
 - **Room images** — optional image field per room in YAML, displayed when player enters
 - **NPC system** — characters with dialogue states using existing event class pattern
 - **Conditional item combinations** — items that only work in certain room states
 - **Polish parser** — fuzzy matching, filler word stripping, better unknown command responses
 - **Better help & item hints** — richer help command, contextual hints based on item keywords
+- **Item aliases** — multi-word item names, players can type natural variations
+- **Refactor room targets** — remove em tag scraping from parser, use event targets from YAML only
+- **Constants file** — settings, enums, magic numbers in one place
 - **Command history** — press up arrow to cycle previous commands
 - **Admin panel** — edit rooms, items, events without touching YAML
 - **Login system** — proper accounts with admin and player roles
@@ -316,4 +337,4 @@ MIT
 
 ---
 
-Built by Gary Gray.
+Built by Gary Fn Gray.

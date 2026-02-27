@@ -1,8 +1,18 @@
 import json
-from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent
+import os
+import yaml
+from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent, AllEventsCompletedEvent
+
+
+# =============================================================================
+# ITEM
+# =============================================================================
 
 class Item:
-    """Represents an item in the game."""
+    """
+    Represents a game item. Items have states — each state has its own
+    description and use_text. Current state changes when events fire.
+    """
     def __init__(self, name, states=None, keywords=None):
         self.name          = name
         self.states        = states if states is not None else {}
@@ -11,10 +21,12 @@ class Item:
 
     @property
     def description(self):
+        """Returns description text for the current state."""
         return self.states.get(self.current_state, {}).get('description', '')
 
     @property
     def use_text(self):
+        """Returns use response text for the current state."""
         return self.states.get(self.current_state, {}).get('use', '')
 
     def set_state(self, state):
@@ -23,8 +35,16 @@ class Item:
         else:
             print(f"[STATE ERROR] Item '{self.name}' has no state '{state}'")
 
+
+# =============================================================================
+# ROOM
+# =============================================================================
+
 class Room:
-    """Represents a room in the game map."""
+    """
+    Represents a room in the game map. Rooms have states — each state has
+    its own description text. Current state changes when events fire.
+    """
     def __init__(self, name, exits, inventory, exit_destinations=None, states=None):
         self.name              = name
         self.exits             = exits
@@ -35,6 +55,7 @@ class Room:
 
     @property
     def description(self):
+        """Returns description text for the current state."""
         return self.states.get(self.current_state, '')
 
     def set_state(self, state):
@@ -43,73 +64,61 @@ class Room:
         else:
             print(f"[STATE ERROR] Room '{self.name}' has no state '{state}'")
 
+
+# =============================================================================
+# MAP
+# =============================================================================
+
 class Map:
+    """
+    Loads all game data from game_data.yaml and builds the live game world.
+    Holds recipes (raw YAML data) and live objects (rooms, events, items).
+    Recipes are the source of truth — live objects are rebuilt from them on load,
+    with saved state restored on top.
+    """
+
     def __init__(self):
         data = self._load_data()
-        self.item_recipes = data['items']
-        self.room_recipes = data['rooms']
-        self.event_recipes = [self.make_event(e) for e in data['events']]
+
+        # raw recipes from YAML — used to rebuild objects and look up keywords
+        self.item_recipes  = data['items']
+        self.room_recipes  = data['rooms']
         self.floor_recipes = data['floors']
+        self.win_conditions = data['win_conditions']
+        self.intro = data.get('intro', {})
+
+        # built event objects from YAML event definitions
+        self.event_recipes = [self.make_event(e) for e in data['events']]
+
+        # build live room and map objects
         rooms = self.create_fresh_rooms_from_recipes()
         self.rebuild_from_rooms(rooms)
-        self.list_of_items = [self.make_item(name) for name in self.item_recipes]
+
+        # full item list and starting inventory
+        self.list_of_items       = [self.make_item(name) for name in self.item_recipes]
         self.player_start_invent = [self.make_item('watch'), self.make_item('knife')]
 
-        self.win_conditions = data['win_conditions']
-
-    def make_item(self, item_name):
-        data = self.item_recipes[item_name]
-        return Item(
-            name=item_name,
-            states=data['states'],
-            keywords=data.get('keywords', [item_name])
-        )
-
-    def create_fresh_rooms_from_recipes(self):
-        rooms = []
-        for recipe in self.room_recipes:
-            room = Room(
-                name=recipe['name'],
-                exits=recipe['exits'].copy(),
-                inventory=[self.make_item(name) for name in recipe['items']],
-                exit_destinations=recipe['exit_destinations'].copy(),
-                states=recipe.get('states', {})
-            )
-            rooms.append(room)
-        return rooms
-
-    def create_fresh_rooms_from_saved_data(self, rooms_data):
-        rooms = []
-        for room_data in rooms_data:
-            room_items = [Item(name, details[0]) for item_dict in room_data['inventory'] for name, details in item_dict.items()]
-            room = Room(
-                name=room_data['name'],
-                exits=room_data['exits'],
-                description=room_data['description'],
-                inventory=room_items,
-                exit_destinations=room_data.get('exit_destinations', {})
-            )
-            rooms.append(room)
-        return rooms
-
-    def rebuild_from_rooms(self, fresh_rooms):
-        self.list_of_rooms = fresh_rooms
-        self.game_map = []
-        for floor_layout in self.floor_recipes:
-            floor = []
-            for row in floor_layout:
-                floor.append([fresh_rooms[i] for i in row])
-            self.game_map.append(floor)
+    # ─── Data Loading ─────────────────────────────────────────────────────────
 
     def _load_data(self):
-        import os
-        import yaml
+        """Loads and parses game_data.yaml from the data directory."""
         path = os.path.join(os.path.dirname(__file__), '..', 'data', 'game_data.yaml')
         with open(path) as f:
             return yaml.safe_load(f)
 
-        
+    # ─── Factory Methods ──────────────────────────────────────────────────────
+
+    def make_item(self, item_name):
+        """Builds a fresh Item object from the item recipe."""
+        data = self.item_recipes[item_name]
+        return Item(
+            name     = item_name,
+            states   = data['states'],
+            keywords = data.get('keywords', [item_name])
+        )
+
     def make_event(self, data):
+        """Builds the appropriate Event subclass from a YAML event definition."""
         if data['check_type'] == 'all_rooms_visited':
             return AllRoomsVisitedEvent(
                 data['id'],
@@ -124,11 +133,47 @@ class Map:
                 data['parameters']['target'],
                 data['parameters']['room']
             )
-        # all other event types stay as raw dicts for now
+        if data['check_type'] == 'all_events_completed':
+            return AllEventsCompletedEvent(
+                data['id'],
+                data['result'],
+                data['parameters']['required_events']
+            )
+        # unknown event types returned as raw dict for now
         return data
-        
+
+    # ─── Room Building ────────────────────────────────────────────────────────
+
+    def create_fresh_rooms_from_recipes(self):
+        """Builds fresh Room objects from YAML recipes with no saved state applied."""
+        rooms = []
+        for recipe in self.room_recipes:
+            room = Room(
+                name              = recipe['name'],
+                exits             = recipe['exits'].copy(),
+                inventory         = [self.make_item(name) for name in recipe['items']],
+                exit_destinations = recipe['exit_destinations'].copy(),
+                states            = recipe.get('states', {})
+            )
+            rooms.append(room)
+        return rooms
+
+    def rebuild_from_rooms(self, fresh_rooms):
+        """
+        Assigns the room list and builds the 3D game_map grid from floor recipes.
+        Floor recipes are index arrays that reference rooms by position in list_of_rooms.
+        """
+        self.list_of_rooms = fresh_rooms
+        self.game_map      = []
+        for floor_layout in self.floor_recipes:
+            floor = []
+            for row in floor_layout:
+                floor.append([fresh_rooms[i] for i in row])
+            self.game_map.append(floor)
+
+
 # =============================================================================
-# MAP LAYOUT - as the player would experience it
+# MAP LAYOUT — as the player would experience it
 # =============================================================================
 #
 # FLOOR 2 (attic level) - rooms[7] through rooms[10]
@@ -158,8 +203,8 @@ class Map:
 #   standing in entrance[0] and going SOUTH → library[2]
 #
 # UP and DOWN move between floors entirely, and only unlock via events:
-#   entrance[0]  UP   → cellar[4]    (event: light_lantern)
-#   library[2]   UP   → attic[7]     (event: all_rooms_floor0)
+#   entrance[0]  UP    → cellar[4]   (event: light_lantern)
+#   library[2]   UP    → attic[7]    (event: all_rooms_floor0)
 #   vault[6]     NORTH → attic[7]    (event: unlock_vault)
 #
 # =============================================================================

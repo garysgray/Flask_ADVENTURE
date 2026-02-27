@@ -119,18 +119,26 @@
 
 </div>{# end .content #}
 
+{# ── Intro Panel ──────────────────────────────────────────────── #}
+{% if show_intro %}
+<div id="intro-overlay"></div>
+<div id="intro-panel">
+    <h2 class="intro-title">{{ intro.title }}</h2>
+    <div class="intro-text">{{ intro.text | replace('\n', '<br>') | safe }}</div>
+    <hr class="intro-divider">
+    <div class="intro-instructions">{{ intro.instructions | replace('\n', '<br>') | safe }}</div>
+    <button class="intro-close" onclick="closeIntro()">Enter the Manor</button>
+</div>
+{% endif %}
 
 {# ── Journal Panel ─────────────────────────────────────────── #}
 {% if journal %}
-
 <div id="journal-overlay" onclick="closeJournal()"></div>
-
 <div id="journal-panel">
     <div class="journal-header">
         <h2 class="journal-title">✦ Journal ✦</h2>
         <button class="journal-close" onclick="closeJournal()">✕</button>
     </div>
-
     {% for entry in journal %}
     <div class="journal-entry">
         <div class="journal-entry-room">{{ loop.index }}. {{ entry.room | title }}</div>
@@ -138,24 +146,11 @@
     </div>
     {% endfor %}
 </div>
+{% endif %}
 
-<script>
-function openJournal() {
-    document.getElementById('journal-overlay').style.display = 'block';
-    var panel = document.getElementById('journal-panel');
-    panel.style.display = 'block';
-    panel.style.right = '0';
-}
-function closeJournal() {
-    var panel = document.getElementById('journal-panel');
-    panel.style.right = '-420px';
-    panel.style.display = 'none';
-    document.getElementById('journal-overlay').style.display = 'none';
-}
-</script>
-
-{% endif %}{# end if journal #}
-
+{# ── Scripts ───────────────────────────────────────────────── #}
+<script>var PLAYER_ID = "{{ db_player.id }}";</script>
+<script src="{{ url_for('static', filename='js/journal.js') }}"></script>
 
 {# ── Auto-open journal if triggered by command ────────────── #}
 {% if debug1 and debug1['SHOW_JOURNAL'] %}
