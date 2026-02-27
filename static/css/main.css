@@ -26,14 +26,6 @@
     --section-font: 'MedievalSharp', serif;
     --body-font:    'Crimson Text', Georgia, serif;
     --mono-font:    'Share Tech Mono', monospace;
-
-    /* parchment panel shared values */
-    --parchment-bg:     #2a1f0e;
-    --parchment-border: #6b3a0f;
-    --parchment-text:   #c8a96e;
-    --parchment-gold:   #d4a843;
-    --parchment-dim:    #8b5a1a;
-    --parchment-body:   #b8956a;
 }
 
 /* =========================
@@ -41,6 +33,7 @@
    ========================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* html only needs the base background color to prevent white flash while body loads */
 html { background-color: var(--bg-dark); }
 
 body {
@@ -69,6 +62,8 @@ body {
 
 /* =========================
    Headings
+   -- shared styles on h1, h2
+   -- sizes and spacing overridden individually
    ========================= */
 h1, h2 {
     font-family: var(--section-font);
@@ -152,6 +147,8 @@ a:hover {
 
 /* =========================
    Buttons
+   -- .button and .button-small share base styles
+   -- sizing and colors overridden individually
    ========================= */
 .button, .button-small {
     border-radius: 4px;
@@ -212,7 +209,7 @@ a:hover {
 }
 
 /* =========================
-   Game Output — Frosted Glass
+   Game Output Boxes — Frosted Glass
    ========================= */
 .game-output {
     background: var(--bg-panel);
@@ -236,6 +233,7 @@ a:hover {
     overflow-y: hidden;
     padding: 8px 12px;
 }
+
 .game-output em {
     color: var(--accent);
     font-style: normal;
@@ -299,6 +297,7 @@ a:hover {
 }
 .map-row { display: flex; gap: 4px; }
 
+/* shared map cell base styles */
 .map-cell {
     width: 44px;
     height: 44px;
@@ -341,7 +340,12 @@ table {
     margin-bottom: 20px;
     font-family: var(--body-font);
 }
-th, td { padding: 10px; text-align: center; }
+
+/* shared th/td base */
+th, td {
+    padding: 10px;
+    text-align: center;
+}
 th {
     background: rgba(18, 22, 40, 0.85);
     backdrop-filter: blur(8px);
@@ -362,22 +366,6 @@ td {
 }
 tr:hover td { background: rgba(18, 22, 40, 0.85); }
 
-/* =========================
-   Parchment Panels
-   -- shared base for intro and journal
-   -- both use dark aged parchment aesthetic
-   ========================= */
-.parchment-bg {
-    background: var(--parchment-bg);
-    background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(60,35,10,0.8) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(40,20,5,0.6)  0%, transparent 50%);
-    font-family: Georgia, serif;
-    color: var(--parchment-text);
-    box-sizing: border-box;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-}
 
 /* =========================
    Intro Panel
@@ -399,10 +387,19 @@ tr:hover td { background: rgba(18, 22, 40, 0.85); }
     width: 560px;
     max-width: 90%;
     max-height: 80vh;
-    border: 2px solid var(--parchment-border);
+    background: #2a1f0e;
+    background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(60,35,10,0.8) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(40,20,5,0.6) 0%, transparent 50%);
+    border: 2px solid #6b3a0f;
     box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 30px rgba(107,58,15,0.3);
     z-index: 201;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 40px 36px;
+    box-sizing: border-box;
+    font-family: Georgia, serif;
+    color: #c8a96e;
     opacity: 0;
     animation: introFadeIn 0.6s ease forwards;
 }
@@ -414,39 +411,44 @@ tr:hover td { background: rgba(18, 22, 40, 0.85); }
 
 .intro-title {
     font-size: 28px;
-    color: var(--parchment-gold);
+    color: #d4a843;
     font-family: Georgia, serif;
     letter-spacing: 3px;
     text-align: center;
     text-shadow: 0 0 20px rgba(212,168,67,0.4);
     margin-bottom: 24px;
-    border-bottom: 1px solid var(--parchment-border);
+    border-bottom: 1px solid #6b3a0f;
     padding-bottom: 16px;
 }
+
 .intro-text {
     font-size: 14px;
     line-height: 1.9;
-    color: var(--parchment-body);
+    color: #b8956a;
     font-style: italic;
     margin-bottom: 20px;
 }
+
 .intro-divider {
     border: none;
     border-top: 1px solid rgba(107,58,15,0.5);
     margin: 20px 0;
 }
+
 .intro-instructions {
     font-size: 13px;
     line-height: 1.9;
-    color: var(--parchment-dim);
+    color: #8b5a1a;
     margin-bottom: 28px;
+    font-family: Georgia, serif;
 }
+
 .intro-close {
     display: block;
     margin: 0 auto;
     background: rgba(42,32,16,0.9);
-    border: 1px solid var(--parchment-border);
-    color: var(--parchment-gold);
+    border: 1px solid #6b3a0f;
+    color: #d4a843;
     font-family: Georgia, serif;
     font-size: 14px;
     letter-spacing: 2px;
@@ -454,88 +456,11 @@ tr:hover td { background: rgba(18, 22, 40, 0.85); }
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .intro-close:hover {
     background: rgba(60,45,20,0.9);
-    border-color: var(--parchment-gold);
+    border-color: #d4a843;
     box-shadow: 0 0 16px rgba(212,168,67,0.2);
-}
-
-/* =========================
-   Journal Panel
-   ========================= */
-#journal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-}
-
-#journal-panel {
-    display: none;
-    position: fixed;
-    top: 0; right: -420px;
-    width: 380px;
-    height: 100%;
-    background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(60,35,10,0.8) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(40,20,5,0.6)  0%, transparent 50%),
-        repeating-linear-gradient(
-            transparent,
-            transparent 31px,
-            rgba(180,120,40,0.08) 31px,
-            rgba(180,120,40,0.08) 32px
-        );
-    border-left: 3px solid var(--parchment-border);
-    box-shadow: -8px 0 30px rgba(0,0,0,0.8), inset 2px 0 15px rgba(0,0,0,0.5);
-    z-index: 101;
-    padding: 30px 24px;
-    transition: right 0.3s ease;
-}
-
-#journal-panel .journal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--parchment-border);
-    padding-bottom: 12px;
-}
-#journal-panel .journal-title {
-    margin: 0;
-    font-size: 24px;
-    color: var(--parchment-gold);
-    font-family: Georgia, serif;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(212,168,67,0.3);
-}
-#journal-panel .journal-close {
-    background: none;
-    border: 1px solid var(--parchment-border);
-    color: var(--parchment-text);
-    font-size: 16px;
-    cursor: pointer;
-    padding: 2px 8px;
-    border-radius: 2px;
-}
-#journal-panel .journal-entry {
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(107,58,15,0.4);
-}
-#journal-panel .journal-entry-room {
-    font-size: 10px;
-    color: var(--parchment-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-}
-#journal-panel .journal-entry-text {
-    font-size: 13px;
-    line-height: 1.8;
-    color: var(--parchment-body);
-    font-style: italic;
 }
 
 /* =========================
@@ -557,5 +482,100 @@ tr:hover td { background: rgba(18, 22, 40, 0.85); }
     table           { font-size: 12px; }
     td, th          { padding: 5px; }
     .game-debug     { font-size: 10px; padding: 5px 8px; }
-    #journal-panel  { width: 100%; right: -100%; }
+}
+
+/* =========================
+   Journal Panel
+   ========================= */
+#journal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+}
+
+#journal-panel {
+    display: none;
+    position: fixed;
+    top: 0; right: -420px;
+    width: 380px;
+    height: 100%;
+    background: #2a1f0e;
+    background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(60,35,10,0.8) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(40,20,5,0.6)  0%, transparent 50%),
+        repeating-linear-gradient(
+            transparent,
+            transparent 31px,
+            rgba(180,120,40,0.08) 31px,
+            rgba(180,120,40,0.08) 32px
+        );
+    border-left: 3px solid #6b3a0f;
+    box-shadow: -8px 0 30px rgba(0,0,0,0.8), inset 2px 0 15px rgba(0,0,0,0.5);
+    z-index: 101;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 30px 24px;
+    box-sizing: border-box;
+    transition: right 0.3s ease;
+    font-family: Georgia, serif;
+    color: #c8a96e;
+}
+
+#journal-panel .journal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #6b3a0f;
+    padding-bottom: 12px;
+}
+
+#journal-panel .journal-title {
+    margin: 0;
+    font-size: 24px;
+    color: #d4a843;
+    font-family: Georgia, serif;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(212,168,67,0.3);
+}
+
+#journal-panel .journal-close {
+    background: none;
+    border: 1px solid #6b3a0f;
+    color: #c8a96e;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 2px;
+}
+
+#journal-panel .journal-entry {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(107,58,15,0.4);
+}
+
+#journal-panel .journal-entry-room {
+    font-size: 10px;
+    color: #8b5a1a;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+#journal-panel .journal-entry-text {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #b8956a;
+    font-style: italic;
+}
+
+@media (max-width: 600px) {
+    #journal-panel {
+        width: 100%;
+        right: -100%;
+    }
 }
