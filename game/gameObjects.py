@@ -86,6 +86,15 @@ class Map:
         self.floor_recipes = data['floors']
         self.win_conditions = data['win_conditions']
         self.intro = data.get('intro', {})
+        self.win_screen = data.get('win_screen', {})
+
+        player_start_stuff = data.get('player', {})
+
+        player_start_stuff = player_start_stuff.get('starting_inventory', [])
+
+        self.player_start_invent = []
+        for stuff in player_start_stuff:
+            self.player_start_invent.append(self.make_item(stuff))
 
         # built event objects from YAML event definitions
         self.event_recipes = [self.make_event(e) for e in data['events']]
@@ -96,7 +105,6 @@ class Map:
 
         # full item list and starting inventory
         self.list_of_items       = [self.make_item(name) for name in self.item_recipes]
-        self.player_start_invent = [self.make_item('watch'), self.make_item('knife')]
 
     # ─── Data Loading ─────────────────────────────────────────────────────────
 
@@ -158,17 +166,33 @@ class Map:
             rooms.append(room)
         return rooms
 
+    # def rebuild_from_rooms(self, fresh_rooms):
+    #     """
+    #     Assigns the room list and builds the 3D game_map grid from floor recipes.
+    #     Floor recipes are index arrays that reference rooms by position in list_of_rooms.
+    #     """
+    #     self.list_of_rooms = fresh_rooms
+    #     self.game_map      = []
+    #     for floor_layout in self.floor_recipes:
+    #         floor = []
+    #         for row in floor_layout:
+    #             floor.append([fresh_rooms[i] for i in row])
+    #         self.game_map.append(floor)
+
     def rebuild_from_rooms(self, fresh_rooms):
-        """
-        Assigns the room list and builds the 3D game_map grid from floor recipes.
-        Floor recipes are index arrays that reference rooms by position in list_of_rooms.
-        """
         self.list_of_rooms = fresh_rooms
-        self.game_map      = []
+        
+        # build name lookup so floors can use room names instead of indices
+        room_by_name = {room.name: room for room in fresh_rooms}
+        
+        self.game_map = []
         for floor_layout in self.floor_recipes:
             floor = []
             for row in floor_layout:
-                floor.append([fresh_rooms[i] for i in row])
+                floor.append([
+                    room_by_name.get(cell) if cell is not None else None
+                    for cell in row
+                ])
             self.game_map.append(floor)
 
 

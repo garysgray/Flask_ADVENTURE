@@ -1,371 +1,333 @@
 /* =========================
    Import Fonts
    ========================= */
-@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;800&display=swap');
 
 /* =========================
    CSS Variables
    ========================= */
 :root {
-    --bg-dark:      #0a0d14;
-    --bg-panel:     rgba(12, 16, 28, 0.75);
-    --bg-input:     rgba(18, 22, 40, 0.85);
-    --bg-glass:     rgba(10, 14, 26, 0.6);
-    --border:       rgba(80, 90, 130, 0.3);
-    --border-glow:  rgba(140, 120, 180, 0.5);
-    --accent:       #e8c46a;
-    --accent-dim:   #7a6030;
-    --accent-glow:  rgba(232,196,106,0.2);
-    --text-main:    #ddd5be;
-    --text-dim:     #8a8070;
-    --text-bright:  #f5ecd8;
-    --green:        #5fd68a;
-    --green-glow:   rgba(95,214,138,0.3);
-    --blue:         #4a7fa5;
-    --danger:       #c94c4c;
-    --section-font: 'MedievalSharp', serif;
-    --body-font:    'Crimson Text', Georgia, serif;
-    --mono-font:    'Share Tech Mono', monospace;
+    --bg:           #050709;
+    --bg-panel:     #080c12;
+    --bg-input:     #040608;
+    --border:       rgba(75, 100, 125, 0.32);
+    --border-bright:rgba(125, 170, 195, 0.52);
+    --accent:       #debb62;
+    --accent-dim:   #9a6e38;
+    --accent-glow:  rgba(222,187,98,0.18);
+    --text:         #a2b4c6;
+    --text-bright:  #daeaf8;
+    --text-dim:     #92a5b5;
+    --green:        #5cd48e;
+    --green-dim:    rgba(92,212,142,0.18);
+    --red:          #d05858;
+    --red-metal:    #a83030;
+    --red-glow:     rgba(168,48,48,0.18);
+    --event-col:    #5ea2d4;
+    --mono:         'Share Tech Mono', monospace;
+    --display:      'Syne', sans-serif;
+    --scanline:     repeating-linear-gradient(
+                        0deg,
+                        transparent,
+                        transparent 2px,
+                        rgba(0,0,0,0.08) 2px,
+                        rgba(0,0,0,0.08) 4px
+                    );
 }
 
 /* =========================
-   Base
+   Reset & Base
    ========================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* html only needs the base background color to prevent white flash while body loads */
-html { background-color: var(--bg-dark); }
+html { background: var(--bg); }
 
 body {
-    font-family: var(--body-font);
-    color: var(--text-main);
+    font-family: var(--mono);
+    color: var(--text);
     min-height: 100vh;
     background:
-        linear-gradient(to bottom, rgba(5,8,18,0.45) 0%, rgba(5,8,18,0.2) 50%, rgba(5,8,18,0.55) 100%),
-        url("/static/images/background.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+        var(--scanline),
+        linear-gradient(160deg, rgba(5,10,16,0.88) 0%, rgba(3,5,7,0.85) 60%, rgba(8,10,6,0.93) 100%),
+        url("/static/images/guiltboy.png");
+    background-size: auto, cover, cover;
+    background-position: center, center, left center;
+    background-repeat: repeat, no-repeat, no-repeat;
+    background-attachment: fixed, fixed, fixed;
+    font-size: 15px; /* was 13px */
 }
 
 /* =========================
-   Content
+   Terminal wrapper
    ========================= */
-.content {
+.terminal {
+    max-width: 1200px; /* was 1100px */
     margin: 0 auto;
-    width: 92%;
-    max-width: 900px;
-    padding: 20px 0 40px;
-    font-size: 16px;
+    padding: 0 0 48px;
 }
 
 /* =========================
-   Headings
-   -- shared styles on h1, h2
-   -- sizes and spacing overridden individually
+   Header bar
    ========================= */
-h1, h2 {
-    font-family: var(--section-font);
-    font-weight: normal;
-    text-align: center;
-    color: var(--accent);
-    letter-spacing: 2px;
-    text-shadow:
-        0 0 20px rgba(232,196,106,0.6),
-        0 0 60px rgba(232,196,106,0.2),
-        0 2px 4px rgba(0,0,0,0.8);
-}
-h1 { font-size: 2.2em; letter-spacing: 3px; margin-bottom: 20px; }
-h2 { font-size: 1.3em; margin: 20px 0 10px; }
-
-/* =========================
-   Links
-   ========================= */
-a {
-    color: var(--accent);
-    text-decoration: none;
-    transition: color 0.2s, text-shadow 0.2s;
-}
-a:hover {
-    color: var(--text-bright);
-    text-shadow: 0 0 8px var(--accent);
-}
-
-/* =========================
-   Form & Input
-   ========================= */
-.form { text-align: center; margin-bottom: 15px; }
-
-.form form {
+.t-header {
     display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.last-cmd {
-    font-family: var(--mono-font);
-    font-size: 13px;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-    letter-spacing: 1px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-}
-.last-cmd strong { color: var(--accent); }
-
-.input-element {
-    font-family: var(--mono-font);
-    font-size: 15px;
-    height: 38px;
-    width: 65%;
-    padding: 0 12px;
-    background: var(--bg-input);
-    border: 1px solid var(--border-glow);
-    border-radius: 4px;
-    color: var(--text-bright);
-    outline: none;
-    transition: all 0.2s;
-    letter-spacing: 1px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-.input-element:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 16px var(--accent-glow), inset 0 0 8px rgba(232,196,106,0.05);
-}
-.input-element::placeholder { color: var(--text-dim); }
-
-.tip-text {
-    font-size: 13px;
-    color: var(--text-dim);
-    margin-top: 6px;
-    font-style: italic;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-}
-.tip-text strong { color: var(--accent-dim); }
-
-/* =========================
-   Buttons
-   -- .button and .button-small share base styles
-   -- sizing and colors overridden individually
-   ========================= */
-.button, .button-small {
-    border-radius: 4px;
-    font-family: var(--mono-font);
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 1px;
-    transition: all 0.2s;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    text-decoration: none;
-    display: inline-flex;
     align-items: center;
-}
-
-.button {
-    height: 38px;
-    padding: 0 18px;
-    border: 1px solid var(--accent-dim);
-    background: rgba(42, 32, 16, 0.85);
-    color: var(--accent);
-    font-size: 13px;
-}
-.button:hover {
-    background: rgba(58, 48, 21, 0.9);
-    border-color: var(--accent);
-    box-shadow: 0 0 16px var(--accent-glow);
-    color: var(--text-bright);
-}
-
-.button-small {
-    height: 32px;
-    padding: 0 14px;
-    font-size: 12px;
-    border: 1px solid var(--border-glow);
-    background: rgba(18, 22, 40, 0.8);
-    color: var(--text-dim);
-}
-.button-small:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    text-shadow: none;
-}
-
-/* =========================
-   Game Sections
-   ========================= */
-.game-section {
-    font-family: var(--section-font);
-    font-weight: normal;
-    color: var(--accent);
-    margin-top: 14px;
-    margin-bottom: 4px;
-    font-size: 14px;
+    gap: 12px;
+    padding: 12px 20px; /* was 10px 16px */
+    border-bottom: 1px solid rgba(168,48,48,0.45);
+    background: rgba(8,12,18,0.88);
     letter-spacing: 2px;
-    text-transform: uppercase;
-    text-shadow: 0 0 8px rgba(232,196,106,0.3), 0 1px 3px rgba(0,0,0,0.9);
+    font-size: 13px; /* was 11px */
 }
+.t-header-title {
+    color: var(--accent);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 15px; /* was 13px */
+    letter-spacing: 3px;
+    text-shadow: 0 0 12px var(--red-glow);
+}
+.t-header-sep   { color: var(--text-dim); }
+.t-header-sub   { color: var(--text-dim); font-size: 12px; letter-spacing: 2px; } /* was 10px */
+.t-header-blink { color: var(--accent); animation: blink 1.1s step-end infinite; margin-left: auto; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
 /* =========================
-   Game Output Boxes — Frosted Glass
+   Main 2-column grid
    ========================= */
-.game-output {
+.t-main {
+    display: grid;
+    grid-template-columns: 310px 1fr; /* was 280px */
+    gap: 1px;
+    background: var(--border);
+    min-height: calc(100vh - 50px);
+}
+
+.t-left {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border-right: 1px solid rgba(168,48,48,0.25);
+}
+.t-right { background: var(--bg); display: flex; flex-direction: column; gap: 1px; }
+
+/* =========================
+   Panels
+   ========================= */
+.t-panel {
     background: var(--bg-panel);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-left: 3px solid rgba(232, 196, 106, 0.7);
-    border-radius: 6px;
-    padding: 10px 14px;
-    margin-bottom: 6px;
-    font-family: var(--body-font);
-    font-size: 16px;
-    color: var(--text-main);
-    line-height: 1.6;
-    overflow-y: auto;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
-}
-.game-output.items {
-    white-space: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 8px 12px;
+    padding: 12px 16px; /* was 10px 14px */
+    border-bottom: 1px solid var(--border);
 }
 
-.game-output em {
-    color: var(--accent);
-    font-style: normal;
+.t-panel-label {
+    font-family: var(--display);
+    font-size: 10px; /* was 9px */
     font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(168,48,48,0.18);
 }
+.t-panel-label.event { color: var(--event-col); border-bottom-color: rgba(94,162,212,0.25); }
+.t-panel-label.win   { color: var(--green); border-bottom-color: rgba(92,212,142,0.25); }
 
 /* =========================
-   Inline Item Pills
+   Command input
    ========================= */
-.inline-list {
-    background: rgba(18, 22, 40, 0.8);
-    border: 1px solid var(--border-glow);
-    border-radius: 3px;
-    padding: 2px 8px;
-    margin: 0 3px 2px 0;
-    display: inline-block;
-    font-family: var(--mono-font);
-    font-size: 13px;
-    color: var(--accent);
-    letter-spacing: 0.5px;
+.t-cmd-panel { flex-shrink: 0; }
+
+.t-last-cmd {
+    font-size: 13px; /* was 11px */
+    color: var(--accent-dim);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* =========================
-   Debug Box
-   ========================= */
-.game-debug {
-    background: rgba(5, 5, 10, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-family: var(--mono-font);
-    font-size: 12px;
-    color: #c4b1b1;
-    line-height: 1.6;
-    width: 100%;
-    margin-top: 20px;
-    overflow-x: auto;
+.t-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-bright);
+    border-radius: 2px;
+    padding: 5px 10px; /* was 4px 8px */
 }
-
-/* =========================
-   Divider
-   ========================= */
-.divider {
+.t-form:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 14px var(--accent-glow);
+}
+.t-prompt { color: var(--accent); font-size: 14px; flex-shrink: 0; } /* was 12px */
+.t-input {
+    background: none;
     border: none;
-    border-top: 1px solid var(--border);
-    margin: 20px 0;
-    opacity: 0.5;
+    outline: none;
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 15px; /* was 13px */
+    flex: 1;
+    letter-spacing: 1px;
+    min-width: 0;
+}
+.t-input::placeholder { color: var(--text-dim); }
+.t-submit {
+    background: none;
+    border: 1px solid var(--red-metal);
+    color: var(--red-metal);
+    font-family: var(--mono);
+    font-size: 11px; /* was 10px */
+    letter-spacing: 2px;
+    padding: 3px 10px; /* was 2px 8px */
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    border-radius: 2px;
+}
+.t-submit:hover {
+    border-color: #d84040;
+    color: #d84040;
+    background: var(--red-glow);
+    box-shadow: 0 0 8px var(--red-glow);
 }
 
 /* =========================
    Map
    ========================= */
-.map-grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    margin: 12px auto;
-}
-.map-row { display: flex; gap: 4px; }
+.t-map-panel { flex-shrink: 0; }
 
-/* shared map cell base styles */
-.map-cell {
-    width: 44px;
-    height: 44px;
-    border-radius: 5px;
+.t-map-grid { display: flex; flex-direction: column; gap: 3px; }
+.t-map-row  { display: flex; gap: 3px; }
+
+.t-map-cell {
+    width: 40px;  /* was 36px */
+    height: 40px; /* was 36px */
+    border-radius: 3px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-family: var(--mono-font);
-    font-size: 11px;
+    font-family: var(--mono);
+    font-size: 11px; /* was 10px */
     font-weight: bold;
-    transition: all 0.2s;
-    border: 3px solid transparent;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    letter-spacing: 0;
+    line-height: 1.2;
 }
-.map-cell.hidden {
-    background: rgba(5, 5, 10, 0.7);
-    border-color: rgba(30, 30, 50, 0.8);
-}
-.map-cell.room {
-    background: rgba(18, 22, 40, 0.75);
-    border-color: var(--border-glow);
-    color: var(--text-dim);
-}
-.map-cell.player {
-    background: rgba(20, 50, 30, 0.85);
+.t-map-cell.hidden  { background: rgba(14, 23, 34, 0.8); border-color: rgba(40, 55, 71, 0.7); }
+.t-map-cell.void    { background: transparent; border-color: transparent; }
+.t-map-cell.room    { background: rgba(34, 56, 82, 0.9); border-color: rgba(72,95,120,0.4); color: var(--text-dim); }
+.t-map-cell.player  {
+    background: rgba(18, 51, 31, 0.95);
     border-color: var(--green);
     color: var(--green);
-    box-shadow: 0 0 12px var(--green-glow), inset 0 0 8px rgba(95,214,138,0.1);
-    font-size: 13px;
+    box-shadow: 0 0 12px var(--green-dim), inset 0 0 6px rgba(92,212,142,0.10);
+    font-size: 13px; /* was 11px */
 }
 
 /* =========================
-   Table (index page)
+   Inventory tags
    ========================= */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    font-family: var(--body-font);
-}
-
-/* shared th/td base */
-th, td {
-    padding: 10px;
-    text-align: center;
-}
-th {
-    background: rgba(18, 22, 40, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+.t-inv { display: flex; flex-wrap: wrap; gap: 5px; }
+.t-tag {
+    font-family: var(--mono);
+    font-size: 14px; /* was 10px */
+    padding: 3px 9px; /* was 2px 7px */
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+    background: rgba(222,187,98,0.08);
+    border: 1px solid rgba(222,187,98,0.25);
     color: var(--accent);
-    font-family: var(--section-font);
-    font-weight: normal;
-    letter-spacing: 1px;
-    border-bottom: 1px solid var(--border-glow);
 }
-td {
-    background: rgba(12, 16, 28, 0.75);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: var(--text-main);
-    border-bottom: 1px solid var(--border);
-    font-size: 15px;
+.t-tag.room {
+    background: rgba(94,162,212,0.08);
+    border-color: rgba(94,162,212,0.25);
+    color: var(--event-col);
 }
-tr:hover td { background: rgba(18, 22, 40, 0.85); }
+.t-empty { font-size: 12px; color: var(--text-dim); font-style: italic; } /* was 11px */
 
+/* =========================
+   Output text
+   ========================= */
+.t-output {
+    font-family: var(--mono);
+    font-size: 15px; /* was 13px */
+    color: var(--text);
+    line-height: 1.75;
+}
+.t-output.mono { letter-spacing: 1px; }
+.t-output em { color: var(--accent); font-style: normal; font-weight: bold; }
+.t-output.event { color: var(--event-col); }
+
+/* =========================
+   Event messages
+   ========================= */
+.t-event-panel { border-left: 2px solid var(--event-col); }
+.t-event-msg {
+    font-size: 14px; /* was 13px */
+    color: var(--event-col);
+    line-height: 1.75;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(94,162,212,0.12);
+}
+.t-event-msg:last-child { border-bottom: none; }
+
+/* =========================
+   Win panel
+   ========================= */
+.t-win-panel { border-left: 2px solid var(--green); }
+.t-win-text  { font-size: 15px; color: var(--green); line-height: 1.85; } /* was 13px */
+
+/* =========================
+   Split row (exits + room items)
+   ========================= */
+.t-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+}
+.t-split-panel { border-bottom: none; }
+
+/* =========================
+   Footer buttons
+   ========================= */
+.t-footer-btns {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    margin-top: auto;
+    margin-bottom: 220px;   /* ← was 220px, that was the mobile culprit */
+    border-top: 1px solid rgba(168,48,48,0.25);
+}
+.t-btn {
+    font-family: var(--mono);
+    font-size: 11px; /* was 10px */
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 5px 14px; /* was 4px 12px */
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+}
+.t-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+/* =========================
+   Links
+   ========================= */
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--text-bright); }
 
 /* =========================
    Intro Panel
@@ -373,9 +335,8 @@ tr:hover td { background: rgba(18, 22, 40, 0.85); }
 #intro-overlay {
     display: block;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
+    inset: 0;
+    background: rgba(0,0,0,0.92);
     z-index: 200;
 }
 
@@ -383,105 +344,89 @@ tr:hover td { background: rgba(18, 22, 40, 0.85); }
     display: block;
     position: fixed;
     top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(0.95);
-    width: 560px;
-    max-width: 90%;
-    max-height: 80vh;
-    background: #2a1f0e;
+    transform: translate(-50%, -50%);
+    width: 620px; /* was 580px */
+    max-width: 92%;
+    max-height: 85vh;
+    background: #05080e;
     background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(60,35,10,0.8) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(40,20,5,0.6) 0%, transparent 50%);
-    border: 2px solid #6b3a0f;
-    box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 30px rgba(107,58,15,0.3);
+        var(--scanline),
+        linear-gradient(180deg, #07090f 0%, #050708 100%);
+    border: 1px solid rgba(168,48,48,0.40);
+    box-shadow: 0 0 60px rgba(0,0,0,0.95), 0 0 30px var(--red-glow);
     z-index: 201;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 40px 36px;
-    box-sizing: border-box;
-    font-family: Georgia, serif;
-    color: #c8a96e;
+    padding: 40px 36px; /* was 36px 32px */
     opacity: 0;
-    animation: introFadeIn 0.6s ease forwards;
+    animation: introFadeIn 0.5s ease forwards;
 }
-
+.intro-scanline {
+    position: absolute;
+    inset: 0;
+    background: var(--scanline);
+    pointer-events: none;
+    opacity: 0.4;
+}
 @keyframes introFadeIn {
-    from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    from { opacity: 0; transform: translate(-50%, -52%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
 }
 
 .intro-title {
-    font-size: 28px;
-    color: #d4a843;
-    font-family: Georgia, serif;
-    letter-spacing: 3px;
+    font-family: var(--display);
+    font-size: 25px; /* was 22px */
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
     text-align: center;
-    text-shadow: 0 0 20px rgba(212,168,67,0.4);
-    margin-bottom: 24px;
-    border-bottom: 1px solid #6b3a0f;
-    padding-bottom: 16px;
+    text-shadow: 0 0 20px var(--accent-glow);
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(168,48,48,0.28);
 }
 
 .intro-text {
-    font-size: 14px;
-    line-height: 1.9;
-    color: #b8956a;
-    font-style: italic;
-    margin-bottom: 20px;
+    font-family: var(--mono);
+    font-size: 13px; /* was 12px */
+    line-height: 2;
+    color: var(--text);
+    margin-bottom: 22px;
 }
 
 .intro-divider {
     border: none;
-    border-top: 1px solid rgba(107,58,15,0.5);
-    margin: 20px 0;
+    border-top: 1px solid var(--border);
+    margin: 18px 0;
 }
 
 .intro-instructions {
-    font-size: 13px;
-    line-height: 1.9;
-    color: #8b5a1a;
-    margin-bottom: 28px;
-    font-family: Georgia, serif;
+    font-family: var(--mono);
+    font-size: 12px; /* was 11px */
+    line-height: 2;
+    color: var(--text-dim);
+    margin-bottom: 26px;
+    letter-spacing: 0.5px;
 }
 
 .intro-close {
     display: block;
     margin: 0 auto;
-    background: rgba(42,32,16,0.9);
-    border: 1px solid #6b3a0f;
-    color: #d4a843;
-    font-family: Georgia, serif;
-    font-size: 14px;
-    letter-spacing: 2px;
-    padding: 10px 28px;
+    background: none;
+    border: 1px solid var(--red-metal);
+    color: #d84040;
+    font-family: var(--mono);
+    font-size: 12px; /* was 11px */
+    letter-spacing: 3px;
+    padding: 10px 28px; /* was 8px 24px */
     cursor: pointer;
     transition: all 0.2s;
 }
-
 .intro-close:hover {
-    background: rgba(60,45,20,0.9);
-    border-color: #d4a843;
-    box-shadow: 0 0 16px rgba(212,168,67,0.2);
-}
-
-/* =========================
-   Mobile
-   ========================= */
-@media (max-width: 600px) {
-    .content        { width: 96%; font-size: 14px; padding: 8px 0 20px; }
-    h1              { font-size: 1.4em; margin-bottom: 10px; }
-    h2              { font-size: 1em; margin: 10px 0 6px; }
-    .form           { margin-bottom: 8px; }
-    .input-element  { width: 68%; font-size: 13px; height: 34px; }
-    .button         { height: 34px; font-size: 12px; padding: 0 12px; }
-    .game-output    { font-size: 15px; padding: 6px 8px; margin-bottom: 4px; }
-    .game-section   { font-size: 13px; margin-top: 8px; margin-bottom: 2px; }
-    .map-cell       { width: 32px; height: 32px; font-size: 9px; }
-    .map-grid       { margin: 6px auto; gap: 3px; }
-    .map-row        { gap: 3px; }
-    .inline-list    { font-size: 14px; padding: 1px 5px; }
-    table           { font-size: 12px; }
-    td, th          { padding: 5px; }
-    .game-debug     { font-size: 10px; padding: 5px 8px; }
+    background: var(--red-glow);
+    border-color: #d84040;
+    box-shadow: 0 0 18px var(--red-glow);
 }
 
 /* =========================
@@ -490,92 +435,170 @@ tr:hover td { background: rgba(18, 22, 40, 0.85); }
 #journal-overlay {
     display: none;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
+    inset: 0;
+    background: rgba(0,0,0,0.5);
     z-index: 100;
 }
 
 #journal-panel {
     display: none;
     position: fixed;
-    top: 0; right: -420px;
-    width: 380px;
+    top: 0; right: -460px;
+    width: 420px; /* was 400px */
     height: 100%;
-    background: #2a1f0e;
+    background: #05080e;
     background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(60,35,10,0.8) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(40,20,5,0.6)  0%, transparent 50%),
+        var(--scanline),
         repeating-linear-gradient(
-            transparent,
-            transparent 31px,
-            rgba(180,120,40,0.08) 31px,
-            rgba(180,120,40,0.08) 32px
+            transparent, transparent 27px,
+            rgba(222,187,98,0.04) 27px,
+            rgba(222,187,98,0.04) 28px
         );
-    border-left: 3px solid #6b3a0f;
-    box-shadow: -8px 0 30px rgba(0,0,0,0.8), inset 2px 0 15px rgba(0,0,0,0.5);
+    border-left: 1px solid rgba(168,48,48,0.35);
+    box-shadow: -8px 0 40px rgba(0,0,0,0.8);
     z-index: 101;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 30px 24px;
-    box-sizing: border-box;
-    transition: right 0.3s ease;
-    font-family: Georgia, serif;
-    color: #c8a96e;
+    padding: 28px 24px; /* was 24px 20px */
+    transition: right 0.25s ease;
 }
 
 #journal-panel .journal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    border-bottom: 1px solid #6b3a0f;
+    margin-bottom: 22px;
     padding-bottom: 12px;
+    border-bottom: 1px solid rgba(168,48,48,0.28);
 }
 
 #journal-panel .journal-title {
-    margin: 0;
-    font-size: 24px;
-    color: #d4a843;
-    font-family: Georgia, serif;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(212,168,67,0.3);
+    font-family: var(--display);
+    font-size: 16px; /* was 14px */
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
 }
 
 #journal-panel .journal-close {
     background: none;
-    border: 1px solid #6b3a0f;
-    color: #c8a96e;
-    font-size: 16px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 15px; /* was 14px */
     cursor: pointer;
-    padding: 2px 8px;
+    padding: 3px 10px;
     border-radius: 2px;
+    font-family: var(--mono);
+    transition: all 0.15s;
 }
+#journal-panel .journal-close:hover { color: var(--accent); border-color: var(--accent-dim); }
 
 #journal-panel .journal-entry {
-    margin-bottom: 24px;
+    margin-bottom: 22px;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgba(107,58,15,0.4);
+    border-bottom: 1px solid rgba(72,95,120,0.22);
 }
 
 #journal-panel .journal-entry-room {
-    font-size: 10px;
-    color: #8b5a1a;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
+    font-family: var(--mono);
+    font-size: 10px; /* was 9px */
+    color: var(--red-metal);
+    letter-spacing: 3px;
+    margin-bottom: 7px;
 }
 
 #journal-panel .journal-entry-text {
-    font-size: 13px;
-    line-height: 1.8;
-    color: #b8956a;
-    font-style: italic;
+    font-family: var(--mono);
+    font-size: 13px; /* was 12px */
+    line-height: 1.85;
+    color: var(--text);
 }
 
-@media (max-width: 600px) {
+/* =========================
+   Index page table
+   ========================= */
+table { width: 100%; border-collapse: collapse; font-family: var(--mono); }
+th, td { padding: 12px 16px; text-align: left; } /* was 10px 14px */
+th {
+    background: var(--bg-panel);
+    color: var(--accent-dim);
+    font-size: 11px; /* was 10px */
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(168,48,48,0.25);
+}
+td {
+    background: rgba(8,12,18,0.6);
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    font-size: 15px; /* was 13px */
+}
+tr:hover td { background: rgba(12,18,26,0.8); }
+
+/* =========================
+   Mobile — Tablet (≤900px)
+   ========================= */
+@media (max-width: 900px) {
+    .t-main {
+        grid-template-columns: 260px 1fr;
+    }
+    .t-map-cell { width: 34px; height: 34px; }
+}
+
+/* =========================
+   Mobile — Phone (≤640px)
+   ========================= */
+@media (max-width: 640px) {
+    body { font-size: 14px; }
+
+    .terminal { padding: 0 0 32px; }
+
+    .t-footer-btns {
+        margin-top: 0;
+        margin-bottom: 0;   /* ← add this line */
+    }
+
+    .t-header {
+        padding: 10px 12px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .t-header-sub { display: none; } /* save space on small screens */
+
+    .t-main {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .t-left {
+        border-bottom: 1px solid var(--border);
+        border-right: none;
+    }
+
+    /* Stack the split row on mobile */
+    .t-split {
+        grid-template-columns: 1fr;
+    }
+
+    .t-map-cell { width: 30px; height: 30px; font-size: 10px; }
+    .t-map-cell.player { font-size: 11px; }
+
+    .t-panel { padding: 10px 12px; }
+
+    .t-output { font-size: 14px; }
+
+    .t-btn { font-size: 10px; padding: 5px 10px; }
+
     #journal-panel {
         width: 100%;
         right: -100%;
+        padding: 20px 16px;
     }
+
+    #intro-panel {
+        padding: 28px 20px;
+        max-height: 90vh;
+    }
+    .intro-title { font-size: 20px; }
 }

@@ -187,6 +187,7 @@ def game(id):
         journal       = list(reversed(ctrl.player.journal)),
         show_intro   = not ctrl.player.has_seen_intro,
         intro        = ctrl.map.intro,
+        win_screen = ctrl.map.win_screen,
     )
 
 

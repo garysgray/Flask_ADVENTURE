@@ -2,132 +2,157 @@
 {% from 'macros.html' import cell_class, cell_contents %}
 
 {% block head %}
-    <title>Adventure Game</title>
+    <title>DELICTUM — TERMINAL</title>
 {% endblock %}
 
 {% block body %}
-<div class="content">
+<div class="terminal">
 
-    {# ── Title ─────────────────────────────────────────────── #}
-    <h1 style="text-align: center">Adventure Game</h1>
-
-    {# ── Command Input ─────────────────────────────────────── #}
-    <div class="form" style="text-align: center;">
-        {% if cmd %}
-            <div class="last-cmd" style="margin-bottom: 10px;">
-                Last Command: <strong>{{ cmd }}</strong>
-            </div>
-        {% endif %}
-        <form action="/game/{{ db_player.id }}" method="POST">
-            <input class="input-element" type="text" name="cmd" id="cmd"
-                   autofocus autocomplete="off" required>
-            <input class="button" type="submit" value="CMD">
-        </form>
-        <div class="tip-text">
-            Tip: Type <strong>help</strong> to see commands.
-        </div>
+    {# ── Header bar ─────────────────────────────────────────── #}
+    <div class="t-header">
+        <span class="t-header-title">DELICTUM FACILITY</span>
+        <span class="t-header-sep">///</span>
+        <span class="t-header-sub">FIELD INVESTIGATOR TERMINAL</span>
+        <span class="t-header-blink">█</span>
     </div>
 
-    {# ── Player Map ────────────────────────────────────────── #}
-    <h2>Player Map</h2>
-    <div style="display: flex; justify-content: center;">
-        <div style="position: relative;">
-            <div style="position: absolute; right: 100%; top: 50%;
-                        transform: translateY(-50%); padding-right: 8px;
-                        font-family: var(--section-font); color: var(--accent);
-                        font-size: 13px; letter-spacing: 1px;
-                        text-align: center; opacity: 0.8;">
-                Floor<br>{{ player_pos[0] + 1 }}
+    {# ── Main grid: input+map | output ──────────────────────── #}
+    <div class="t-main">
+
+        {# LEFT COLUMN #}
+        <div class="t-left">
+
+            {# Command input #}
+            <div class="t-panel t-cmd-panel">
+                <div class="t-panel-label">INPUT</div>
+                {% if cmd %}
+                <div class="t-last-cmd">▸ {{ cmd }}</div>
+                {% endif %}
+                <form action="/game/{{ db_player.id }}" method="POST" class="t-form">
+                    <span class="t-prompt">&gt;_</span>
+                    <input class="t-input" type="text" name="cmd" id="cmd"
+                           autofocus autocomplete="off" required>
+                    <button class="t-submit" type="submit">EXEC</button>
+                </form>
             </div>
-            <div class="map-grid">
-                {% for row in map_layout %}
-                    <div class="map-row">
+
+            {# Map #}
+            <div class="t-panel t-map-panel">
+                <div class="t-panel-label">FLOOR {{ player_pos[0] + 1 }} — GRID</div>
+                <div class="t-map-grid">
+                    {% for row in map_layout %}
+                    <div class="t-map-row">
                         {% for cell_data in row %}
                             {% set pos  = cell_data['pos'] %}
                             {% set cell = cell_data['cell'] %}
-                            <div class="map-cell {{ cell_class(pos, player_pos, visited_rooms) }}">
+                            {% if cell %}
+                            <div class="t-map-cell {{ cell_class(pos, player_pos, visited_rooms) }}">
                                 {{ cell_contents(pos, cell, player_pos, visited_rooms) }}
                             </div>
+                            {% else %}
+                            <div class="t-map-cell void"></div>
+                            {% endif %}
                         {% endfor %}
                     </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-    </div>
 
-    {# ── Win Screen ────────────────────────────────────────── #}
-    {% if debug1 and debug1['GAME_WON'] %}
-        <div class="game-section">YOU HAVE ESCAPED</div>
-        <div class="game-output"
-             style="color: var(--green); border-left-color: var(--green); text-align: center;">
-            <br>
-            The house releases you. You step out into cold air and do not look back.<br>
-            The door closes behind you. It does not make a sound.<br>
-            <br>
-            <strong>You have escaped Ashwood Manor.</strong>
-            <br><br>
-        </div>
-    {% endif %}
-
-    {# ── Game Output ───────────────────────────────────────── #}
-    {% if debug1 %}
-        <div class="game-section">OUTPUT</div>
-        <div class="game-output">{{ debug1['CMD_RESPONSE'] }}</div>
-
-        {% if debug1['EVENT_MESSAGES'] %}
-            <div class="game-section">EVENTS</div>
-            <div class="game-output"
-                 style="color: var(--accent); border-left-color: var(--accent);">
-                {% for message in debug1['EVENT_MESSAGES'] %}
-                    {{ message }}<br>
-                {% endfor %}
+            {# Inventory #}
+            <div class="t-panel">
+                <div class="t-panel-label">CARRYING</div>
+                <div class="t-inv">
+                    {% for item in player_inv %}
+                    <span class="t-tag">{{ item.name }}</span>
+                    {% else %}
+                    <span class="t-empty">— nothing —</span>
+                    {% endfor %}
+                </div>
             </div>
-        {% endif %}
 
-        <div class="game-section">ROOM DESCRIPTION</div>
-        <div class="game-output">{{ debug1['ROOM_DESCRIPTION'] | safe }}</div>
+            {# Footer #}
+            <div class="t-footer-btns">
+                {% if journal %}
+                <button class="t-btn" onclick="openJournal()">FIELD NOTES</button>
+                {% endif %}
+                <a href="{{ url_for('index') }}" class="t-btn">EXIT</a>
+            </div>
 
-        <div class="game-section">EXITS</div>
-        <div class="game-output">{{ debug1['ROOM_EXITS'] }}</div>
+        </div>{# end t-left #}
 
-        <div class="game-section">ROOM ITEMS</div>
-        <div class="game-output items">
-            {% for item in debug1['ROOM_INVENTORY'] %}
-                <span class="inline-list">{{ item.name }}</span>
-            {% endfor %}
-        </div>
-    {% endif %}
+        {# RIGHT COLUMN #}
+        <div class="t-right">
 
-    {# ── Player Inventory ──────────────────────────────────── #}
-    <div class="game-section">PLAYER INVENTORY</div>
-    <div class="game-output items">
-        {% for item in player_inv %}
-            <span class="inline-list">{{ item.name }}</span>
-        {% endfor %}
-    </div>
+            {# Win screen #}
+            {% if debug1 and debug1['GAME_WON'] %}
+            <div class="t-panel t-win-panel">
+                <div class="t-panel-label win">{{ win_screen.title }}</div>
+                <div class="t-win-text">{{ win_screen.text | replace('\n', '<br>') | safe }}</div>
+            </div>
+            {% endif %}
 
-    {# ── Footer Buttons ────────────────────────────────────── #}
-    <div style="text-align: center; margin-top: 16px;">
-        {% if journal %}
-            <button class="button-small"
-                    onclick="openJournal()"
-                    style="margin-right: 10px;">Read Journal</button>
-        {% endif %}
-        <a href="{{ url_for('index') }}" class="button-small">Back to Game Portal</a>
-    </div>
-    <br><br><br>
+            {% if debug1 %}
 
-</div>{# end .content #}
+            {# Command response #}
+            <div class="t-panel">
+                <div class="t-panel-label">RESPONSE</div>
+                <div class="t-output">{{ debug1['CMD_RESPONSE'] }}</div>
+            </div>
+
+            {# Events #}
+            {% if debug1['EVENT_MESSAGES'] %}
+            <div class="t-panel t-event-panel">
+                <div class="t-panel-label event">EVENT LOG</div>
+                <div class="t-output event">
+                    {% for message in debug1['EVENT_MESSAGES'] %}
+                    <div class="t-event-msg">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {# Room #}
+            <div class="t-panel">
+                <div class="t-panel-label">LOCATION</div>
+                <div class="t-output">{{ debug1['ROOM_DESCRIPTION'] | safe }}</div>
+            </div>
+
+            {# Exits + room items side by side #}
+            <div class="t-split">
+                <div class="t-panel t-split-panel">
+                    <div class="t-panel-label">EXITS</div>
+                    <div class="t-output mono">{{ debug1['ROOM_EXITS'] }}</div>
+                </div>
+                <div class="t-panel t-split-panel">
+                    <div class="t-panel-label">ROOM ITEMS</div>
+                    <div class="t-inv">
+                        {% for item in debug1['ROOM_INVENTORY'] %}
+                        <span class="t-tag room">{{ item.name }}</span>
+                        {% else %}
+                        <span class="t-empty">— clear —</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% endif %}
+
+        </div>{# end t-right #}
+
+    </div>{# end t-main #}
+
+</div>{# end .terminal #}
 
 {# ── Intro Panel ──────────────────────────────────────────────── #}
 {% if show_intro %}
 <div id="intro-overlay"></div>
 <div id="intro-panel">
+    <div class="intro-scanline"></div>
     <h2 class="intro-title">{{ intro.title }}</h2>
     <div class="intro-text">{{ intro.text | replace('\n', '<br>') | safe }}</div>
     <hr class="intro-divider">
     <div class="intro-instructions">{{ intro.instructions | replace('\n', '<br>') | safe }}</div>
-    <button class="intro-close" onclick="closeIntro()">Enter the Manor</button>
+    <button class="intro-close" onclick="closeIntro()">[ ENTER FACILITY ]</button>
 </div>
 {% endif %}
 
@@ -136,12 +161,12 @@
 <div id="journal-overlay" onclick="closeJournal()"></div>
 <div id="journal-panel">
     <div class="journal-header">
-        <h2 class="journal-title">✦ Journal ✦</h2>
+        <span class="journal-title">FIELD NOTES</span>
         <button class="journal-close" onclick="closeJournal()">✕</button>
     </div>
     {% for entry in journal %}
     <div class="journal-entry">
-        <div class="journal-entry-room">{{ loop.index }}. {{ entry.room | title }}</div>
+        <div class="journal-entry-room">{{ loop.index }}. {{ entry.room | upper }}</div>
         <div class="journal-entry-text">{{ entry.message }}</div>
     </div>
     {% endfor %}
@@ -151,12 +176,8 @@
 {# ── Scripts ───────────────────────────────────────────────── #}
 <script>var PLAYER_ID = "{{ db_player.id }}";</script>
 <script src="{{ url_for('static', filename='js/journal.js') }}"></script>
-
-{# ── Auto-open journal if triggered by command ────────────── #}
 {% if debug1 and debug1['SHOW_JOURNAL'] %}
-<script>
-document.addEventListener('DOMContentLoaded', function() { openJournal(); });
-</script>
+<script>document.addEventListener('DOMContentLoaded', function() { openJournal(); });</script>
 {% endif %}
 
 {% endblock %}

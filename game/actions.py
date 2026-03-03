@@ -19,43 +19,142 @@ class ActionHandler:
 
     # ─── Inventory ────────────────────────────────────────────────────────────
 
+    # def has_item(self, name):
+    #     """Returns True if the named item is in the player's inventory."""
+    #     for i in self.ctrl.player.inventory:
+    #         if i.name == name:
+    #             return True
+    #     return False
+
+    # def pick_up(self, possible_item):
+    #     """Moves an item from the current room into player inventory."""
+    #     item_name = self.ctrl.player.pick_up(self.ctrl.get_room(), possible_item)
+    #     if item_name:
+    #         return f"You picked up a {item_name}"
+    #     else:
+    #         if isinstance(possible_item, list):
+    #             return f"I cant pick up {possible_item[1]}"
+    #         return "Get What?"
+
+    # def drop(self, possible_item):
+    #     """Moves an item from player inventory into the current room."""
+    #     item_name = self.ctrl.player.drop(self.ctrl.get_room(), possible_item)
+    #     if item_name:
+    #         return f"You dropped a {item_name}"
+    #     else:
+    #         if isinstance(possible_item, list):
+    #             return f"I cant drop {possible_item[1]}"
+    #         return "Drop What?"
+
+    # # ─── Look ─────────────────────────────────────────────────────────────────
+
+    # def look(self, possible_item):
+    #     """Returns the description of an item in the room or player inventory."""
+    #     item_info = self.ctrl.player.look(self.ctrl.get_room(), possible_item)
+    #     if item_info:
+    #         return item_info
+    #     else:
+    #         if isinstance(possible_item, list):
+    #             return f"I dont see {possible_item[1]}"
+    #         return "Look at What?"
+
+    # # ─── Use ──────────────────────────────────────────────────────────────────
+
+    # def use_item(self, possible_item):
+    #     """
+    #     Handles both single item use and item+target use.
+
+    #     Dict input  — use [item] with [target]:
+    #         1. Check if this event was already completed — return already-done message if so.
+    #            Must happen before inventory check because item may have been removed (e.g. locket).
+    #         2. Check player has the item.
+    #         3. Check if any event fires for this item+target combination.
+    #         4. Fall back to "can't use" if nothing matched.
+
+    #     List input  — use [item]:
+    #         Uses the item's current state use_text via player.use().
+    #     """
+    #     if isinstance(possible_item, dict):
+    #         item   = possible_item['item']
+    #         target = possible_item['target']
+
+    #         # already done check must come before has_item
+    #         # because item may have been removed from inventory after firing
+    #         already_done = self.ctrl.check_use_with_events_already_done(item, target)
+    #         if already_done:
+    #             return already_done, None
+
+    #         if not self.has_item(item):
+    #             return f"You don't have {item}.", None
+
+    #         event_result = self.ctrl.check_use_with_events(item, target)
+    #         if event_result:
+    #             return self.help(), event_result
+
+    #         return f"You can't use {item} with {target}.", None
+
+    #     # solo use — use [item]
+    #     words     = [w for w in possible_item if w != 'use']
+    #     item_name = words[0] if words else None
+    #     if not item_name:
+    #         return "Use what?", None
+    #     if not self.has_item(item_name):
+    #         return f"You don't have {item_name}.", None
+    #     result = self.ctrl.player.use(possible_item)
+    #     return (result if result else f"Nothing happens with {item_name}."), None
+
+    # ─── Inventory ────────────────────────────────────────────────────────────
+
     def has_item(self, name):
         """Returns True if the named item is in the player's inventory."""
-        for i in self.ctrl.player.inventory:
-            if i.name == name:
+        for i in getattr(self.ctrl.player, "inventory", []):
+            if getattr(i, "name", None) == name:
                 return True
         return False
 
     def pick_up(self, possible_item):
         """Moves an item from the current room into player inventory."""
-        item_name = self.ctrl.player.pick_up(self.ctrl.get_room(), possible_item)
+        try:
+            item_name = self.ctrl.player.pick_up(self.ctrl.get_room(), possible_item)
+        except Exception:
+            item_name = None
+
         if item_name:
             return f"You picked up a {item_name}"
         else:
-            if isinstance(possible_item, list):
-                return f"I cant pick up {possible_item[1]}"
+            # safely get the item name if it's a list
+            if isinstance(possible_item, list) and len(possible_item) > 1:
+                return f"I can't pick up {possible_item[1]}"
             return "Get What?"
 
     def drop(self, possible_item):
         """Moves an item from player inventory into the current room."""
-        item_name = self.ctrl.player.drop(self.ctrl.get_room(), possible_item)
+        try:
+            item_name = self.ctrl.player.drop(self.ctrl.get_room(), possible_item)
+        except Exception:
+            item_name = None
+
         if item_name:
             return f"You dropped a {item_name}"
         else:
-            if isinstance(possible_item, list):
-                return f"I cant drop {possible_item[1]}"
+            if isinstance(possible_item, list) and len(possible_item) > 1:
+                return f"I can't drop {possible_item[1]}"
             return "Drop What?"
 
     # ─── Look ─────────────────────────────────────────────────────────────────
 
     def look(self, possible_item):
         """Returns the description of an item in the room or player inventory."""
-        item_info = self.ctrl.player.look(self.ctrl.get_room(), possible_item)
+        try:
+            item_info = self.ctrl.player.look(self.ctrl.get_room(), possible_item)
+        except Exception:
+            item_info = None
+
         if item_info:
             return item_info
         else:
-            if isinstance(possible_item, list):
-                return f"I dont see {possible_item[1]}"
+            if isinstance(possible_item, list) and len(possible_item) > 1:
+                return f"I don't see {possible_item[1]}"
             return "Look at What?"
 
     # ─── Use ──────────────────────────────────────────────────────────────────
@@ -63,23 +162,16 @@ class ActionHandler:
     def use_item(self, possible_item):
         """
         Handles both single item use and item+target use.
-
-        Dict input  — use [item] with [target]:
-            1. Check if this event was already completed — return already-done message if so.
-               Must happen before inventory check because item may have been removed (e.g. locket).
-            2. Check player has the item.
-            3. Check if any event fires for this item+target combination.
-            4. Fall back to "can't use" if nothing matched.
-
-        List input  — use [item]:
-            Uses the item's current state use_text via player.use().
+        Fully safe against empty or malformed input.
         """
+        # dict input → use [item] with [target]
         if isinstance(possible_item, dict):
-            item   = possible_item['item']
-            target = possible_item['target']
+            item   = possible_item.get('item')
+            target = possible_item.get('target')
 
-            # already done check must come before has_item
-            # because item may have been removed from inventory after firing
+            if not item or not target:
+                return "Use what with what?", None
+
             already_done = self.ctrl.check_use_with_events_already_done(item, target)
             if already_done:
                 return already_done, None
@@ -93,14 +185,25 @@ class ActionHandler:
 
             return f"You can't use {item} with {target}.", None
 
-        # solo use — use [item]
-        words     = [w for w in possible_item if w != 'use']
+        # list or string input → use [item]
+        words = []
+        if isinstance(possible_item, list):
+            words = [w for w in possible_item if w != 'use']
+        elif isinstance(possible_item, str):
+            words = [possible_item] if possible_item != 'use' else []
+
         item_name = words[0] if words else None
         if not item_name:
             return "Use what?", None
+
         if not self.has_item(item_name):
             return f"You don't have {item_name}.", None
-        result = self.ctrl.player.use(possible_item)
+
+        try:
+            result = self.ctrl.player.use(possible_item)
+        except Exception:
+            result = None
+
         return (result if result else f"Nothing happens with {item_name}."), None
 
     # ─── Journal ──────────────────────────────────────────────────────────────

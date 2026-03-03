@@ -11,19 +11,21 @@
 
 {# Returns stair icons if the room has up/down exits #}
 {% macro stair_icons(cell) %}
-    {% if 'up' in cell.exits %}▲{% endif %}
-    {% if 'down' in cell.exits %}▼{% endif %}
+    {% if cell and 'up' in cell.exits %}▲{% endif %}
+    {% if cell and 'down' in cell.exits %}▼{% endif %}
 {% endmacro %}
 
 {# Returns ✦ if the room has any cardinal direction teleport exits #}
 {% macro teleport_icon(cell) %}
-    {% set has_teleport = namespace(found=false) %}
-    {% for dir in cell.exit_destinations %}
-        {% if dir in ['north', 'south', 'east', 'west'] %}
-            {% set has_teleport.found = true %}
-        {% endif %}
-    {% endfor %}
-    {% if has_teleport.found %}✦{% endif %}
+    {% if cell %}
+        {% set has_teleport = namespace(found=false) %}
+        {% for dir in cell.exit_destinations %}
+            {% if dir in ['north', 'south', 'east', 'west'] %}
+                {% set has_teleport.found = true %}
+            {% endif %}
+        {% endfor %}
+        {% if has_teleport.found %}✦{% endif %}
+    {% endif %}
 {% endmacro %}
 
 {# Renders the full contents of a single map cell #}

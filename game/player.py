@@ -36,6 +36,9 @@ class Player:
         Falls back to grid movement for same-floor cardinal directions.
         Returns True if the move succeeded, False if blocked.
         """
+        if dir not in room.exits and dir not in room.exit_destinations:
+            return False
+        
         # teleport or stair exit defined by an event
         if dir in room.exit_destinations:
             dest       = room.exit_destinations[dir]

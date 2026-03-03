@@ -1,45 +1,77 @@
 {% extends 'base.html' %}
+{% from 'macros.html' import cell_class, cell_contents %}
 
 {% block head %}
-    <title>Game Portal</title>
+    <title>Game Portal — TERMINAL</title>
 {% endblock %}
 
 {% block body %}
-<div class="content">
+<div class="terminal">
 
-    <h1>Game Portal</h1>
-
-    {# ── Player Table ──────────────────────────────────────────── #}
-    {% if players|length < 1 %}
-        <h2>No players yet — create one below</h2>
-    {% else %}
-        <table>
-            <tr>
-                <th>Username</th>
-                <th>Created</th>
-                <th>Play</th>
-                <th>Delete</th>
-            </tr>
-            {% for player in players %}
-            <tr>
-                <td>{{ player.username }}</td>
-                <td>{{ player.date_create.date() }}</td>
-                <td><a href="/game/{{ player.id }}" class="button-small">Play</a></td>
-                <td><a href="/delete/{{ player.id }}" class="button-small">Delete</a></td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% endif %}
-
-    {# ── New Player Form ───────────────────────────────────────── #}
-    <div class="form">
-        <form action="/" method="POST">
-            <input type="text" class="input-element" name="username" id="username"
-                   placeholder="Enter username" autocomplete="off" autocorrect="off"
-                   autocapitalize="none" spellcheck="false" required>
-            <input type="submit" class="button" value="New Player">
-        </form>
+    {# ── Header ────────────────────────────────────────────── #}
+    <div class="t-header">
+        <span class="t-header-title">GAME PORTAL</span>
+        <span class="t-header-sep">///</span>
+        <span class="t-header-sub">PLAYER MANAGEMENT TERMINAL</span>
+        <span class="t-header-blink">█</span>
     </div>
 
-</div>
+    {# ── Main content split ───────────────────────────────── #}
+    <div class="t-main">
+
+        {# LEFT COLUMN: Player List & Form #}
+        <div class="t-left">
+
+            {# Player Table / List #}
+            <div class="t-panel">
+                <div class="t-panel-label">PLAYERS</div>
+                {% if players|length < 1 %}
+                <div class="t-output">— no players yet —</div>
+                {% else %}
+                <div class="t-output">
+                    {% for player in players %}
+                    <div class="t-event-msg">
+                        <strong>{{ player.username }}</strong>
+                        <span class="mono">({{ player.date_create.date() }})</span>
+                        <a href="/game/{{ player.id }}" class="t-btn small">PLAY</a>
+                        <a href="/delete/{{ player.id }}" class="t-btn small danger">DEL</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            {# New Player Form #}
+            <div class="t-panel">
+                <div class="t-panel-label">CREATE NEW PLAYER</div>
+                <form action="/" method="POST" class="t-form">
+                    <span class="t-prompt">&gt;_</span>
+                    <input class="t-input" type="text" name="username" placeholder="Enter username"
+                           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" required>
+                    <button class="t-submit" type="submit">NEW PLAYER</button>
+                </form>
+            </div>
+
+            {# Footer / exit button #}
+            <div class="t-footer-btns">
+                <a href="/" class="t-btn">REFRESH</a>
+            </div>
+
+        </div>{# end t-left #}
+
+        {# RIGHT COLUMN: Optional Info / placeholder #}
+        <div class="t-right">
+
+            <div class="t-panel">
+                <div class="t-panel-label">INFO</div>
+                <div class="t-output">
+                    Select a player to begin playing the game.
+                </div>
+            </div>
+
+        </div>{# end t-right #}
+
+    </div>{# end t-main #}
+
+</div>{# end .terminal #}
 {% endblock %}
