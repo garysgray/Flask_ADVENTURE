@@ -502,7 +502,7 @@ a:hover { color: var(--text-bright); }
 
 #journal-panel .journal-entry-room {
     font-family: var(--mono);
-    font-size: 10px; /* was 9px */
+    font-size: 15px; /* was 9px */
     color: var(--red-metal);
     letter-spacing: 3px;
     margin-bottom: 7px;
@@ -510,7 +510,7 @@ a:hover { color: var(--text-bright); }
 
 #journal-panel .journal-entry-text {
     font-family: var(--mono);
-    font-size: 13px; /* was 12px */
+    font-size: 15px; /* was 12px */
     line-height: 1.85;
     color: var(--text);
 }
