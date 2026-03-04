@@ -8,8 +8,8 @@ import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-app.config['SECRET_KEY'] = 'change-this-secret-in-production'
-# app.config['SECRET_KEY'] = '6e66fc0a4afa35a7205edb9a5a48cba75938b11774a960c74deafaf9256e1c6a'
+#app.config['SECRET_KEY'] = 'change-this-secret-in-production'
+app.config['SECRET_KEY'] = '6e66fc0a4afa35a7205edb9a5a48cba75938b11774a960c74deafaf9256e1c6a'
 
 db = SQLAlchemy(app)
 
