@@ -10,10 +10,15 @@
 
     {# ── Header bar ─────────────────────────────────────────── #}
     <div class="t-header">
-        <span class="t-header-title">DELICTUM FACILITY</span>
+    <span class="t-header-title">DELICTUM FACILITY</span>
+    <span class="t-header-sep">///</span>
+    <span class="t-header-sub t-header-terminal">FIELD INVESTIGATOR TERMINAL</span>
+    <span style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span class="t-header-sub">{{ db_player.save_name | upper }}</span>
         <span class="t-header-sep">///</span>
-        <span class="t-header-sub">FIELD INVESTIGATOR TERMINAL</span>
+        <span class="t-header-sub">{{ session['username'] | upper }}</span>
         <span class="t-header-blink">█</span>
+    </span>
     </div>
 
     {# ── Main grid: input+map | output ──────────────────────── #}

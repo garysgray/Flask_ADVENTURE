@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>DELICTUM — LOGIN</title>
+{% endblock %}
+{% block body %}
+<div class="terminal">
+
+    <div class="t-header">
+        <span class="t-header-title">DELICTUM FACILITY</span>
+        <span class="t-header-sep">///</span>
+        <span class="t-header-sub">LOGIN</span>
+        <span class="t-header-blink">█</span>
+    </div>
+
+    <div class="auth-wrap">
+
+        {% if error %}
+        <div class="auth-error">⚠ {{ error }}</div>
+        {% endif %}
+
+        <div class="auth-panel">
+            <form method="POST">
+                <input type="text"     style="display:none" name="fake_user">
+                <input type="password" style="display:none" name="fake_pass">
+
+                <div class="auth-field">
+                    <div class="t-panel-label">USERNAME</div>
+                    <div class="t-form">
+                        <span class="t-prompt">&gt;_</span>
+                        <input class="t-input" type="text"
+                               name="u_name"
+                               placeholder="Username"
+                               autocorrect="off"
+                               autocapitalize="none"
+                               spellcheck="false" required>
+                    </div>
+                </div>
+
+                <div class="auth-field">
+                    <div class="t-panel-label">PASSWORD</div>
+                    <div class="t-form">
+                        <span class="t-prompt">&gt;_</span>
+                        <input class="t-input" type="password"
+                               name="u_pass"
+                               placeholder="Password"
+                               autocomplete="new-password"
+                               required>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth-submit">[ LOGIN ]</button>
+
+            </form>
+        </div>
+
+        <div class="auth-switch">
+            First time? Just enter a username and password to create your account.
+        </div>
+
+    </div>
+</div>
+{% endblock %}

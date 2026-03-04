@@ -2,6 +2,7 @@ import json
 import os
 import yaml
 from game.event_types import Event, AllRoomsVisitedEvent, ItemUsedWithEvent, AllEventsCompletedEvent
+from pathlib import Path
 
 
 # =============================================================================
@@ -108,10 +109,18 @@ class Map:
 
     # ─── Data Loading ─────────────────────────────────────────────────────────
 
+    # def _load_data(self):
+    #     """Loads and parses game_data.yaml from the data directory."""
+    #     path = os.path.join(os.path.dirname(__file__), '..', 'data', 'game_data.yaml')
+    #     with open(path) as f:
+    #         return yaml.safe_load(f)
+        
     def _load_data(self):
         """Loads and parses game_data.yaml from the data directory."""
-        path = os.path.join(os.path.dirname(__file__), '..', 'data', 'game_data.yaml')
-        with open(path) as f:
+        base_dir = Path(__file__).resolve().parent
+        data_path = base_dir.parent / "data" / "game_data.yaml"
+
+        with open(data_path, "r") as f:
             return yaml.safe_load(f)
 
     # ─── Factory Methods ──────────────────────────────────────────────────────

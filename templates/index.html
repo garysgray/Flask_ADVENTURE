@@ -1,77 +1,62 @@
 {% extends 'base.html' %}
-{% from 'macros.html' import cell_class, cell_contents %}
-
 {% block head %}
-    <title>Game Portal — TERMINAL</title>
+    <title>DELICTUM — PORTAL</title>
 {% endblock %}
-
 {% block body %}
 <div class="terminal">
 
-    {# ── Header ────────────────────────────────────────────── #}
     <div class="t-header">
-        <span class="t-header-title">GAME PORTAL</span>
+        <span class="t-header-title">DELICTUM FACILITY</span>
         <span class="t-header-sep">///</span>
-        <span class="t-header-sub">PLAYER MANAGEMENT TERMINAL</span>
+        <span class="t-header-sub">OPERATIVE PORTAL</span>
         <span class="t-header-blink">█</span>
+        <div class="top-right" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:10px;color:var(--text-dim);letter-spacing:2px;">{{ username | upper }}</span>
+            <a href="{{ url_for('logout') }}" class="t-btn">LOGOUT</a>
+        </div>
     </div>
 
-    {# ── Main content split ───────────────────────────────── #}
-    <div class="t-main">
+    <div class="index-wrap">
 
-        {# LEFT COLUMN: Player List & Form #}
-        <div class="t-left">
+        <div class="index-title-block">
+            <div class="index-title">SAVED GAMES</div>
+            <div class="index-sub">SELECT A SAVE TO CONTINUE OR CREATE A NEW ONE</div>
+        </div>
 
-            {# Player Table / List #}
-            <div class="t-panel">
-                <div class="t-panel-label">PLAYERS</div>
-                {% if players|length < 1 %}
-                <div class="t-output">— no players yet —</div>
-                {% else %}
-                <div class="t-output">
-                    {% for player in players %}
-                    <div class="t-event-msg">
-                        <strong>{{ player.username }}</strong>
-                        <span class="mono">({{ player.date_create.date() }})</span>
-                        <a href="/game/{{ player.id }}" class="t-btn small">PLAY</a>
-                        <a href="/delete/{{ player.id }}" class="t-btn small danger">DEL</a>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
+        {% if players|length < 1 %}
+            <div class="index-empty">NO SAVED GAMES — CREATE ONE BELOW</div>
+        {% else %}
+        <table>
+            <tr>
+                <th>Save Name</th>
+                <th>Created</th>
+                <th>Continue</th>
+                <th>Delete</th>
+            </tr>
+            {% for player in players %}
+            <tr>
+                <td>{{ player.save_name }}</td>
+                <td>{{ player.date_create.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td><a href="/game/{{ player.id }}" class="t-btn">CONTINUE</a></td>
+                <td><a href="/delete/{{ player.id }}" class="t-btn danger">DELETE</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
 
-            {# New Player Form #}
-            <div class="t-panel">
-                <div class="t-panel-label">CREATE NEW PLAYER</div>
-                <form action="/" method="POST" class="t-form">
-                    <span class="t-prompt">&gt;_</span>
-                    <input class="t-input" type="text" name="username" placeholder="Enter username"
-                           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" required>
-                    <button class="t-submit" type="submit">NEW PLAYER</button>
-                </form>
-            </div>
+        <div class="index-form-wrap">
+            <div class="t-panel-label">NEW SAVE</div>
+            <form action="/" method="POST" class="t-form" autocomplete="off">
+                <span class="t-prompt">&gt;_</span>
+                <input type="text" class="t-input" name="save_name"
+                       placeholder="Enter save name"
+                       autocomplete="off"
+                       autocorrect="off" autocapitalize="none"
+                       spellcheck="false" required>
+                <button type="submit" class="t-submit">CREATE</button>
+            </form>
+        </div>
 
-            {# Footer / exit button #}
-            <div class="t-footer-btns">
-                <a href="/" class="t-btn">REFRESH</a>
-            </div>
-
-        </div>{# end t-left #}
-
-        {# RIGHT COLUMN: Optional Info / placeholder #}
-        <div class="t-right">
-
-            <div class="t-panel">
-                <div class="t-panel-label">INFO</div>
-                <div class="t-output">
-                    Select a player to begin playing the game.
-                </div>
-            </div>
-
-        </div>{# end t-right #}
-
-    </div>{# end t-main #}
-
-</div>{# end .terminal #}
+    </div>
+</div>
 {% endblock %}

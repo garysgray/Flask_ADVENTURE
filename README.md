@@ -165,7 +165,7 @@ The player has a permanent journal that cannot be dropped or lost. It records al
 
 - Backstory and instructions are defined in `game_data.yaml` under `intro:`
 - On a new player's first visit the intro panel fades in as a centered modal
-- Player dismisses it by clicking "Enter the Manor"
+- Player dismisses it by clicking "Enter the Facility"
 - The intro is pinned permanently as the last journal entry
 - Never auto-shows again after dismissal — tracked via `has_seen_intro` flag saved to database
 
@@ -219,31 +219,49 @@ Items and rooms are always rebuilt from YAML recipes on load, with saved state r
 
 Each player ID gets its own controller instance so multiple players can run simultaneously. Deleting a player also clears their controller from memory so new players with the same ID start completely fresh.
 
+### User Account & Save System
+
+Players create an account with a username and password on their first visit — no separate registration page. The same login page handles both new and returning users automatically.
+
+- Each user account is private — no user can see another user's saves
+- Each user can have multiple independent save files
+- Save files are named by the player at creation
+- Passwords are hashed using `werkzeug.security` — never stored in plain text
+- Sessions persist until the browser is closed or the user logs out
+- Logout button visible in the portal header
+
 ### Map System
 
 The map is defined entirely in `game_data.yaml` — no hardcoded room data in Python. Items, rooms, events, states, keywords, use responses, and intro text are all data-driven.
 
-- Floor layout defined via `floors` array — fully dynamic
+- Floor layout defined via `floors` array using room names — fully dynamic
+- Empty cells use `"_"` as a placeholder — renders as a void on the mini map
 - Supports multiple floors with stair and teleport connections between them
 - All exit connections defined in events — rooms start locked and open through gameplay
 - Teleport exits using cardinal directions show ✦ on the mini map
-- Stair exits using up/down show ⬆⬇ on the mini map
+- Stair exits using up/down show ▲▼ on the mini map
 - Interactable targets highlighted in room descriptions via `<em>` tags
 
 ### UI Features
 
-- Dark dungeon-themed CSS with medieval fonts and gold accents
-- Frosted glass UI panels over atmospheric background image
+- Terminal-style CSS with monospace fonts, amber accents, and metallic red highlights
+- Scanline texture overlay over atmospheric background image
+- Two-column layout — command input, map, and inventory on the left; all output on the right
 - Mini map showing explored rooms, current position, and floor-aware tracking
 - Floor indicator displayed alongside the mini map
-- Mobile responsive layout
-- Event messages displayed separately from command responses
-- Interactable targets highlighted in gold in room descriptions
+- Empty grid cells render as true voids preserving the map shape
+- Mobile responsive layout — stacks to single column on small screens
+- Event messages displayed separately from command responses in a blue accent panel
 - Win screen displayed when all win conditions are met
-- Journal panel slides in from the right in a dark parchment style
+- Journal panel slides in from the right
 - Journal auto-opens when `read journal` command is typed
 - Intro panel fades in on first visit as a centered modal
-- Journal JS moved to static file `journal.js`
+- Journal JS in static file `journal.js`
+
+### Developer Tools
+
+- **Roadmap viewer** (`game_roadmap.html`) — standalone browser tool, load any `game_data.yaml` to visualize the full map grid by floor, room list, event flow, and item master list
+- **Dialog editor** (`dialog_editor.html`) — standalone browser tool, load `game_data.yaml` to edit all narrative text (descriptions, use text, event messages, intro) inline and export a corrected YAML
 
 ---
 
@@ -253,6 +271,7 @@ The map is defined entirely in `game_data.yaml` — no hardcoded room data in Py
 - Flask + Flask-SQLAlchemy
 - SQLite
 - PyYAML
+- Werkzeug (password hashing)
 - Jinja2 Templates
 - HTML5 / CSS3 / JS (no frontend framework)
 
@@ -272,6 +291,7 @@ flask_adventure/
 │
 ├── templates/
 │   ├── base.html
+│   ├── login.html
 │   ├── index.html
 │   ├── game.html
 │   └── macros.html
@@ -289,6 +309,10 @@ flask_adventure/
 │   ├── persistence.py
 │   ├── gameObjects.py
 │   └── player.py
+│
+├── tools/
+│   ├── game_roadmap.html
+│   └── dialog_editor.html
 │
 ├── instance/
 │   └── test.db
@@ -311,6 +335,22 @@ python app.py
 
 Open in browser: `http://127.0.0.1:5000`
 
+On first visit, enter a username and password to create your account. The same login page handles returning users automatically.
+
+---
+
+## Resetting the Database
+
+If the database schema changes (e.g. after adding the User model), drop and recreate:
+
+```python
+python
+>>> from app import app, db
+>>> with app.app_context():
+...     db.drop_all()
+...     db.create_all()
+```
+
 ---
 
 ## Planned Improvements
@@ -326,7 +366,6 @@ Open in browser: `http://127.0.0.1:5000`
 - **Constants file** — settings, enums, magic numbers in one place
 - **Command history** — press up arrow to cycle previous commands
 - **Admin panel** — edit rooms, items, events without touching YAML
-- **Login system** — proper accounts with admin and player roles
 - **Deploy to cloud** — Railway, Render, or Heroku using existing Procfile
 
 ---

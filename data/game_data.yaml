@@ -1,8 +1,9 @@
 player:
-  starting_inventory: [dosimeter, field_notes]
-
+  starting_inventory:
+    - dosimeter
+    - field_notes
 intro:
-  title: "The Delictum Facility"
+  title: The Delictum Facility
   text: |
     The contamination reports came in three days ago. A residential district,
     three blocks wide, inexplicably irradiated. No source identified. No
@@ -16,12 +17,14 @@ intro:
 
     The coordinates led here.
 
-    A brutalist research complex hidden in the hills, unmarked on any map you
+    A brutal research complex hidden in the hills, unmarked on any map you
     have seen. The fence had already been cut,  by someone else, long ago.
     The signage was stripped, but the concrete remains, and the concrete
     remembers. You found a corroded placard near the main door:
 
     INSTITUTE FOR APPLIED HUMAN REFINEMENT
+
+                  I.A.H.R
 
     The door sealed behind you the moment you stepped through. Emergency
     lighting hums in the walls,  a dull amber that makes everything look like
@@ -29,24 +32,20 @@ intro:
 
     You are not the first person to come looking.
     You may be the first person to understand what they find.
-
   instructions: |
     Explore every wing,  some doors only open when you do.
     Examine everything: type look [item]
     Items can be combined: type use [item] with [target]
     Your field notes record everything you discover.
     Type help for a full list of commands.
-
-
 win_conditions:
   - restore_power
   - unlock_cryo_bay
   - all_rooms_intake
   - frequency_calibration
   - log_assembled
-
 win_screen:
-  title: "YOU HAVE ESCAPED"
+  title: YOU HAVE ESCAPED
   text: |
     The revival sequence completes.
     The unit opens.
@@ -56,79 +55,118 @@ win_screen:
     But for one moment, before the cycle resets, he looks at you like you are
     the first person who came here to find him rather than to use him.
     You write it in your field notes and do not have an answer.
-
 items:
   dosimeter:
-    solo_keywords: [check, read, examine]
+    solo_keywords:
+      - check
+      - read
+      - examine
     action_keywords: []
     states:
       default:
-        description: "A personal radiation dosimeter, standard issue."
-        use: "The reading is elevated but not immediately dangerous. Whatever contaminated the outside originated here,  or passed through here."
-
+        description: A personal radiation dosimeter, standard issue.
+        use: >-
+          The reading is elevated but not immediately dangerous. Whatever contaminated the outside originated here,  or
+          passed through here.
   emergency_light:
-    solo_keywords: [raise, hold]
-    action_keywords: [connect, attach, plug]
+    solo_keywords:
+      - raise
+      - hold
+    action_keywords:
+      - connect
+      - attach
+      - plug
     states:
       default:
-        description: "A portable emergency light, still charged. Institutional orange casing."
-        use: "You hold it up. The amber glow pushes the darkness back just far enough."
+        description: A portable emergency light, still charged. Institutional orange casing.
+        use: You hold it up. The amber glow pushes the darkness back just far enough.
       changed:
-        description: "A portable emergency light, now hardwired into the wall panel. It burns steadily."
-        use: "The light is already patched into the grid. The corridor stays lit."
-
+        description: A portable emergency light, now hardwired into the wall panel. It burns steadily.
+        use: The light is already patched into the grid. The corridor stays lit.
   wiring_kit:
-    solo_keywords: [examine, open]
-    action_keywords: [connect, wire, patch, use]
+    solo_keywords:
+      - examine
+      - open
+    action_keywords:
+      - connect
+      - wire
+      - patch
+      - use
     states:
       default:
-        description: "A technician's wiring kit. Stripped cables, splice connectors. Someone left this recently."
-        use: "You pull out a length of cable. There is a panel somewhere this would patch."
+        description: A technician's wiring kit. Stripped cables, splice connectors. Someone left this recently.
+        use: You pull out a length of cable. There is a panel somewhere this would patch.
       changed:
-        description: "A wiring kit, mostly used. The remaining components are odds and ends."
-        use: "You have already used the key components. Not much left."
-
+        description: A wiring kit, mostly used. The remaining components are odds and ends.
+        use: You have already used the key components. Not much left.
   access_card:
-    solo_keywords: [examine]
-    action_keywords: [swipe, insert, use, scan]
+    solo_keywords:
+      - examine
+    action_keywords:
+      - swipe
+      - insert
+      - use
+      - scan
     states:
       default:
         description: "A laminated access card. The photo has been scratched off. Clearance Level: DELTA."
-        use: "You turn it over. Someone went to effort to remove the identity. The clearance level remains."
+        use: You turn it over. Someone went to effort to remove the identity. The clearance level remains.
       changed:
-        description: "A used access card. It has already opened something."
-        use: "The card's single-use authorization has been spent."
-
+        description: A used access card. It has already opened something.
+        use: The card's single-use authorization has been spent.
   field_notes:
-    solo_keywords: [read, open, examine, study]
+    solo_keywords:
+      - read
+      - open
+      - examine
+      - study
     action_keywords: []
     states:
       default:
-        description: "Your own field notes. You have been writing as you go."
-        use: "You review your notes. The picture coming together is worse than the contamination report suggested."
-
+        description: Your own field notes. You have been writing as you go.
+        use: You review your notes. The picture coming together is worse than the contamination report suggested.
   specimen_jar:
-    solo_keywords: [examine, hold]
-    action_keywords: [place, set, open]
+    solo_keywords:
+      - examine
+      - hold
+    action_keywords:
+      - place
+      - set
+      - open
     states:
       default:
-        description: "A sealed glass specimen jar. Inside: a small amount of grey powder and a paper tag reading 'Subject 7,  Residual Signature.'"
-        use: "You hold it up to the light. The powder shifts though you are not moving the jar."
-
+        description: >-
+          A sealed glass specimen jar. Inside: a small amount of grey powder and a paper tag reading 'Subject 7, 
+          Residual Signature.'
+        use: You hold it up to the light. The powder shifts though you are not moving the jar.
   cable_spool:
-    solo_keywords: [examine, uncoil]
-    action_keywords: [connect, attach, run, string]
+    solo_keywords:
+      - examine
+      - uncoil
+    action_keywords:
+      - connect
+      - attach
+      - run
+      - string
     states:
       default:
-        description: "A spool of heavy-gauge signal cable, about 30 feet. Military spec."
-        use: "You uncoil a length. Could bridge two systems or anchor something heavy."
-
+        description: A spool of heavy-gauge signal cable, about 30 feet. Military spec.
+        use: You uncoil a length. Could bridge two systems or anchor something heavy.
   intake_file:
-    solo_keywords: [examine, open, read]
-    action_keywords: [drop, submit, file, place]
+    solo_keywords:
+      - examine
+      - open
+      - read
+    action_keywords:
+      - drop
+      - submit
+      - file
+      - place
     states:
       default:
-        description: "A manila intake file. Subject name redacted. Age at intake: 9. Father's occupation: Missile Systems Technician, FN Division."
+        description: >-
+          A manila intake file. Subject name redacted. Age at intake: 9. Father's occupation: Missile Systems
+          Technician, FN Division.
         use: |
           You read it slowly.
 
@@ -136,9 +174,12 @@ items:
           A notation in the margin, different handwriting: 'Signature confirmed. Transfer approved.'
 
           Someone selected this child because of where their father worked.
-
   maintenance_manual:
-    solo_keywords: [read, open, study, examine]
+    solo_keywords:
+      - read
+      - open
+      - study
+      - examine
     action_keywords: []
     states:
       default:
@@ -152,29 +193,46 @@ items:
 
           A handwritten note is stuck to the page: 'Do not attempt revival alone. The boy-form
           is manageable. The other form is not.'
-
   frequency_rod:
-    solo_keywords: [examine, hold]
-    action_keywords: [insert, place, calibrate, tune]
+    solo_keywords:
+      - examine
+      - hold
+    action_keywords:
+      - insert
+      - place
+      - calibrate
+      - tune
     states:
       default:
-        description: "A metal rod about 18 inches long, marked with calibration notches. A label: 'Resonance Key,  Subject Specific.'"
-        use: "You feel a faint vibration when you hold it. Like it is already responding to something nearby."
-
+        description: >-
+          A metal rod about 18 inches long, marked with calibration notches. A label: 'Resonance Key,  Subject
+          Specific.'
+        use: You feel a faint vibration when you hold it. Like it is already responding to something nearby.
   research_badge:
-    solo_keywords: [examine, flip, read]
-    action_keywords: [wear, put, place]
+    solo_keywords:
+      - examine
+      - flip
+      - read
+    action_keywords:
+      - wear
+      - put
+      - place
     states:
       default:
-        description: "A researcher's ID badge. Dr. Aldren Voss. Founding Division. The photo shows a man who looks like he has not slept in years."
-        use: "Voss. The name is in several of the documents you have found. He ran this program from the beginning."
-
+        description: >-
+          A researcher's ID badge. Dr. Aldren Voss. Founding Division. The photo shows a man who looks like he has not
+          slept in years.
+        use: Voss. The name is in several of the documents you have found. He ran this program from the beginning.
   founding_memo:
-    solo_keywords: [read, open, unseal, examine]
+    solo_keywords:
+      - read
+      - open
+      - unseal
+      - examine
     action_keywords: []
     states:
       default:
-        description: "A sealed internal memo addressed to 'Program Successors.'"
+        description: A sealed internal memo addressed to 'Program Successors.'
         use: |
           You read it.
 
@@ -187,28 +245,38 @@ items:
 
           You put it down. Your hands feel dirty.
       changed:
-        description: "An opened memo. Voss's last instructions. The words stay with you."
-        use: "You have already read it. You do not need to read it again."
-
+        description: An opened memo. Voss's last instructions. The words stay with you.
+        use: You have already read it. You do not need to read it again.
   cryo_manifest:
-    solo_keywords: [examine, read]
-    action_keywords: [cross, check, reference]
+    solo_keywords:
+      - examine
+      - read
+    action_keywords:
+      - cross
+      - check
+      - reference
     states:
       default:
-        description: "A printed manifest of cryogenic unit occupants. Most entries read: EXTRACTED / DEPLOYED / TERMINATED. One entry near the bottom reads: ACTIVE,  UNIT 12. Nickname field: 'Guilt Boy.'"
+        description: >-
+          A printed manifest of cryogenic unit occupants. Most entries read: EXTRACTED / DEPLOYED / TERMINATED. One
+          entry near the bottom reads: ACTIVE,  UNIT 12. Nickname field: 'Guilt Boy.'
         use: |
           There he is.
 
           Unit 12. Still active. Still in the system.
           The nickname field should be blank,  it is a data field, not a personal one.
           Someone typed it anyway. Like they wanted to remember he was a person.
-
   audio_log:
-    solo_keywords: [play, listen, examine]
-    action_keywords: [connect, plug]
+    solo_keywords:
+      - play
+      - listen
+      - examine
+    action_keywords:
+      - connect
+      - plug
     states:
       default:
-        description: "A handheld audio recorder, old model. One recording saved."
+        description: A handheld audio recorder, old model. One recording saved.
         use: |
           You press play.
 
@@ -217,197 +285,312 @@ items:
           I think special means something different here than it did at home.'
 
           The recording ends. You stand still for a moment.
-
   pressure_gauge:
-    solo_keywords: [examine, read, check]
-    action_keywords: [adjust, set, calibrate, turn]
+    solo_keywords:
+      - examine
+      - read
+      - check
+    action_keywords:
+      - adjust
+      - set
+      - calibrate
+      - turn
     states:
       default:
-        description: "A pressure gauge mounted on a removable panel. Currently reading zero. Should not be reading zero."
-        use: "You tap it. The needle doesn't move. Something upstream is blocked or disconnected."
-
+        description: A pressure gauge mounted on a removable panel. Currently reading zero. Should not be reading zero.
+        use: You tap it. The needle doesn't move. Something upstream is blocked or disconnected.
   log_fragment_a:
-    solo_keywords: [read, examine, study]
-    action_keywords: [combine, match, connect]
+    solo_keywords:
+      - read
+      - examine
+      - study
+    action_keywords:
+      - combine
+      - match
+      - connect
     states:
       default:
-        description: "Half a torn research log. Left side only. The entries describe 'successful guilt induction' and 'trauma-cycle stabilization.'"
+        description: >-
+          Half a torn research log. Left side only. The entries describe 'successful guilt induction' and 'trauma-cycle
+          stabilization.'
         use: "The right half is missing. The entries cut off mid-sentence mid-thought mid, "
-
   log_fragment_b:
-    solo_keywords: [read, examine, study]
-    action_keywords: [combine, match, connect]
+    solo_keywords:
+      - read
+      - examine
+      - study
+    action_keywords:
+      - combine
+      - match
+      - connect
     states:
       default:
-        description: "Half a torn research log. Right side only. ', which confirms the subject's pre-existing empathy profile accelerates integration. He does not resist the cycle. He has never learned how.'"
-        use: "The left half of this is somewhere else. Together they would form a complete entry."
-
+        description: >-
+          Half a torn research log. Right side only. ', which confirms the subject's pre-existing empathy profile
+          accelerates integration. He does not resist the cycle. He has never learned how.'
+        use: The left half of this is somewhere else. Together they would form a complete entry.
   signal_mirror:
-    solo_keywords: [examine, hold]
-    action_keywords: [place, angle, position, set]
+    solo_keywords:
+      - examine
+      - hold
+    action_keywords:
+      - place
+      - angle
+      - position
+      - set
     states:
       default:
-        description: "A polished steel signal mirror, the kind used for long-range communication. A sticker on the back: 'RELAY,  UNIT 12 OBSERVATION ROOM.'"
-        use: "You angle it. Something in the reflection shows you a room you have not been in yet."
+        description: >-
+          A polished steel signal mirror, the kind used for long-range communication. A sticker on the back: 'RELAY, 
+          UNIT 12 OBSERVATION ROOM.'
+        use: You angle it. Something in the reflection shows you a room you have not been in yet.
       changed:
-        description: "A signal mirror, now positioned in the relay mount. A faint signal pulses through it."
-        use: "The mirror is doing its job. Something is receiving the relay."
-
+        description: A signal mirror, now positioned in the relay mount. A faint signal pulses through it.
+        use: The mirror is doing its job. Something is receiving the relay.
 rooms:
   - name: entry_corridor
-    exits: [east]
+    exits:
+      - east
     states:
-      default: "The main entry corridor of the facility. Emergency lighting casts everything amber. A reception desk sits empty,  the sign-in ledger is still open. Security doors on three sides, one already ajar. On the wall near the door, a wiring <em>panel</em> hangs open,  cables exposed, waiting for a connection. The air smells of concrete, old circuitry, and something biological you do not want to name."
-      changed: "The main entry corridor. The portable light is now hardwired into the wall panel and the corridor is properly lit. A previously unnoticed access hatch in the floor is now opened with a ladder going down."
-    items: [emergency_light, founding_memo]
+      default: >-
+        The main entry corridor of the facility. Emergency lighting casts everything amber. A reception desk sits
+        empty,  the sign-in ledger is still open. Security doors on three sides, one already ajar. On the wall near the
+        door, a wiring <em>panel</em> hangs open,  cables exposed, waiting for a connection. The air smells of concrete,
+        old circuitry, and something biological you do not want to name.
+      changed: >-
+        The main entry corridor. The portable light is now hardwired into the wall panel and the corridor is properly
+        lit. A previously unnoticed access hatch in the floor is now opened with a ladder going down.
+    items:
+      - emergency_light
+      - founding_memo
     exit_destinations: {}
-
   - name: intake_hall
-    exits: [west]
+    exits:
+      - west
     states:
-      default: "The intake processing hall. Long benches bolted to the floor. Height and weight measurement markings still painted on one wall, the increments starting at 3 feet. Cubicle partitions are partially collapsed. The smell of institutional disinfectant is somehow still present."
-    items: [intake_file, research_badge]
+      default: >-
+        The intake processing hall. Long benches bolted to the floor. Height and weight measurement markings still
+        painted on one wall, the increments starting at 3 feet. Cubicle partitions are partially collapsed. The smell of
+        institutional disinfectant is somehow still present.
+    items:
+      - intake_file
+      - research_badge
     exit_destinations: {}
-
   - name: records_room
-    exits: [east]
+    exits:
+      - east
     states:
-      default: "A records room lined floor to ceiling with metal cabinets, most hanging open and ransacked. One cabinet in the corner is still locked and untouched. The floor is covered in scattered pages,  intake forms, psychological assessments, radiation exposure logs."
-      changed: "The records room. The hidden maintenance shaft above the locked cabinet now hangs open. A smell of recirculated air drifts down from above."
-    items: [maintenance_manual, log_fragment_a]
+      default: >-
+        A records room lined floor to ceiling with metal cabinets, most hanging open and ransacked. One cabinet in the
+        corner is still locked and untouched. The floor is covered in scattered pages,  intake forms, psychological
+        assessments, radiation exposure logs.
+      changed: >-
+        The records room. The hidden maintenance shaft above the locked cabinet now hangs open. A smell of recirculated
+        air drifts down from above.
+    items:
+      - maintenance_manual
+      - log_fragment_a
     exit_destinations: {}
-
   - name: break_room
-    exits: [ west]
+    exits:
+      - west
     states:
-      default: "A staff break room. Mugs still on the table. A corkboard holds a rotation schedule,  the last date listed is thirty-one years ago. Someone has written on the wall in marker: 'WE WERE TOLD IT WAS NECESSARY.' The letters are very large."
-    items: [wiring_kit, audio_log]
+      default: >-
+        A staff break room. Mugs still on the table. A corkboard holds a rotation schedule,  the last date listed is
+        thirty-one years ago. Someone has written on the wall in marker: 'WE WERE TOLD IT WAS NECESSARY.' The letters
+        are very large.
+    items:
+      - wiring_kit
+      - audio_log
     exit_destinations: {}
-
   - name: subbasement_corridor
-    exits: [east]
+    exits:
+      - east
     states:
-      default: "A lower-level corridor accessed by the ladder in the entry. The walls here are raw concrete. Pipes run along the ceiling, most corroded. A sign reads: CRYOGENIC DIVISION,  AUTHORIZED PERSONNEL ONLY. The door ahead is sealed with a mechanical lock, not electronic."
-      changed: "The subbasement corridor. The cryo bay door is open. Cold air rolls out steadily. The lights inside are on emergency backup,  a pale blue."
-    items: [cable_spool, pressure_gauge]
+      default: >-
+        A lower-level corridor accessed by the ladder in the entry. The walls here are raw concrete. Pipes run along the
+        ceiling, most corroded. A sign reads: CRYOGENIC DIVISION,  AUTHORIZED PERSONNEL ONLY. The door ahead is sealed
+        with a mechanical lock, not electronic.
+      changed: >-
+        The subbasement corridor. The cryo bay door is open. Cold air rolls out steadily. The lights inside are on
+        emergency backup,  a pale blue.
+    items:
+      - cable_spool
+      - pressure_gauge
     exit_destinations: {}
-
   - name: observation_wing
-    exits: [west, east]
+    exits:
+      - west
+      - east
     states:
-      default: "A long observation wing. One-way glass panels line the left wall, looking into small clinical rooms beyond. The rooms are empty. In each one: a single chair, a drain in the floor, a light fixture overhead. The chairs all face the same direction."
-      changed: "The observation wing. The signal mirror is mounted in the relay bracket on the far wall. A faint pulsing light travels through it toward the cryo bay."
-    items: [signal_mirror, cryo_manifest]
+      default: >-
+        A long observation wing. One-way glass panels line the left wall, looking into small clinical rooms beyond. The
+        rooms are empty. In each one: a single chair, a drain in the floor, a light fixture overhead. The chairs all
+        face the same direction.
+      changed: >-
+        The observation wing. The signal mirror is mounted in the relay bracket on the far wall. A faint pulsing light
+        travels through it toward the cryo bay.
+    items:
+      - signal_mirror
+      - cryo_manifest
     exit_destinations: {}
-
   - name: cryo_bay
-    exits: [west]
+    exits:
+      - west
     states:
-      default: "The cryogenic bay. Twelve preservation units line the walls in two rows of six. Eleven are open and empty , some cleanly, some not. Unit 12 at the far end is sealed and active. A card <em>reader</em> glows red beside it. The hum is low and constant and gets into your back teeth."
-      changed: "The cryogenic bay. Unit 12's display now reads: REVIVAL SEQUENCE INITIATED. The hum has changed pitch. The unit door has begun its mechanical unlock. Cold vapor rolls across the floor. You wait."
-      sealed: "The cryogenic bay. The revival sequence is running. Cold vapor continues to roll across the floor. The west passage , previously held by a pressure lock , has released. The way out is clear. A card <em>reader</em> glows red beside it. The hum is low and constant and gets into your back teeth."
-    items: [frequency_rod, specimen_jar]
+      default: >-
+        The cryogenic bay. Twelve preservation units line the walls in two rows of six. Eleven are open and empty , some
+        cleanly, some not. Unit 12 at the far end is sealed and active. A card <em>reader</em> glows red beside it. The
+        hum is low and constant and gets into your back teeth.
+      changed: >-
+        The cryogenic bay. Unit 12's display now reads: REVIVAL SEQUENCE INITIATED. The hum has changed pitch. The unit
+        door has begun its mechanical unlock. Cold vapor rolls across the floor. You wait.
+      sealed: >-
+        The cryogenic bay. The revival sequence is running. Cold vapor continues to roll across the floor. The west
+        passage , previously held by a pressure lock , has released. The way out is clear. A card <em>reader</em> glows
+        red beside it. The hum is low and constant and gets into your back teeth.
+    items:
+      - frequency_rod
+      - specimen_jar
     exit_destinations: {}
-
   - name: upper_lab
-    exits: [south]
+    exits:
+      - south
     states:
-      default: "An upper-level laboratory, accessed through the records room shaft. Workbenches hold equipment in various stages of disassembly. Whiteboards are covered in formulas and diagrams,  one section is circled in red marker and labeled: 'GUILT CYCLE,  SELF-SUSTAINING.' A window looks down into the cryo bay."
-      changed: "The upper lab. The power relay is restored. Indicator lights across the facility have shifted from red to amber. From the window, you can see Unit 12's status display changing."
+      default: >-
+        An upper-level laboratory, accessed through the records room shaft. Workbenches hold equipment in various stages
+        of disassembly. Whiteboards are covered in formulas and diagrams,  one section is circled in red marker and
+        labeled: 'GUILT CYCLE,  SELF-SUSTAINING.' A window looks down into the cryo bay.
+      changed: >-
+        The upper lab. The power relay is restored. Indicator lights across the facility have shifted from red to amber.
+        From the window, you can see Unit 12's status display changing.
     items: []
     exit_destinations: {}
-
   - name: director_office
-    exits: [south]
+    exits:
+      - south
     states:
-      default: "The facility director's office. A large desk, cleared of everything except a single framed photograph: a group of children in identical grey uniforms, standing in a line, each holding a small numbered placard. They are smiling the way children smile when they have been told to smile."
-      changed: "The director's office. A hidden panel behind the bookcase now stands open. Whatever was kept inside is gone,  but the space is the right size for a person to have waited in."
-    items: [log_fragment_b, access_card]
+      default: >-
+        The facility director's office. A large desk, cleared of everything except a single framed photograph: a group
+        of children in identical grey uniforms, standing in a line, each holding a small numbered placard. They are
+        smiling the way children smile when they have been told to smile.
+      changed: >-
+        The director's office. A hidden panel behind the bookcase now stands open. Whatever was kept inside is gone, 
+        but the space is the right size for a person to have waited in.
+    items:
+      - log_fragment_b
+      - access_card
     exit_destinations: {}
-
   - name: relay_room
-    exits: [north]
+    exits:
+      - north
     states:
-      default: "A technical relay room packed with signal routing equipment. Most of it is dead. One panel is still drawing power,  a frequency calibration <em>array</em>, the kind used for biometric resonance. A mounting bracket on the wall holds nothing, but is shaped for the signal mirror."
-      changed: "The relay room. The frequency rod is seated in the calibration array. The system is running a subject-specific resonance pattern. A door in the north wall,  previously invisible against the concrete,  has cracked open."
+      default: >-
+        A technical relay room packed with signal routing equipment. Most of it is dead. One panel is still drawing
+        power,  a frequency calibration <em>array</em>, the kind used for biometric resonance. A mounting bracket on the
+        wall holds nothing, but is shaped for the signal mirror.
+      changed: >-
+        The relay room. The frequency rod is seated in the calibration array. The system is running a subject-specific
+        resonance pattern. A door in the north wall,  previously invisible against the concrete,  has cracked open.
     items: []
     exit_destinations: {}
-
   - name: archive_vault
-    exits: [north]
+    exits:
+      - north
     states:
-      default: "A hardened archive vault behind the relay room. Steel shelves. Fireproof document cases. One open case on the central table holds what appears to be the complete operational record of the Delictum program, except the final section, which has been torn out."
-      changed: "The archive vault. The log is assembled and complete. The final section, previously missing,  was the torn fragments you found. Together they describe the last active Cleaner, his location within the facility, and the exact sequence required to reach him."
-    items: [log_fragment_a]
+      default: >-
+        A hardened archive vault behind the relay room. Steel shelves. Fireproof document cases. One open case on the
+        central table holds what appears to be the complete operational record of the Delictum program, except the final
+        section, which has been torn out.
+      changed: >-
+        The archive vault. The log is assembled and complete. The final section, previously missing,  was the torn
+        fragments you found. Together they describe the last active Cleaner, his location within the facility, and the
+        exact sequence required to reach him.
+    items:
+      - log_fragment_a
     exit_destinations: {}
-
-  
-
-
   - name: service_tunnel
-    exits: [east, west, south]
+    exits:
+      - east
+      - west
+      - south
     states:
-      default: "A long service tunnel running the length of the facility's wing. Conduit bundles line the ceiling. Maintenance placards are bolted to the walls at intervals."
+      default: >-
+        A long service tunnel running the length of the facility's wing. Conduit bundles line the ceiling. Maintenance
+        placards are bolted to the walls at intervals.
     items: []
     exit_destinations: {}
-
   - name: dark_hallway
-    exits: [north, south, east]
+    exits:
+      - north
+      - south
+      - east
     states:
-      default: "A long dark hallway with boarded up windows, The floor is grated metal over a drainage channel. Your footsteps echo."
+      default: >-
+        A long dark hallway with boarded up windows, The floor is grated metal over a drainage channel. Your footsteps
+        echo.
     items: []
     exit_destinations: {}
-
   - name: wide_passage
-    exits: [east, west, north]
+    exits:
+      - east
+      - west
+      - north
     states:
-      default: "A wide connecting passage between rooms. It opens up, the original builders left more clearance for some reason. Exposed pipe work runs along both sides. The air is cold."
+      default: >-
+        A wide connecting passage between rooms. It opens up, the original builders left more clearance for some reason.
+        Exposed pipe work runs along both sides. The air is cold.
     items: []
     exit_destinations: {}
-
   - name: narrow_passage
-    exits: [north, south, west]
+    exits:
+      - north
+      - south
+      - west
     states:
-      default: "A narrow connecting passage between the levels. its difficult to get through here , A stripped cable hangs from the ceiling, cut cleanly, a long time ago."
+      default: >-
+        A narrow connecting passage between the levels. its difficult to get through here , A stripped cable hangs from
+        the ceiling, cut cleanly, a long time ago.
     items: []
     exit_destinations: {}
-
   - name: block
     exits: []
     states:
-      default: "just takes up space on grid"
+      default: just takes up space on grid
     items: []
     exit_destinations: {}
-
   - name: super_large_chamber
-    exits: [east, west]
+    exits:
+      - east
+      - west
     states:
-      default: "Super large chamber"
+      default: Super large chamber
     items: []
     exit_destinations: {}
-
   - name: super_large_lab
-    exits: [north, south]
+    exits:
+      - north
+      - south
     states:
-      default: "Super large lab"
+      default: Super large lab
     items: []
     exit_destinations: {}
-
   - name: generic_hallway_e_w
-    exits: [east, west]
+    exits:
+      - east
+      - west
     states:
-      default: "A very generic hallway with no special features at all."
+      default: A very generic hallway with no special features at all.
     items: []
     exit_destinations: {}
-
   - name: generic_hallway_n_s
-    exits: [north, south]
+    exits:
+      - north
+      - south
     states:
-      default: "A very generic hallway with no special features at all."
+      default: A very generic hallway with no special features at all.
     items: []
     exit_destinations: {}
-
-
 events:
   - id: restore_power
     type: puzzle
@@ -428,16 +611,21 @@ events:
       open_exit:
         - room: entry_corridor
           direction: down
-          destination: {floor: 1, x: 0, y: 0}
+          destination:
+            floor: 1
+            x: 0
+            "y": 0
         - room: subbasement_corridor
           direction: up
-          destination: {floor: 0, x: 0, y: 0}
+          destination:
+            floor: 0
+            x: 0
+            "y": 0
       message: |
         Utilizing the wiring kit you repair the cables feeding into
         the wall panel. The corridor lights fully for the first time in decades.
         An access hatch in the floor swings down on its own,  the pressure latch finally
         releasing. Somewhere below you hear a mechanical door disengage.
-
   - id: unlock_cryo_bay
     type: puzzle
     check_type: item_used_with
@@ -457,10 +645,16 @@ events:
       open_exit:
         - room: cryo_bay
           direction: north
-          destination: {floor: 2, x: 2, y: 0}
+          destination:
+            floor: 2
+            x: 2
+            "y": 0
         - room: director_office
           direction: north
-          destination: {floor: 1, x: 4, y: 0}
+          destination:
+            floor: 1
+            x: 4
+            "y": 0
       add_item:
         item: frequency_rod
         room: cryo_bay
@@ -468,12 +662,15 @@ events:
         You press the Delta-clearance card to the reader. A long pause,  then the system
         accepts it. REVIVAL SEQUENCE INITIATED. The cryo unit begins its unlock cycle.
         Cold air floods the room. Somewhere above you, a hidden panel slides open.
-
   - id: all_rooms_intake
     type: achievement
     check_type: all_rooms_visited
     parameters:
-      required_rooms: [entry_corridor, intake_hall, records_room, break_room]
+      required_rooms:
+        - entry_corridor
+        - intake_hall
+        - records_room
+        - break_room
     result:
       set_state:
         - room: records_room
@@ -483,16 +680,21 @@ events:
       open_exit:
         - room: records_room
           direction: up
-          destination: {floor: 2, x: 0, y: 0}
+          destination:
+            floor: 2
+            x: 0
+            "y": 0
         - room: upper_lab
           direction: down
-          destination: {floor: 0, x: 0, y: 2}
+          destination:
+            floor: 0
+            x: 0
+            "y": 2
       message: |
         You have walked every room of the intake level. The picture is taking shape, 
         children selected, processed, conditioned. You feel the facility shift around you,
         as if it has been watching you understand it. A maintenance shaft above a filing
         cabinet slides open with a sound like an exhaled breath.
-
   - id: frequency_calibration
     type: puzzle
     check_type: item_used_with
@@ -512,16 +714,21 @@ events:
       open_exit:
         - room: relay_room
           direction: south
-          destination: {floor: 1, x: 2, y: 0}
+          destination:
+            floor: 1
+            x: 2
+            "y": 0
         - room: observation_wing
           direction: south
-          destination: {floor: 2, x: 0, y: 2}
+          destination:
+            floor: 2
+            x: 0
+            "y": 2
       message: |
         You seat the frequency rod in the calibration array. The system reads the rod's
         notches and begins tuning,  a biometric resonance pattern locked to one specific
         person. The signal mirror in the observation wing picks up the relay. A seam in
         the concrete north wall of the relay room splits open. The passage beyond is very cold.
-
   - id: log_assembled
     type: puzzle
     check_type: item_used_with
@@ -541,10 +748,16 @@ events:
       open_exit:
         - room: archive_vault
           direction: east
-          destination: {floor: 1, x: 4, y: 0}
+          destination:
+            floor: 1
+            x: 4
+            "y": 0
         - room: cryo_bay
           direction: east
-          destination: {floor: 2, x: 2, y: 2}
+          destination:
+            floor: 2
+            x: 2
+            "y": 2
       message: |
         You press the two torn halves together. The entry completes:
 
@@ -561,12 +774,16 @@ events:
 
         A door in the east wall opens. Beyond it: the cryo bay, and Unit 12, and the
         beginning of something that is not a procedure.
-
   - id: game_won
     type: achievement
     check_type: all_events_completed
     parameters:
-      required_events: [restore_power, unlock_cryo_bay, all_rooms_intake, frequency_calibration, log_assembled]
+      required_events:
+        - restore_power
+        - unlock_cryo_bay
+        - all_rooms_intake
+        - frequency_calibration
+        - log_assembled
     result:
       message: |
         The revival sequence completes.
@@ -600,14 +817,27 @@ events:
         Maybe it is not.
 
         You write it in your field notes and do not have an answer.
-
 floors:
-  - - [entry_corridor, service_tunnel, intake_hall]
-    - [null, super_large_lab, null]
-    - [records_room, wide_passage, break_room]
-
-  - - [subbasement_corridor, generic_hallway_e_w, observation_wing, generic_hallway_e_w, cryo_bay]
-  
-  - - [upper_lab, null, director_office]
-    - [dark_hallway, super_large_chamber, narrow_passage]
-    - [relay_room, null, archive_vault]
+  - - - entry_corridor
+      - service_tunnel
+      - intake_hall
+    - - null
+      - super_large_lab
+      - null
+    - - records_room
+      - wide_passage
+      - break_room
+  - - - subbasement_corridor
+      - generic_hallway_e_w
+      - observation_wing
+      - generic_hallway_e_w
+      - cryo_bay
+  - - - upper_lab
+      - null
+      - director_office
+    - - dark_hallway
+      - super_large_chamber
+      - narrow_passage
+    - - relay_room
+      - null
+      - archive_vault
