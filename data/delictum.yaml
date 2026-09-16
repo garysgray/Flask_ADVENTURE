@@ -1,3 +1,13 @@
+# ==============================================================================
+# 1. GAME METADATA & WIN CONDITIONS
+# ==============================================================================
+
+theme:
+  preset: cyberpunk
+  accent: "#4af0c0"
+  bg: "#05080d"
+  font: "'Share Tech Mono', monospace"
+
 player:
   starting_inventory:
     - dosimeter
@@ -55,8 +65,18 @@ win_screen:
     But for one moment, before the cycle resets, he looks at you like you are
     the first person who came here to find him rather than to use him.
     You write it in your field notes and do not have an answer.
+
+# ==============================================================================
+# 2. ITEMS
+# ==============================================================================
+
 items:
   dosimeter:
+    aliases:
+      - dosimeter
+      - personal dosimeter
+      - radiation dosimeter
+      - meter
     solo_keywords:
       - check
       - read
@@ -68,7 +88,16 @@ items:
         use: >-
           The reading is elevated but not immediately dangerous. Whatever contaminated the outside originated here,  or
           passed through here.
+
   emergency_light:
+    aliases:
+      - emergency light
+      - portable emergency light
+      - light
+      - orange light
+      - casing
+      - lantern
+      - portable light
     solo_keywords:
       - raise
       - hold
@@ -83,7 +112,16 @@ items:
       changed:
         description: A portable emergency light, now hardwired into the wall panel. It burns steadily.
         use: The light is already patched into the grid. The corridor stays lit.
+
   wiring_kit:
+    aliases:
+      - wiring kit
+      - kit
+      - cables
+      - splice connectors
+      - technician wiring kit
+      - "technician's wiring kit"
+      - wires
     solo_keywords:
       - examine
       - open
@@ -99,7 +137,17 @@ items:
       changed:
         description: A wiring kit, mostly used. The remaining components are odds and ends.
         use: You have already used the key components. Not much left.
+
   access_card:
+    aliases:
+      - access card
+      - card
+      - delta card
+      - clearance card
+      - delta-level card
+      - keycard
+      - key card
+      - delta clearance card
     solo_keywords:
       - examine
     action_keywords:
@@ -114,7 +162,13 @@ items:
       changed:
         description: A used access card. It has already opened something.
         use: The card's single-use authorization has been spent.
+
   field_notes:
+    aliases:
+      - field notes
+      - notes
+      - note
+      - notebook
     solo_keywords:
       - read
       - open
@@ -125,7 +179,14 @@ items:
       default:
         description: Your own field notes. You have been writing as you go.
         use: You review your notes. The picture coming together is worse than the contamination report suggested.
+
   specimen_jar:
+    aliases:
+      - specimen jar
+      - jar
+      - glass jar
+      - powder
+      - grey powder
     solo_keywords:
       - examine
       - hold
@@ -139,7 +200,15 @@ items:
           A sealed glass specimen jar. Inside: a small amount of grey powder and a paper tag reading 'Subject 7, 
           Residual Signature.'
         use: You hold it up to the light. The powder shifts though you are not moving the jar.
+
   cable_spool:
+    aliases:
+      - cable spool
+      - spool
+      - signal cable
+      - cable
+      - heavy cable
+      - heavy-gauge signal cable
     solo_keywords:
       - examine
       - uncoil
@@ -152,7 +221,15 @@ items:
       default:
         description: A spool of heavy-gauge signal cable, about 30 feet. Military spec.
         use: You uncoil a length. Could bridge two systems or anchor something heavy.
+
   intake_file:
+    aliases:
+      - intake file
+      - file
+      - folder
+      - manila intake file
+      - manila file
+      - intake notes
     solo_keywords:
       - examine
       - open
@@ -174,7 +251,15 @@ items:
           A notation in the margin, different handwriting: 'Signature confirmed. Transfer approved.'
 
           Someone selected this child because of where their father worked.
+
   maintenance_manual:
+    aliases:
+      - maintenance manual
+      - manual
+      - book
+      - spiral manual
+      - guide
+      - classified manual
     solo_keywords:
       - read
       - open
@@ -193,7 +278,15 @@ items:
 
           A handwritten note is stuck to the page: 'Do not attempt revival alone. The boy-form
           is manageable. The other form is not.'
+
   frequency_rod:
+    aliases:
+      - frequency rod
+      - rod
+      - resonance key
+      - metal rod
+      - key
+      - calibration rod
     solo_keywords:
       - examine
       - hold
@@ -208,7 +301,15 @@ items:
           A metal rod about 18 inches long, marked with calibration notches. A label: 'Resonance Key,  Subject
           Specific.'
         use: You feel a faint vibration when you hold it. Like it is already responding to something nearby.
+
   research_badge:
+    aliases:
+      - research badge
+      - badge
+      - id badge
+      - voss badge
+      - id
+      - researcher badge
     solo_keywords:
       - examine
       - flip
@@ -223,7 +324,16 @@ items:
           A researcher's ID badge. Dr. Aldren Voss. Founding Division. The photo shows a man who looks like he has not
           slept in years.
         use: Voss. The name is in several of the documents you have found. He ran this program from the beginning.
+
   founding_memo:
+    aliases:
+      - founding memo
+      - memo
+      - internal memo
+      - voss memo
+      - document
+      - instructions
+      - letter
     solo_keywords:
       - read
       - open
@@ -247,7 +357,14 @@ items:
       changed:
         description: An opened memo. Voss's last instructions. The words stay with you.
         use: You have already read it. You do not need to read it again.
+
   cryo_manifest:
+    aliases:
+      - cryo manifest
+      - manifest
+      - printed manifest
+      - list
+      - unit manifest
     solo_keywords:
       - examine
       - read
@@ -266,7 +383,16 @@ items:
           Unit 12. Still active. Still in the system.
           The nickname field should be blank,  it is a data field, not a personal one.
           Someone typed it anyway. Like they wanted to remember he was a person.
+
   audio_log:
+    aliases:
+      - audio log
+      - log
+      - tape
+      - cassette
+      - recorder
+      - audio recorder
+      - recording
     solo_keywords:
       - play
       - listen
@@ -285,7 +411,13 @@ items:
           I think special means something different here than it did at home.'
 
           The recording ends. You stand still for a moment.
+
   pressure_gauge:
+    aliases:
+      - pressure gauge
+      - gauge
+      - brass gauge
+      - meter
     solo_keywords:
       - examine
       - read
@@ -299,7 +431,17 @@ items:
       default:
         description: A pressure gauge mounted on a removable panel. Currently reading zero. Should not be reading zero.
         use: You tap it. The needle doesn't move. Something upstream is blocked or disconnected.
+
   log_fragment_a:
+    display_name: log fragment A
+    aliases:
+      - log fragment a
+      - fragment a
+      - first fragment
+      - torn half
+      - left half
+      - log fragment
+      - fragment
     solo_keywords:
       - read
       - examine
@@ -314,7 +456,16 @@ items:
           Half a torn research log. Left side only. The entries describe 'successful guilt induction' and 'trauma-cycle
           stabilization.'
         use: "The right half is missing. The entries cut off mid-sentence mid-thought mid, "
+
   log_fragment_b:
+    display_name: log fragment B
+    aliases:
+      - log fragment b
+      - fragment b
+      - second fragment
+      - right half
+      - log fragment
+      - fragment
     solo_keywords:
       - read
       - examine
@@ -329,7 +480,16 @@ items:
           Half a torn research log. Right side only. ', which confirms the subject's pre-existing empathy profile
           accelerates integration. He does not resist the cycle. He has never learned how.'
         use: The left half of this is somewhere else. Together they would form a complete entry.
+      changed:
+        description: The reassembled research log. The torn halves fit together precisely.
+        use: The completed log describes the last active Cleaner and the sequence to reach him.
+
   signal_mirror:
+    aliases:
+      - signal mirror
+      - mirror
+      - steel mirror
+      - polished mirror
     solo_keywords:
       - examine
       - hold
@@ -347,6 +507,78 @@ items:
       changed:
         description: A signal mirror, now positioned in the relay mount. A faint signal pulses through it.
         use: The mirror is doing its job. Something is receiving the relay.
+
+# ==============================================================================
+# 3. VOCABULARY & TARGET ALIASES
+# ==============================================================================
+
+target_aliases:
+  panel:
+    - wiring panel
+    - wall panel
+    - panel
+    - cables
+    - exposed cables
+    - wiring
+  reader:
+    - card reader
+    - reader
+    - slot
+    - scanner
+    - delta reader
+    - cryo reader
+    - cryo bay
+    - cryo door
+    - security door
+    - door
+    - lock
+  array:
+    - calibration array
+    - array
+    - frequency calibration array
+    - resonance array
+    - mounting bracket
+    - bracket
+
+# ------------------------------------------------------------------------------
+# Custom Verbs
+# ------------------------------------------------------------------------------
+
+custom_verbs:
+  two_object:
+    - calibrate
+    - tune
+    - align
+    - resonate
+    - wire
+    - patch
+    - attach
+    - plug
+    - hook up
+    - hook
+    - bridge
+    - insert
+    - put
+    - place
+    - slide
+    - swipe
+    - scan
+    - seat
+    - slot
+    - stick
+    - unlock
+    - open
+    - combine
+    - assemble
+    - join
+    - merge
+    - fit
+    - piece together
+
+# ==============================================================================
+# 4. ROOMS
+# ==============================================================================
+
 rooms:
   - name: entry_corridor
     exits:
@@ -364,6 +596,7 @@ rooms:
       - emergency_light
       - founding_memo
     exit_destinations: {}
+
   - name: intake_hall
     exits:
       - west
@@ -376,6 +609,7 @@ rooms:
       - intake_file
       - research_badge
     exit_destinations: {}
+
   - name: records_room
     exits:
       - east
@@ -391,6 +625,7 @@ rooms:
       - maintenance_manual
       - log_fragment_a
     exit_destinations: {}
+
   - name: break_room
     exits:
       - west
@@ -403,6 +638,7 @@ rooms:
       - wiring_kit
       - audio_log
     exit_destinations: {}
+
   - name: subbasement_corridor
     exits:
       - east
@@ -418,6 +654,7 @@ rooms:
       - cable_spool
       - pressure_gauge
     exit_destinations: {}
+
   - name: observation_wing
     exits:
       - west
@@ -434,6 +671,7 @@ rooms:
       - signal_mirror
       - cryo_manifest
     exit_destinations: {}
+
   - name: cryo_bay
     exits:
       - west
@@ -453,6 +691,7 @@ rooms:
       - frequency_rod
       - specimen_jar
     exit_destinations: {}
+
   - name: upper_lab
     exits:
       - south
@@ -466,6 +705,7 @@ rooms:
         From the window, you can see Unit 12's status display changing.
     items: []
     exit_destinations: {}
+
   - name: director_office
     exits:
       - south
@@ -481,6 +721,7 @@ rooms:
       - log_fragment_b
       - access_card
     exit_destinations: {}
+
   - name: relay_room
     exits:
       - north
@@ -494,6 +735,7 @@ rooms:
         resonance pattern. A door in the north wall,  previously invisible against the concrete,  has cracked open.
     items: []
     exit_destinations: {}
+
   - name: archive_vault
     exits:
       - north
@@ -509,6 +751,7 @@ rooms:
     items:
       - log_fragment_a
     exit_destinations: {}
+
   - name: service_tunnel
     exits:
       - east
@@ -520,6 +763,7 @@ rooms:
         placards are bolted to the walls at intervals.
     items: []
     exit_destinations: {}
+
   - name: dark_hallway
     exits:
       - north
@@ -531,6 +775,7 @@ rooms:
         echo.
     items: []
     exit_destinations: {}
+
   - name: wide_passage
     exits:
       - east
@@ -542,6 +787,7 @@ rooms:
         Exposed pipe work runs along both sides. The air is cold.
     items: []
     exit_destinations: {}
+
   - name: narrow_passage
     exits:
       - north
@@ -553,12 +799,14 @@ rooms:
         the ceiling, cut cleanly, a long time ago.
     items: []
     exit_destinations: {}
+
   - name: block
     exits: []
     states:
       default: just takes up space on grid
     items: []
     exit_destinations: {}
+
   - name: super_large_chamber
     exits:
       - east
@@ -567,6 +815,7 @@ rooms:
       default: Super large chamber
     items: []
     exit_destinations: {}
+
   - name: super_large_lab
     exits:
       - north
@@ -575,6 +824,7 @@ rooms:
       default: Super large lab
     items: []
     exit_destinations: {}
+
   - name: generic_hallway_e_w
     exits:
       - east
@@ -583,6 +833,7 @@ rooms:
       default: A very generic hallway with no special features at all.
     items: []
     exit_destinations: {}
+
   - name: generic_hallway_n_s
     exits:
       - north
@@ -591,6 +842,11 @@ rooms:
       default: A very generic hallway with no special features at all.
     items: []
     exit_destinations: {}
+
+# ==============================================================================
+# 5. EVENTS
+# ==============================================================================
+
 events:
   - id: restore_power
     type: puzzle
@@ -626,6 +882,7 @@ events:
         the wall panel. The corridor lights fully for the first time in decades.
         An access hatch in the floor swings down on its own,  the pressure latch finally
         releasing. Somewhere below you hear a mechanical door disengage.
+
   - id: unlock_cryo_bay
     type: puzzle
     check_type: item_used_with
@@ -633,6 +890,11 @@ events:
       item: access_card
       target: reader
       room: cryo_bay
+      prerequisites:
+        - restore_power
+      hints:
+        wrong_room: "Nice try. This seems like something that might work somewhere else."
+        missing_prerequisite: "The reader remains cold and unpowered. Facility power must be restored first."
     result:
       set_state:
         - room: cryo_bay
@@ -662,6 +924,7 @@ events:
         You press the Delta-clearance card to the reader. A long pause,  then the system
         accepts it. REVIVAL SEQUENCE INITIATED. The cryo unit begins its unlock cycle.
         Cold air floods the room. Somewhere above you, a hidden panel slides open.
+
   - id: all_rooms_intake
     type: achievement
     check_type: all_rooms_visited
@@ -695,6 +958,7 @@ events:
         children selected, processed, conditioned. You feel the facility shift around you,
         as if it has been watching you understand it. A maintenance shaft above a filing
         cabinet slides open with a sound like an exhaled breath.
+
   - id: frequency_calibration
     type: puzzle
     check_type: item_used_with
@@ -729,6 +993,7 @@ events:
         notches and begins tuning,  a biometric resonance pattern locked to one specific
         person. The signal mirror in the observation wing picks up the relay. A seam in
         the concrete north wall of the relay room splits open. The passage beyond is very cold.
+
   - id: log_assembled
     type: puzzle
     check_type: item_used_with
@@ -774,6 +1039,7 @@ events:
 
         A door in the east wall opens. Beyond it: the cryo bay, and Unit 12, and the
         beginning of something that is not a procedure.
+
   - id: game_won
     type: achievement
     check_type: all_events_completed
@@ -817,6 +1083,11 @@ events:
         Maybe it is not.
 
         You write it in your field notes and do not have an answer.
+
+# ==============================================================================
+# 6. FLOOR LAYOUTS (GRID MATRICES)
+# ==============================================================================
+
 floors:
   - - - entry_corridor
       - service_tunnel

@@ -9,6 +9,18 @@ class ActionHandler:
 
     # ─── Movement ─────────────────────────────────────────────────────────────
 
+    def _extract_direction(self, possible_item):
+        """Extracts canonical direction string from list or string input."""
+        if isinstance(possible_item, list):
+            for d in self.ctrl.player.directions:
+                if d in possible_item:
+                    return d
+        elif isinstance(possible_item, str):
+            for d in self.ctrl.player.directions:
+                if d == possible_item or d in possible_item.split():
+                    return d
+        return ""
+
     def move_player(self, dir):
         if self.ctrl.player.move(dir, self.ctrl.get_room(), len(self.ctrl.map.game_map)):
             return f"You came from the {dir}."
@@ -19,207 +31,345 @@ class ActionHandler:
 
     # ─── Inventory ────────────────────────────────────────────────────────────
 
-    # def has_item(self, name):
-    #     """Returns True if the named item is in the player's inventory."""
-    #     for i in self.ctrl.player.inventory:
-    #         if i.name == name:
-    #             return True
-    #     return False
-
-    # def pick_up(self, possible_item):
-    #     """Moves an item from the current room into player inventory."""
-    #     item_name = self.ctrl.player.pick_up(self.ctrl.get_room(), possible_item)
-    #     if item_name:
-    #         return f"You picked up a {item_name}"
-    #     else:
-    #         if isinstance(possible_item, list):
-    #             return f"I cant pick up {possible_item[1]}"
-    #         return "Get What?"
-
-    # def drop(self, possible_item):
-    #     """Moves an item from player inventory into the current room."""
-    #     item_name = self.ctrl.player.drop(self.ctrl.get_room(), possible_item)
-    #     if item_name:
-    #         return f"You dropped a {item_name}"
-    #     else:
-    #         if isinstance(possible_item, list):
-    #             return f"I cant drop {possible_item[1]}"
-    #         return "Drop What?"
-
-    # # ─── Look ─────────────────────────────────────────────────────────────────
-
-    # def look(self, possible_item):
-    #     """Returns the description of an item in the room or player inventory."""
-    #     item_info = self.ctrl.player.look(self.ctrl.get_room(), possible_item)
-    #     if item_info:
-    #         return item_info
-    #     else:
-    #         if isinstance(possible_item, list):
-    #             return f"I dont see {possible_item[1]}"
-    #         return "Look at What?"
-
-    # # ─── Use ──────────────────────────────────────────────────────────────────
-
-    # def use_item(self, possible_item):
-    #     """
-    #     Handles both single item use and item+target use.
-
-    #     Dict input  — use [item] with [target]:
-    #         1. Check if this event was already completed — return already-done message if so.
-    #            Must happen before inventory check because item may have been removed (e.g. locket).
-    #         2. Check player has the item.
-    #         3. Check if any event fires for this item+target combination.
-    #         4. Fall back to "can't use" if nothing matched.
-
-    #     List input  — use [item]:
-    #         Uses the item's current state use_text via player.use().
-    #     """
-    #     if isinstance(possible_item, dict):
-    #         item   = possible_item['item']
-    #         target = possible_item['target']
-
-    #         # already done check must come before has_item
-    #         # because item may have been removed from inventory after firing
-    #         already_done = self.ctrl.check_use_with_events_already_done(item, target)
-    #         if already_done:
-    #             return already_done, None
-
-    #         if not self.has_item(item):
-    #             return f"You don't have {item}.", None
-
-    #         event_result = self.ctrl.check_use_with_events(item, target)
-    #         if event_result:
-    #             return self.help(), event_result
-
-    #         return f"You can't use {item} with {target}.", None
-
-    #     # solo use — use [item]
-    #     words     = [w for w in possible_item if w != 'use']
-    #     item_name = words[0] if words else None
-    #     if not item_name:
-    #         return "Use what?", None
-    #     if not self.has_item(item_name):
-    #         return f"You don't have {item_name}.", None
-    #     result = self.ctrl.player.use(possible_item)
-    #     return (result if result else f"Nothing happens with {item_name}."), None
-
-    # ─── Inventory ────────────────────────────────────────────────────────────
-
     def has_item(self, name):
-        """Returns True if the named item is in the player's inventory."""
+        """Returns True if the named item or alias is in the player's inventory."""
+        if not name:
+            return False
+        clean = name.strip().lower() if isinstance(name, str) else ""
         for i in getattr(self.ctrl.player, "inventory", []):
-            if getattr(i, "name", None) == name:
+            if i.name == clean or i.name.replace('_', ' ') == clean:
+                return True
+            if clean in getattr(i, "aliases", []) or clean in getattr(i, "keywords", []):
                 return True
         return False
 
+    def show_inventory(self):
+        """Returns a formatted list of carried items."""
+        inventory = getattr(self.ctrl.player, "inventory", [])
+        if not inventory:
+            return "You are not carrying anything."
+        names = [getattr(i, 'display_name', i.name.replace('_', ' ')) for i in inventory]
+        return f"You are carrying: {', '.join(names)}."
+
     def pick_up(self, possible_item):
         """Moves an item from the current room into player inventory."""
+        if not possible_item:
+            return "Take what?"
+
+        target = possible_item
+        if isinstance(possible_item, list):
+            words = [w for w in possible_item if w not in {'take', 'get', 'pick', 'up', 'the', 'a', 'an'}]
+            target = " ".join(words) if words else ""
+
+        if not target:
+            return "Take what?"
+
+        if self.has_item(target):
+            display = target.replace('_', ' ')
+            return f"You are already carrying the {display}."
+
         try:
-            item_name = self.ctrl.player.pick_up(self.ctrl.get_room(), possible_item)
+            item_name = self.ctrl.player.pick_up(self.ctrl.get_room(), target)
         except Exception:
             item_name = None
 
         if item_name:
-            return f"You picked up a {item_name}"
+            return f"You picked up the {item_name.replace('_', ' ')}."
         else:
-            # safely get the item name if it's a list
-            if isinstance(possible_item, list) and len(possible_item) > 1:
-                return f"I can't pick up {possible_item[1]}"
-            return "Get What?"
+            display = target.replace('_', ' ')
+            if target in getattr(self.ctrl.map, 'item_recipes', {}):
+                return f"I don't see any {display} here."
+            return f"I don't see that here."
 
     def drop(self, possible_item):
         """Moves an item from player inventory into the current room."""
+        if not possible_item:
+            return "Drop what?"
+
+        target = possible_item
+        if isinstance(possible_item, list):
+            words = [w for w in possible_item if w not in {'drop', 'put', 'down', 'the', 'a', 'an'}]
+            target = " ".join(words) if words else ""
+
+        if not target:
+            return "Drop what?"
+
         try:
-            item_name = self.ctrl.player.drop(self.ctrl.get_room(), possible_item)
+            item_name = self.ctrl.player.drop(self.ctrl.get_room(), target)
         except Exception:
             item_name = None
 
         if item_name:
-            return f"You dropped a {item_name}"
+            return f"You dropped the {item_name.replace('_', ' ')}."
         else:
-            if isinstance(possible_item, list) and len(possible_item) > 1:
-                return f"I can't drop {possible_item[1]}"
-            return "Drop What?"
+            display = target.replace('_', ' ')
+            for obj in self.ctrl.get_room().inventory:
+                if obj.name == target or obj.name.replace('_', ' ') == target:
+                    return f"You aren't carrying the {display}."
+            return "You don't have that."
 
     # ─── Look ─────────────────────────────────────────────────────────────────
 
     def look(self, possible_item):
-        """Returns the description of an item in the room or player inventory."""
+        """Returns the description of the room, or an item/fixture in the room/inventory."""
+        if not possible_item or possible_item in ("", [], ["look"], ["around"]):
+            room = self.ctrl.get_room()
+            return room.description if room else "You look around."
+
+        target = possible_item
+        if isinstance(possible_item, list):
+            words = [w for w in possible_item if w not in {'look', 'at', 'in', 'inside', 'examine', 'inspect', 'the', 'a', 'an'}]
+            target = " ".join(words) if words else ""
+
+        if not target:
+            room = self.ctrl.get_room()
+            return room.description if room else "You look around."
+
+        # 1. Check player inventory and room ground items
         try:
-            item_info = self.ctrl.player.look(self.ctrl.get_room(), possible_item)
+            item_info = self.ctrl.player.look(self.ctrl.get_room(), target)
         except Exception:
             item_info = None
 
         if item_info:
             return item_info
-        else:
-            if isinstance(possible_item, list) and len(possible_item) > 1:
-                return f"I don't see {possible_item[1]}"
-            return "Look at What?"
+
+        # Normalize target for fixture lookup
+        target_clean = target.strip().lower()
+        target_aliases = getattr(self.ctrl.map, 'target_aliases', {})
+        for canonical_target, aliases in target_aliases.items():
+            if target_clean == canonical_target or target_clean in aliases or target_clean.replace('_', ' ') in aliases:
+                target_clean = canonical_target
+                break
+
+        # 2. Check current room fixtures directly
+        current_room = self.ctrl.get_room()
+        if current_room and hasattr(current_room, 'fixtures') and current_room.fixtures:
+            # Check canonical fixture name
+            if target_clean in current_room.fixtures:
+                return current_room.fixtures[target_clean].get_examine_text()
+
+            # Check matching by display_name or aliases
+            for fix_name, fixture in current_room.fixtures.items():
+                if fix_name == target_clean or fixture.display_name.lower() == target_clean:
+                    return fixture.get_examine_text()
+                fix_aliases = target_aliases.get(fix_name, [])
+                if target_clean in fix_aliases or target.strip().lower() in fix_aliases:
+                    return fixture.get_examine_text()
+
+        # 3. Check for ECA solo event with action in ('examine', 'look')
+        eval_result = self.ctrl.evaluate_solo(target_clean, action='examine')
+        if eval_result['status'] == 'success':
+            return eval_result['message']
+        elif eval_result['status'] in ('wrong_room', 'missing_prerequisite'):
+            return eval_result['message']
+
+        # 4. Check general target aliases fallback
+        for canonical_target, aliases in target_aliases.items():
+            if target_clean == canonical_target or target_clean in aliases:
+                return f"You inspect the {canonical_target.replace('_', ' ')}. It is integrated into the facility."
+
+        return "You don't see that here."
+
+    # ─── Read ─────────────────────────────────────────────────────────────────
+
+    def read_item(self, possible_item):
+        """Handles reading readable items, inscriptions, or the journal."""
+        if not possible_item:
+            return "Read what?"
+
+        if possible_item in ("journal", ["journal"]):
+            return self.read_journal()
+
+        target = possible_item
+        if isinstance(possible_item, list):
+            words = [w for w in possible_item if w not in {'read', 'the', 'a', 'an'}]
+            target = " ".join(words) if words else ""
+
+        if not target:
+            return "Read what?"
+
+        target_clean = target.strip().lower()
+        target_aliases = getattr(self.ctrl.map, 'target_aliases', {})
+        for canonical_t, aliases in target_aliases.items():
+            if target_clean == canonical_t or target_clean in aliases or target_clean.replace('_', ' ') in aliases:
+                target_clean = canonical_t
+                break
+
+        # Check for ECA solo event with action='read' or action=None
+        eval_result = self.ctrl.evaluate_solo(target_clean, action='read')
+        if eval_result['status'] == 'success':
+            return eval_result['message']
+        elif eval_result['status'] in ('wrong_room', 'missing_prerequisite'):
+            return eval_result['message']
+
+        # Check current room fixtures
+        current_room = self.ctrl.get_room()
+        if current_room and hasattr(current_room, 'fixtures') and current_room.fixtures:
+            if target_clean in current_room.fixtures:
+                return current_room.fixtures[target_clean].get_examine_text()
+
+        # Try item use_text if player has the item
+        try:
+            use_text = self.ctrl.player.use(target)
+            if use_text:
+                return use_text
+        except Exception:
+            pass
+
+        # Try item description
+        try:
+            desc = self.ctrl.player.look(self.ctrl.get_room(), target)
+            if desc:
+                return desc
+        except Exception:
+            pass
+
+        # Check room features
+        if target_clean in target_aliases or (
+            current_room and hasattr(current_room, 'description') and 
+            (target_clean in current_room.description.lower() or target_clean.replace('_', ' ') in current_room.description.lower())
+        ):
+            return f"There is nothing written on the {target_clean.replace('_', ' ')}."
+
+        return "You don't have that to read."
 
     # ─── Use ──────────────────────────────────────────────────────────────────
 
     def use_item(self, possible_item):
         """
-        Handles both single item use and item+target use.
+        Handles both single item / room fixture use and item+target use.
         Fully safe against empty or malformed input.
         """
-        # dict input → use [item] with [target]
-        if isinstance(possible_item, dict):
+        # dict input with 'target' → use [item] with [target]
+        if isinstance(possible_item, dict) and 'target' in possible_item:
             item   = possible_item.get('item')
             target = possible_item.get('target')
 
             if not item or not target:
                 return "Use what with what?", None
 
+            # Resolve canonical item name if player has it under an alias
+            for inv_item in getattr(self.ctrl.player, "inventory", []):
+                if (inv_item.name == item or 
+                    inv_item.name.replace('_', ' ') == item or 
+                    item in getattr(inv_item, 'aliases', [])):
+                    item = inv_item.name
+                    break
+
+            # Resolve canonical target name if target matches target_aliases
+            target_aliases = getattr(self.ctrl.map, 'target_aliases', {})
+            for canonical_t, aliases in target_aliases.items():
+                if target == canonical_t or target in aliases:
+                    target = canonical_t
+                    break
+
+            # If player doesn't have the parsed item, but has the parsed target in inventory, swap roles
+            if not self.has_item(item) and self.has_item(target):
+                item, target = target, item
+
             already_done = self.ctrl.check_use_with_events_already_done(item, target)
+            if not already_done and self.has_item(target):
+                already_done = self.ctrl.check_use_with_events_already_done(target, item)
             if already_done:
                 return already_done, None
 
             if not self.has_item(item):
-                return f"You don't have {item}.", None
+                item_display = item.replace('_', ' ')
+                return f"You don't have the {item_display}.", None
 
-            event_result = self.ctrl.check_use_with_events(item, target)
-            if event_result:
-                return self.help(), event_result
+            eval_result = self.ctrl.evaluate_use_with(item, target)
+            if eval_result['status'] == 'success':
+                return self.help(), eval_result['message']
 
-            return f"You can't use {item} with {target}.", None
+            return eval_result['message'], None
 
-        # list or string input → use [item]
-        words = []
-        if isinstance(possible_item, list):
-            words = [w for w in possible_item if w != 'use']
+        # Solo interaction: extract target and optional action
+        action = None
+        item_query = ""
+        if isinstance(possible_item, dict):
+            item_query = possible_item.get('item', '')
+            action = possible_item.get('action')
+        elif isinstance(possible_item, list):
+            words = [w for w in possible_item if w not in {'use', 'the', 'a', 'an'}]
+            item_query = words[0] if words else ""
         elif isinstance(possible_item, str):
-            words = [possible_item] if possible_item != 'use' else []
+            item_query = possible_item if possible_item != 'use' else ""
 
-        item_name = words[0] if words else None
-        if not item_name:
+        if not item_query:
             return "Use what?", None
 
-        if not self.has_item(item_name):
-            return f"You don't have {item_name}.", None
+        # Resolve against carried items
+        matched_item = None
+        for inv_item in getattr(self.ctrl.player, "inventory", []):
+            if (inv_item.name == item_query or 
+                inv_item.name.replace('_', ' ') == item_query or 
+                item_query in getattr(inv_item, 'aliases', []) or 
+                item_query in getattr(inv_item, 'keywords', [])):
+                matched_item = inv_item
+                item_query = inv_item.name
+                break
 
-        try:
-            result = self.ctrl.player.use(possible_item)
-        except Exception:
-            result = None
+        # Resolve against target aliases
+        target_aliases = getattr(self.ctrl.map, 'target_aliases', {})
+        for canonical_t, aliases in target_aliases.items():
+            if item_query == canonical_t or item_query in aliases or item_query.replace('_', ' ') in aliases:
+                item_query = canonical_t
+                break
 
-        return (result if result else f"Nothing happens with {item_name}."), None
+        # 1. Check if an already-done solo event exists
+        already_done = self.ctrl.check_solo_events_already_done(item_query, action=action)
+        if already_done:
+            return already_done, None
+
+        # 2. Check for active ECA solo event
+        eval_result = self.ctrl.evaluate_solo(item_query, action=action)
+        if eval_result['status'] == 'success':
+            return self.help(), eval_result['message']
+        elif eval_result['status'] in ('wrong_room', 'missing_prerequisite'):
+            return eval_result['message'], None
+
+        # 3. Fallback: No ECA event matched
+        if matched_item:
+            result = matched_item.use_text
+            return (result if result else f"Nothing happens with the {matched_item.name.replace('_', ' ')}."), None
+
+        current_room = self.ctrl.get_room()
+        if current_room:
+            # Check if item is in current room inventory
+            for room_item in current_room.inventory:
+                if (room_item.name == item_query or 
+                    room_item.name.replace('_', ' ') == item_query or 
+                    item_query in getattr(room_item, 'aliases', []) or 
+                    item_query in getattr(room_item, 'keywords', [])):
+                    return f"You need to pick up the {room_item.name.replace('_', ' ')} first.", None
+
+            # Check if it's a valid room fixture
+            is_fixture = False
+            if hasattr(current_room, 'fixtures') and (item_query in current_room.fixtures):
+                is_fixture = True
+            elif item_query in target_aliases:
+                is_fixture = True
+            elif hasattr(current_room, 'description') and (
+                item_query in current_room.description.lower() or 
+                item_query.replace('_', ' ') in current_room.description.lower()
+            ):
+                is_fixture = True
+
+            if is_fixture:
+                display_name = item_query.replace('_', ' ')
+                return f"Nothing happens with the {display_name}.", None
+
+        return f"You don't have the {item_query.replace('_', ' ')}.", None
 
     # ─── Journal ──────────────────────────────────────────────────────────────
 
     def read_journal(self):
-        """
-        Journal display is handled entirely in the template via the journal panel.
-        The SHOW_JOURNAL flag in room_info triggers the panel to auto-open.
-        This method returns an empty string so nothing appears in CMD_RESPONSE.
-        """
         return ""
 
     # ─── Dev Tools ────────────────────────────────────────────────────────────
 
     def change_room_description(self, possible_item):
-        """Dev command — manually override the current room's description."""
         room = self.ctrl.get_room()
         if isinstance(possible_item, list):
             words = [word for word in possible_item if word != 'changedesc']
@@ -227,28 +377,27 @@ class ActionHandler:
         else:
             new_description = possible_item
         room.description = new_description
-        return f"The {room.name} room's appearance has changed!"
+        room_title = getattr(room, 'display_name', room.name.replace('_', ' '))
+        return f"The {room_title} room's appearance has changed!"
 
     # ─── Dispatch ─────────────────────────────────────────────────────────────
 
     def execute(self, cmd, possible_item):
-        """
-        Routes a parsed command to the appropriate handler.
-        Returns a tuple of (cmd_response, event_message).
-        event_message is None for most commands, only set by use_item when an event fires.
-        """
         dispatch = {
             'drop':       lambda: (self.drop(possible_item),            None),
             'pickup':     lambda: (self.pick_up(possible_item),         None),
             'look':       lambda: (self.look(possible_item),            None),
+            'read':       lambda: (self.read_item(possible_item),       None),
+            'inventory':  lambda: (self.show_inventory(),               None),
+            'respond':    lambda: (possible_item if isinstance(possible_item, str) else " ".join(possible_item), None),
             'help':       lambda: (self.help(),                         None),
             'use':        lambda: self.use_item(possible_item),
             'changedesc': lambda: (self.change_room_description(possible_item), None),
-            'move':       lambda: (self.move_player(next((d for d in self.ctrl.player.directions if d in possible_item), "")), None),
+            'move':       lambda: (self.move_player(self._extract_direction(possible_item)), None),
             'journal':    lambda: (self.read_journal(),                 None),
+            'wait':       lambda: ("Time passes...",                    None),
         }
 
-        # single direction word typed without a move command e.g. "north"
         if cmd in self.ctrl.player.directions:
             return self.move_player(cmd), None
 

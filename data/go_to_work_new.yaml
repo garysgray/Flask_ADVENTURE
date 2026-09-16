@@ -1,0 +1,615 @@
+# =============================================================================
+# GO TO WORK — ECA EVENT SYSTEM SHOWCASE & TUTORIAL LAB
+# =============================================================================
+# This scenario is a playable tutorial demonstrating the Event-Condition-Action
+# (ECA) system in all 7 primary patterns:
+#
+# PATTERN 1: The Pure Flavor Event (Zero conditions, message only)
+#            -> Action: "read inscription"
+# PATTERN 2: Carried Item Consumption (Inventory check, remove item, set state)
+#            -> Action: "drink coffee"
+# PATTERN 3: Multi-Condition Wall Fixture (Fixture interaction, prereq, fail hints)
+#            -> Action: "pull lever"
+# PATTERN 4: Item-on-Item Recipe (Dual trigger: key on cabinet, give item)
+#            -> Action: "use key on cabinet"
+# PATTERN 5: Multi-Item Requirement (Must hold both badge AND laptop)
+#            -> Action: "pack briefcase"
+# PATTERN 6: World Unlocker (Fixture interaction, opens exit, changes state)
+#            -> Action: "open hatch"
+# PATTERN 7: Background Auto-Watcher (on_turn trigger, location check, win game)
+#            -> Action: walk into office ("go down")
+# =============================================================================
+
+player:
+  starting_inventory:
+    - wrist_watch
+
+intro:
+  title: Get Ready For Work
+  text: |
+    It's 8:45 AM on a Monday morning.
+    
+    You need to complete your routine before heading downstairs to your home office:
+      1. Drink your coffee in the kitchen.
+      2. Pull the breaker lever in the living room.
+      3. Use your small key on the living room cabinet to get your work badge.
+      4. Grab your work laptop from the bedroom.
+      5. Pack your briefcase with both your badge and laptop.
+      6. Read the inspirational plaque on your bedroom wall.
+      7. Open the bedroom floor hatch and climb down to your office.
+
+    Type 'wait' (or 'z') to pass time, 'look' to examine your surroundings,
+    or 'help' for command syntax.
+  instructions: |
+    Complete your routine, pack your briefcase, open the hatch, and head to work.
+
+win_conditions:
+  - drink_morning_coffee
+  - pull_breaker_lever
+  - unlock_supply_cabinet
+  - pack_work_briefcase
+  - open_office_hatch
+  - go_to_work
+
+win_screen:
+  title: WORK DAY COMMENCED
+  text: |
+    You sit at your home office desk, briefcase at your side and dual monitors glowing.
+    Everything is prepared. Time to get to work!
+    
+    *** CONGRATULATIONS! YOU HAVE WON! ***
+
+# =============================================================================
+# ITEMS
+# =============================================================================
+items:
+
+  # Starting item (carried item fallback demonstration)
+  wrist_watch:
+    display_name: "wristwatch"
+    presence: "wristwatch"
+    aliases:
+      - watch
+      - wristwatch
+      - wrist watch
+    keywords:
+      - watch
+      - wristwatch
+    states:
+      default:
+        description: "A stainless steel wristwatch ticking quietly."
+        use: |
+          You check your wristwatch. It reads 8:45 AM — just enough time to finish getting ready.
+
+  # Kitchen item (consumed by drink event)
+  coffee:
+    display_name: "coffee"
+    presence: "cup of coffee"
+    states:
+      default:
+        description: "A steaming cup of coffee. Smells strong."
+        use: "You take a sip. It's bitter."
+      cold:
+        description: "The coffee is cold and uninviting."
+        use: "You sip it anyway. Regret follows."
+    aliases:
+      - coffee
+      - cup
+    keywords:
+      - coffee
+      - cup
+
+  # Kitchen counter item (un-carried floor item fallback demonstration)
+  notepad:
+    display_name: "notepad"
+    presence: "notepad"
+    aliases:
+      - notepad
+      - pad
+      - notebook
+      - notes
+    keywords:
+      - notepad
+      - pad
+      - notebook
+      - notes
+    states:
+      default:
+        description: "A small paper notepad with a to-do checklist."
+        use: |
+          The notepad lists: "1. Coffee  2. Breaker  3. Badge from cabinet  4. Laptop  5. Pack briefcase  6. Open hatch".
+
+  # Kitchen drawer item (used with cabinet in living room)
+  small_key:
+    display_name: "small brass key"
+    presence: "small brass key"
+    aliases:
+      - key
+      - small key
+      - brass key
+      - cabinet key
+    keywords:
+      - key
+      - brass
+      - cabinet
+    states:
+      default:
+        description: "A small brass key labeled 'SUPPLIES'."
+        use: |
+          A small key. It looks like it fits a cabinet or lockbox.
+
+  # Rewarded item from cabinet (required for briefcase)
+  work_badge:
+    display_name: "work badge"
+    presence: "work badge"
+    aliases:
+      - badge
+      - work badge
+      - id
+      - id badge
+    keywords:
+      - badge
+      - id
+      - work
+    states:
+      default:
+        description: "Your official company photo ID badge on a blue lanyard."
+        use: |
+          You clip the badge to your collar.
+
+  # Bedroom floor item (required for briefcase)
+  laptop:
+    display_name: "laptop"
+    presence: "laptop"
+    aliases:
+      - laptop
+      - computer
+      - work laptop
+    keywords:
+      - laptop
+      - computer
+      - work
+    states:
+      default:
+        description: "Your sleek aluminum work laptop, charged and ready."
+        use: |
+          The laptop is closed. You should pack it into your briefcase.
+
+  # Rewarded item from packing briefcase
+  packed_briefcase:
+    display_name: "packed briefcase"
+    presence: "packed briefcase"
+    aliases:
+      - packed briefcase
+      - work bag
+    keywords:
+      - briefcase
+      - bag
+      - work
+    states:
+      default:
+        description: "A sturdy leather briefcase, neatly packed with your laptop and work badge."
+        use: |
+          Your briefcase is packed and ready for the workday.
+
+# =============================================================================
+# TARGET ALIASES (Room Fixtures & Scenery)
+# =============================================================================
+target_aliases:
+
+  # Living room fixture for pull lever
+  breaker_lever:
+    - lever
+    - breaker lever
+    - power lever
+    - heavy lever
+    - switch
+
+  # Living room fixture for key on cabinet
+  locked_cabinet:
+    - cabinet
+    - locked cabinet
+    - supply cabinet
+    - supply box
+    - lockbox
+
+  # Bedroom fixture for pack briefcase
+  briefcase:
+    - briefcase
+    - leather briefcase
+    - bag
+
+  # Bedroom fixture for read inscription
+  wall_inscription:
+    - inscription
+    - wall inscription
+    - plaque
+    - brass plaque
+    - motto
+
+  # Bedroom fixture for open hatch
+  hatch:
+    - hatch
+    - floor hatch
+    - office hatch
+    - trap door
+    - trapdoor
+
+  # Fallback fixtures
+  kitchen_calendar:
+    - calendar
+    - wall calendar
+
+  wall_mirror:
+    - mirror
+    - wall mirror
+
+# =============================================================================
+# CUSTOM VERBS
+# =============================================================================
+custom_verbs:
+  two_object:
+    - use
+    - drink
+    - pull
+    - open
+    - read
+    - unlock
+    - pack
+
+# =============================================================================
+# ROOMS
+# =============================================================================
+rooms:
+
+  - name: kitchen
+    display_name: "Kitchen"
+    exits:
+      - east
+    base_description: |
+      Your brightly lit kitchen.
+    trailing_description: |
+      Its been a while since someone cleaned this place.
+    fixtures:
+      kitchen_calendar:
+        priority: 10
+        state: default
+        states:
+          default: "A wall calendar hangs beside the refrigerator."
+        examine:
+          default: "This month's photo shows the local fireman doing yoga."
+    items:
+      - coffee
+      - small_key
+      - notepad
+    exit_destinations: {}
+
+  - name: living_room
+    display_name: "Living Room"
+    exits:
+      - west
+      - east
+    base_description: |
+      The cozy living room.
+    fixtures:
+      breaker_lever:
+        priority: 10
+        state: default
+        states:
+          default: "A heavy breaker lever is mounted beside the electrical panel on the north wall."
+          power_on: "The heavy breaker lever is pulled down, glowing with a steady green light."
+        examine:
+          default: "An industrial steel knife-switch lever. Pulling it will route power to the basement."
+          power_on: "The lever is locked down firmly. A green indicator LED glows beside it."
+      locked_cabinet:
+        priority: 20
+        state: default
+        states:
+          default: "Against the opposite wall stands a locked supply cabinet."
+          cabinet_unlocked: "The supply cabinet stands wide open."
+        examine:
+          default: "A sturdy metal supply cabinet. The brass padlock needs a small key."
+          cabinet_unlocked: "The cabinet doors hang open, revealing an empty shelf."
+      wall_mirror:
+        priority: 30
+        state: default
+        states:
+          default: "A decorative wall mirror hangs above the mantelpiece."
+        examine:
+          default: "The mirror reflects the cozy living room and your slightly rushed morning expression."
+    trailing_description: |
+      Man! Something smells like it died in here!!
+    items: []
+    exit_destinations: {}
+
+  - name: bedroom
+    display_name: "Bedroom"
+    exits:
+      - west
+    base_description: |
+      Your quiet bedroom.
+    fixtures:
+      wall_inscription:
+        priority: 10
+        state: default
+        states:
+          default: "A polished brass plaque is mounted on the wall."
+        examine:
+          default: "The engraved brass plaque reads: 'Master your morning, master your work. Take it one step at a time.'"
+      briefcase:
+        priority: 20
+        state: default
+        states:
+          default: "Your leather briefcase sits open on the dresser, and your laptop rests beside it."
+          packed: "Your leather briefcase on the dresser is packed and shut."
+        examine:
+          default: "A fine leather briefcase, waiting to be packed with your laptop and work badge."
+          packed: "The briefcase is securely latched, packed with your laptop and work badge."
+      hatch:
+        priority: 30
+        state: default
+        states:
+          default: "In the corner, a heavy steel floor hatch is bolted shut."
+          hatch_opened: "The steel floor hatch is wide open, revealing a wooden ladder leading down into your office."
+        examine:
+          default: "A heavy steel floor hatch. It is secured by a magnetic lock controlled by the living room breaker."
+          hatch_opened: "The hatch is swung open. A sturdy wooden ladder leads down into your office."
+    trailing_description: 
+      I bet this room sees a lot of action!!!
+    items:
+      - laptop
+    exit_destinations: {}
+
+  - name: office
+    display_name: "Home Office"
+    exits:
+      - up
+    base_description: |
+      Your quiet home office.
+    fixtures:
+      desk:
+        priority: 10
+        state: default
+        states:
+          default: "Dual monitors glow gently on your desk, and your ergonomic chair awaits."
+        examine:
+          default: "Dual 4K displays showing your email inbox and code editor."
+    trailing_description: |
+      Everything is set.
+    items: []
+    exit_destinations: {}
+
+# =============================================================================
+# EVENTS (THE 7 ECA PATTERNS)
+# =============================================================================
+events:
+
+  # ---------------------------------------------------------------------------
+  # PATTERN 1: The Pure Flavor Event
+  # ---------------------------------------------------------------------------
+  - id: read_bedroom_inscription
+    trigger:
+      type: solo
+      target: wall_inscription
+      action: read
+    conditions:
+      - type: in_room
+        room: bedroom
+        fail_hint: "The brass inscription plaque is mounted on the wall in your bedroom."
+    result:
+      message: |
+        You read the engraved inscription on the brass plaque:
+        "Master your morning, master your work. Take it one step at a time."
+
+  # ---------------------------------------------------------------------------
+  # PATTERN 2: Carried Item Consumption
+  # ---------------------------------------------------------------------------
+  - id: drink_morning_coffee
+    trigger:
+      type: solo
+      target: coffee
+      action: drink
+    conditions:
+      - type: in_room
+        room: kitchen
+        fail_hint: "You should drink your morning coffee in the kitchen before rushing out."
+      - type: required_items
+        required_items:
+          - coffee
+        fail_hint: "You need to have coffee in hand to drink it."
+    result:
+      remove_item: coffee
+      set_state:
+        - room: kitchen
+          state: had_coffee
+      message: |
+        You take a slow sip, then drink down the steaming dark roast coffee.
+        An invigorating warmth spreads through you, washing away the morning haze!
+        
+        Coffee: finished.
+
+  # ---------------------------------------------------------------------------
+  # PATTERN 3: Multi-Condition Wall Fixture
+  # ---------------------------------------------------------------------------
+  - id: pull_breaker_lever
+    trigger:
+      type: solo
+      target: breaker_lever
+      action: pull
+    conditions:
+      - type: in_room
+        room: living_room
+        fail_hint: "The breaker lever is mounted on the wall in the living room."
+      - type: events_completed
+        events:
+          - drink_morning_coffee
+        fail_hint: "You're still too groggy to heave the stiff iron lever. Drink your coffee first!"
+    result:
+      set_state:
+        - room: living_room
+          state: power_on
+      set_fixture_state:
+        - room: living_room
+          fixture: breaker_lever
+          state: power_on
+      message: |
+        With a resounding metallic clunk, you pull down the heavy breaker lever!
+        Power surges through the circuits, and the magnetic lock indicators hum to life.
+
+  # ---------------------------------------------------------------------------
+  # PATTERN 4: Item-on-Item Recipe (Dual Trigger)
+  # ---------------------------------------------------------------------------
+  - id: unlock_supply_cabinet
+    trigger:
+      type: dual
+      source: small_key
+      target: locked_cabinet
+      action: unlock
+    conditions:
+      - type: in_room
+        room: living_room
+        fail_hint: "The locked supply cabinet is located in the living room."
+      - type: required_items
+        required_items:
+          - small_key
+        fail_hint: "You need the small brass key to unlock this cabinet."
+    result:
+      remove_item: small_key
+      add_item: work_badge
+      set_state:
+        - room: living_room
+          state: cabinet_unlocked
+      set_fixture_state:
+        - room: living_room
+          fixture: locked_cabinet
+          state: cabinet_unlocked
+      message: |
+        You insert the small brass key into the cabinet lock and turn it.
+        With a satisfying click, the cabinet swings open!
+        Inside, you find your company work badge and take it.
+
+  # ---------------------------------------------------------------------------
+  # PATTERN 5: The Multi-Item Requirement
+  # ---------------------------------------------------------------------------
+  - id: pack_work_briefcase
+    trigger:
+      type: solo
+      target: briefcase
+      action: pack
+    conditions:
+      - type: in_room
+        room: bedroom
+        fail_hint: "Your briefcase is sitting on the dresser in your bedroom."
+      - type: required_items
+        required_items:
+          - work_badge
+          - laptop
+        fail_hint: "You need both your work badge and your laptop in your inventory before you can pack your briefcase."
+    result:
+      remove_item:
+        - work_badge
+        - laptop
+      add_item: packed_briefcase
+      set_fixture_state:
+        - room: bedroom
+          fixture: briefcase
+          state: packed
+      message: |
+        You slide your laptop into the padded compartment and slip your work badge into the front pocket.
+        You snap the briefcase shut. All packed and ready for work!
+
+  # ---------------------------------------------------------------------------
+  # PATTERN 6: The World Unlocker
+  # ---------------------------------------------------------------------------
+  - id: open_office_hatch
+    trigger:
+      type: solo
+      target: hatch
+      action: open
+    conditions:
+      - type: in_room
+        room: bedroom
+        fail_hint: "The office floor hatch is located in your bedroom."
+      - type: events_completed
+        events:
+          - drink_morning_coffee
+        fail_hint: "You're still too groggy to heave open the heavy steel hatch. Drink your coffee first!"
+      - type: events_completed
+        events:
+          - pull_breaker_lever
+        fail_hint: "The electronic magnetic lock is still engaged. You need to pull the breaker lever in the living room first!"
+      - type: events_completed
+        events:
+          - pack_work_briefcase
+        fail_hint: "You haven't packed your briefcase yet! Make sure your work supplies are ready before opening the hatch."
+    result:
+      open_exit:
+        - room: bedroom
+          direction: down
+          destination:
+            floor: 1
+            x: 1
+            "y": 0
+      set_state:
+        - room: bedroom
+          state: hatch_opened
+      set_fixture_state:
+        - room: bedroom
+          fixture: hatch
+          state: hatch_opened
+      message: |
+        The electronic lock unclicks, and you heave the steel floor hatch open!
+        It locks in the upright position, revealing a sturdy wooden ladder leading down to your office.
+
+  # ---------------------------------------------------------------------------
+  # PASSIVE AMBIENT EVENT: Turn Advancement / Clock Chimes
+  # ---------------------------------------------------------------------------
+  - id: clock_chimes_morning
+    trigger:
+      type: on_turn
+    conditions:
+      - type: events_completed
+        events:
+          - drink_morning_coffee
+    result:
+      message: |
+        The grandfather clock in the hallway chimes nine bells. The workday has officially begun!
+
+  # ---------------------------------------------------------------------------
+  # PATTERN 7: The Background Auto-Watcher (Win Condition)
+  # ---------------------------------------------------------------------------
+  - id: go_to_work
+    trigger:
+      type: on_turn
+    conditions:
+      - type: in_room
+        room: office
+      - type: required_items
+        required_items:
+          - packed_briefcase
+      - type: events_completed
+        events:
+          - drink_morning_coffee
+          - pull_breaker_lever
+          - unlock_supply_cabinet
+          - pack_work_briefcase
+          - open_office_hatch
+    result:
+      message: |
+        You climb down the ladder into your quiet home office.
+        Everything is ready. Time to get to work!
+
+# =============================================================================
+# MAP FLOORS GRID
+# =============================================================================
+floors:
+
+  # Floor 0: Upstairs Living Area
+  - - - kitchen
+      - living_room
+      - bedroom
+
+  # Floor 1: Downstairs Home Office (under bedroom)
+  - - - null
+      - office
+      - null

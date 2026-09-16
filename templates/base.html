@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% if game_theme %}
+    <style>
+        :root {
+            {% if game_theme.accent %}--accent: {{ game_theme.accent }};{% endif %}
+            {% if game_theme.bg %}--bg: {{ game_theme.bg }}; --bg-panel: {{ game_theme.bg }};{% endif %}
+            {% if game_theme.font %}--mono: {{ game_theme.font }};{% endif %}
+        }
+    </style>
+    {% endif %}
     {% block head %}{% endblock %}
     <style>
         body { opacity: 0; transition: opacity 0.2s ease; }

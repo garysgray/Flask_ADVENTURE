@@ -7,12 +7,16 @@ class Player:
 
     DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down']
 
-    def __init__(self, game_map=None):
+    def __init__(self, game_map=None, location=None, inventory=None):
         self.id               = None
         self.pos_x            = 0
         self.pos_y            = 0
         self.level            = 0
-        self.inventory        = []
+        if isinstance(location, dict):
+            self.pos_x = location.get("x", 0)
+            self.pos_y = location.get("y", 0)
+            self.level = location.get("floor", location.get("z", 0))
+        self.inventory        = list(inventory) if inventory is not None else []
         self.directions       = self.DIRECTIONS
         self.visited_rooms    = []
         self.completed_events = []
@@ -67,6 +71,29 @@ class Player:
 
         return False
 
+    # ─── Matching Helper ──────────────────────────────────────────────────────
+
+    def _match_item(self, obj, target):
+        """Checks if an item object matches target string, list, or alias."""
+        if not target:
+            return False
+        if isinstance(target, str):
+            t = target.strip().lower()
+            return (obj.name == t or 
+                    obj.name.replace('_', ' ') == t or 
+                    t in getattr(obj, 'aliases', []) or 
+                    t in getattr(obj, 'keywords', []))
+        if isinstance(target, (list, tuple)):
+            if obj.name in target:
+                return True
+            joined = " ".join(target).lower()
+            if obj.name in joined or obj.name.replace('_', ' ') in joined:
+                return True
+            for a in getattr(obj, 'aliases', []):
+                if a in joined:
+                    return True
+        return False
+
     # ─── Inventory ────────────────────────────────────────────────────────────
 
     def pick_up(self, room, possible_item):
@@ -75,7 +102,7 @@ class Player:
         Returns the item name if successful, False if not found.
         """
         for obj in room.inventory:
-            if obj.name in possible_item:
+            if self._match_item(obj, possible_item):
                 self.inventory.append(obj)
                 room.inventory.remove(obj)
                 return obj.name
@@ -87,11 +114,29 @@ class Player:
         Returns the item name if successful, False if not found.
         """
         for obj in self.inventory:
-            if obj.name in possible_item:
+            if self._match_item(obj, possible_item):
                 self.inventory.remove(obj)
                 room.inventory.append(obj)
                 return obj.name
         return False
+
+    def has_item(self, possible_item):
+        """Checks if a matching item is in player inventory."""
+        for obj in self.inventory:
+            if (isinstance(possible_item, str) and (obj.name == possible_item or getattr(obj, 'id', None) == possible_item)) or self._match_item(obj, possible_item):
+                return True
+        return False
+
+    def remove_item(self, possible_item):
+        """
+        Removes a matching item from player inventory.
+        Returns the removed item object if successful, None if not found.
+        """
+        for obj in list(self.inventory):
+            if (isinstance(possible_item, str) and (obj.name == possible_item or getattr(obj, 'id', None) == possible_item)) or self._match_item(obj, possible_item):
+                self.inventory.remove(obj)
+                return obj
+        return None
 
     # ─── Item Interaction ─────────────────────────────────────────────────────
 
@@ -102,7 +147,7 @@ class Player:
         Returns False if not found.
         """
         for obj in self.inventory + room.inventory:
-            if obj.name in possible_item:
+            if self._match_item(obj, possible_item):
                 return obj.description
         return False
 
@@ -113,6 +158,6 @@ class Player:
         Returns False if item not found.
         """
         for obj in self.inventory:
-            if obj.name in possible_item:
+            if self._match_item(obj, possible_item):
                 return obj.use_text
         return False

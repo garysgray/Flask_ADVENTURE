@@ -1,0 +1,225 @@
+# =============================================================================
+# TEST THE ROOM — ROOM & ITEM DESCRIPTION SHOWCASE
+# =============================================================================
+# This file demonstrates:
+#   1. Dynamic Room Description Assembly (base + sorted fixtures + trailing)
+#   2. Fixture-Specific Examine Text (independent of the room overview)
+#   3. Combinatorial Independence (mutating fixtures in any order)
+#   4. Dynamic Visibility (empty string "" hides fixture from room text until revealed)
+#   5. Item Descriptions (inventory items vs floor items vs used items)
+# =============================================================================
+
+player:
+  starting_inventory:
+    - crystal_resonator
+
+intro:
+  title: The Specimen Vault
+  text: |
+    Welcome to the room description test chamber!
+    
+    In this chamber you can test:
+      - 'look' to see how the room description stitches together.
+      - 'examine pod', 'examine switch', 'examine crystal' to see targeted inspection text.
+      - 'pull switch' to see the power switch change state independently.
+      - 'use crystal on pod' to unlock the specimen pod and reveal a hidden crevice.
+      - Notice how the room overview updates accurately regardless of which you do first!
+  instructions: |
+    Experiment with 'look', 'examine <target>', 'pull switch', and 'use crystal on pod'.
+
+win_conditions:
+  - activate_vault_power
+  - breach_specimen_pod
+
+win_screen:
+  title: TEST PROTOCOL COMPLETE
+  text: |
+    All room fixtures and item states have been observed and verified!
+
+# =============================================================================
+# ITEMS
+# =============================================================================
+items:
+  crystal_resonator:
+    display_name: vibrating crystal resonator
+    aliases:
+      - crystal
+      - resonator
+      - crystal resonator
+    solo_keywords:
+      - examine
+      - use
+    action_keywords:
+      - use
+      - tune
+    states:
+      default:
+        description: A translucent quartz rod that vibrates faintly in the palm of your hand.
+        use: |
+          You hold the crystal close. Its harmonic vibration tingles against your skin.
+
+  containment_keycard:
+    display_name: magnetic keycard
+    aliases:
+      - card
+      - keycard
+      - magnetic keycard
+    solo_keywords:
+      - examine
+      - get
+      - take
+    action_keywords:
+      - get
+      - take
+    states:
+      default:
+        description: A dark polymer access card recovered from the specimen chamber.
+        use: |
+          A security keycard stamped with Level 4 clearance.
+
+# =============================================================================
+# TARGET ALIASES (Scenery & Fixtures)
+# =============================================================================
+target_aliases:
+  power_switch:
+    - switch
+    - lever
+    - power switch
+    - knife switch
+
+  containment_pod:
+    - pod
+    - specimen pod
+    - glass pod
+    - chamber
+
+  wall_crevice:
+    - crevice
+    - crack
+    - wall crevice
+    - secret compartment
+
+# =============================================================================
+# CUSTOM VERBS
+# =============================================================================
+custom_verbs:
+  two_object:
+    - use
+    - pull
+    - tune
+    - unlock
+
+# =============================================================================
+# ROOMS
+# =============================================================================
+rooms:
+  - name: specimen_vault
+    exits:
+      - south
+
+    # 1. Base Description: Permanent opening paragraph
+    base_description: |
+      You are standing inside the reinforced specimen vault. Reinforced titanium plating lines the walls.
+
+    # 2. Modular Fixtures: Each has its own priority, room description state, and examine prose
+    fixtures:
+      # Fixture 1: Appears first in the room description (priority: 10)
+      power_switch:
+        priority: 10
+        state: default
+        states:
+          default: "A heavy knife-switch lever is mounted to the north wall, currently flipped to OFF."
+          energized: "The knife-switch on the north wall is pulled DOWN, bathing the conduit in a steady blue glow."
+        examine:
+          default: "An industrial steel knife-switch. Pulling it will route auxiliary power into the room."
+          energized: "The switch handle is latched down. High-voltage capacitors hum rhythmically behind the plate."
+
+      # Fixture 2: Appears second in the room description (priority: 20)
+      containment_pod:
+        priority: 20
+        state: default
+        states:
+          default: "In the center of the vault rests a reinforced glass containment pod sealed with acoustic clamps."
+          breached: "In the center of the vault, the containment pod stands wide open, its acoustic clamps shattered."
+        examine:
+          default: "A cylindrical cryo-pod. The acoustic seal vibrates at a frequency that matches your crystal."
+          breached: "The seal has been released. Frost evaporates from the interior cradle."
+
+      # Fixture 3: Empty string trick (priority: 30)
+      # When state is 'hidden', it produces "" and is omitted from 'look', but still examinable!
+      wall_crevice:
+        priority: 30
+        state: hidden
+        states:
+          hidden: ""
+          revealed: "Behind the opened pod, a shadowy crevice in the masonry has become visible."
+        examine:
+          hidden: "You notice hairline stress fractures in the masonry behind the pod, but it's too dark to see inside."
+          revealed: "A small hollow in the wall plate. It contains a magnetic keycard."
+
+    # 3. Trailing Description: Permanent closing paragraph
+    trailing_description: |
+      A heavy blast door to the south leads back to the security corridor.
+
+    items: []
+    exit_destinations: {}
+
+# =============================================================================
+# EVENTS
+# =============================================================================
+events:
+  # ACTION 1: Pull the power switch
+  # Changes only the 'power_switch' fixture state without touching the pod
+  - id: activate_vault_power
+    trigger:
+      type: solo
+      target: power_switch
+      action: pull
+    conditions:
+      - type: in_room
+        room: specimen_vault
+        fail_hint: "The power switch is inside the specimen vault."
+    result:
+      set_fixture_state:
+        - room: specimen_vault
+          fixture: power_switch
+          state: energized
+      message: |
+        With a heavy mechanical thud, you pull the switch down!
+        Auxiliary generators spin up, energizing the blue conduit along the walls.
+
+  # ACTION 2: Use crystal on the pod
+  # Changes the 'containment_pod' fixture to 'breached' AND reveals 'wall_crevice'
+  - id: breach_specimen_pod
+    trigger:
+      type: dual
+      source: crystal_resonator
+      target: containment_pod
+      action: use
+    conditions:
+      - type: in_room
+        room: specimen_vault
+        fail_hint: "The containment pod is in the center of the specimen vault."
+      - type: required_items
+        required_items:
+          - crystal_resonator
+        fail_hint: "You need the crystal resonator to harmonize with the acoustic seal."
+    result:
+      set_fixture_state:
+        - room: specimen_vault
+          fixture: containment_pod
+          state: breached
+        - room: specimen_vault
+          fixture: wall_crevice
+          state: revealed
+      add_item: containment_keycard
+      message: |
+        You hold the vibrating crystal against the acoustic clamp.
+        A harmonic chord rings through the chamber, and the seal unlatches with a hiss of vapor!
+        The pod opens, exposing a concealed crevice in the wall and dropping a keycard into your hands.
+
+# =============================================================================
+# MAP FLOORS GRID
+# =============================================================================
+floors:
+  - - - specimen_vault

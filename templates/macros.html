@@ -2,38 +2,69 @@
    Map Cell Macros
    ===================== #}
 
-{# Returns the CSS class for a map cell based on player position and visited state #}
-{% macro cell_class(pos, player_pos, visited_rooms) %}
+{# Returns the CSS class for a map cell based on player position, visited state, and adjacent visibility #}
+{% macro cell_class(pos, player_pos, visited_rooms, adjacent_rooms=None) %}
     {% if pos == player_pos %}player
     {% elif pos in visited_rooms %}room
+    {% elif adjacent_rooms and pos in adjacent_rooms %}adjacent
     {% else %}hidden{% endif %}
 {% endmacro %}
 
-{# Returns stair icons if the room has up/down exits #}
-{% macro stair_icons(cell) %}
-    {% if cell and 'up' in cell.exits %}▲{% endif %}
-    {% if cell and 'down' in cell.exits %}▼{% endif %}
-{% endmacro %}
+{# Renders the 3x3 sub-grid contents of a single map cell #}
+{% macro cell_contents(pos, cell, player_pos, visited_rooms, adjacent_rooms=None) %}
+    {% set is_player = (pos == player_pos) %}
+    {% set is_visited = (pos in visited_rooms) %}
+    {% set is_adjacent = (adjacent_rooms and pos in adjacent_rooms) %}
 
-{# Returns ✦ if the room has any cardinal direction teleport exits #}
-{% macro teleport_icon(cell) %}
-    {% if cell %}
-        {% set has_teleport = namespace(found=false) %}
-        {% for dir in cell.exit_destinations %}
-            {% if dir in ['north', 'south', 'east', 'west'] %}
-                {% set has_teleport.found = true %}
-            {% endif %}
-        {% endfor %}
-        {% if has_teleport.found %}✦{% endif %}
-    {% endif %}
-{% endmacro %}
+    {% if cell and (is_player or is_visited) %}
+        {# Row 1: NW (clean), North (portal / locked door), NE (UP exit) #}
+        <span class="cell-sub slot-nw"></span>
+        <span class="cell-sub slot-n">
+            {%- if 'north' in cell.exit_destinations -%}🌀
+            {%- elif cell.locked_exits and 'north' in cell.locked_exits -%}🔒
+            {%- endif -%}
+        </span>
+        <span class="cell-sub slot-ne">
+            {%- if 'up' in cell.exits -%}⬆️{%- endif -%}
+        </span>
 
-{# Renders the full contents of a single map cell #}
-{% macro cell_contents(pos, cell, player_pos, visited_rooms) %}
-    {% set visible = (pos == player_pos or pos in visited_rooms) %}
-    {% if pos == player_pos %}P{% endif %}
-    {% if cell and visible %}
-        {{ stair_icons(cell) }}
-        {{ teleport_icon(cell) }}
+        {# Row 2: West (portal / locked door), Center (Player / clean visited), East (portal / locked door) #}
+        <span class="cell-sub slot-w">
+            {%- if 'west' in cell.exit_destinations -%}🌀
+            {%- elif cell.locked_exits and 'west' in cell.locked_exits -%}🔒
+            {%- endif -%}
+        </span>
+        <span class="cell-sub slot-c">
+            {%- if is_player -%}👤{%- endif -%}
+        </span>
+        <span class="cell-sub slot-e">
+            {%- if 'east' in cell.exit_destinations -%}🌀
+            {%- elif cell.locked_exits and 'east' in cell.locked_exits -%}🔒
+            {%- endif -%}
+        </span>
+
+        {# Row 3: SW (DOWN exit), South (portal / locked door), SE (clean) #}
+        <span class="cell-sub slot-sw">
+            {%- if 'down' in cell.exits -%}⬇️{%- endif -%}
+        </span>
+        <span class="cell-sub slot-s">
+            {%- if 'south' in cell.exit_destinations -%}🌀
+            {%- elif cell.locked_exits and 'south' in cell.locked_exits -%}🔒
+            {%- endif -%}
+        </span>
+        <span class="cell-sub slot-se"></span>
+    {% elif cell and is_adjacent %}
+        {# Adjacent open-exit room: faint dashed border with centered ? #}
+        <span class="cell-sub slot-nw"></span>
+        <span class="cell-sub slot-n"></span>
+        <span class="cell-sub slot-ne"></span>
+        <span class="cell-sub slot-w"></span>
+        <span class="cell-sub slot-c">?</span>
+        <span class="cell-sub slot-e"></span>
+        <span class="cell-sub slot-sw"></span>
+        <span class="cell-sub slot-s"></span>
+        <span class="cell-sub slot-se"></span>
+    {% elif is_player %}
+        <span class="cell-sub slot-c">👤</span>
     {% endif %}
 {% endmacro %}

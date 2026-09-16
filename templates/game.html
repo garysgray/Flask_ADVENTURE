@@ -21,7 +21,35 @@
     </span>
     </div>
 
-    {# ── Main grid: input+map | output ──────────────────────── #}
+    {# ── Main content: Dedicated Win Screen OR Active Exploration HUD ── #}
+    {% if debug1 and debug1['GAME_WON'] %}
+    <div class="t-epilogue-wrap">
+        <div class="t-epilogue-card">
+            <div class="t-epilogue-scanline"></div>
+            <div class="t-epilogue-header">
+                <span class="t-epilogue-badge">INCIDENT RESOLUTION /// INVESTIGATION CONCLUDED</span>
+                <h1 class="t-epilogue-title">{{ win_screen.title }}</h1>
+            </div>
+
+            <div class="t-epilogue-narrative">
+                {{ win_screen.text | replace('\n', '<br>') | safe }}
+            </div>
+
+            <hr class="t-epilogue-divider">
+
+            <div class="t-epilogue-actions">
+                {% if journal %}
+                <button type="button" class="t-epilogue-btn primary" onclick="openJournal()">
+                    [ REVIEW INVESTIGATION JOURNAL ]
+                </button>
+                {% endif %}
+                <a href="{{ url_for('index') }}" class="t-epilogue-btn secondary">
+                    [ RETURN TO MAIN MENU / RESTART ]
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
     <div class="t-main">
 
         {# LEFT COLUMN #}
@@ -51,8 +79,8 @@
                             {% set pos  = cell_data['pos'] %}
                             {% set cell = cell_data['cell'] %}
                             {% if cell %}
-                            <div class="t-map-cell {{ cell_class(pos, player_pos, visited_rooms) }}">
-                                {{ cell_contents(pos, cell, player_pos, visited_rooms) }}
+                            <div class="t-map-cell {{ cell_class(pos, player_pos, visited_rooms, adjacent_rooms) }}">
+                                {{ cell_contents(pos, cell, player_pos, visited_rooms, adjacent_rooms) }}
                             </div>
                             {% else %}
                             <div class="t-map-cell void"></div>
@@ -68,7 +96,7 @@
                 <div class="t-panel-label">CARRYING</div>
                 <div class="t-inv">
                     {% for item in player_inv %}
-                    <span class="t-tag">{{ item.name }}</span>
+                    <span class="t-tag">{{ item.display_name }}</span>
                     {% else %}
                     <span class="t-empty">— nothing —</span>
                     {% endfor %}
@@ -85,45 +113,31 @@
 
         </div>{# end t-left #}
 
-        {# RIGHT COLUMN #}
+        {# RIGHT / CENTER COLUMN #}
         <div class="t-right">
-
-            {# Win screen #}
-            {% if debug1 and debug1['GAME_WON'] %}
-            <div class="t-panel t-win-panel">
-                <div class="t-panel-label win">{{ win_screen.title }}</div>
-                <div class="t-win-text">{{ win_screen.text | replace('\n', '<br>') | safe }}</div>
-            </div>
-            {% endif %}
 
             {% if debug1 %}
 
-            {# Command response #}
-            <div class="t-panel">
-                <div class="t-panel-label">RESPONSE</div>
-                <div class="t-output">{{ debug1['CMD_RESPONSE'] }}</div>
+            {# ── TOP: Location Header & Atmosphere ("Where am I?") ── #}
+            <div class="t-panel t-location-panel">
+                <div class="t-panel-label">LOCATION // {{ debug1['ROOM_NAME'] | upper }}</div>
+                <div class="t-output">{{ debug1['ROOM_DESCRIPTION'] | safe }}</div>
             </div>
 
-            {# Events #}
-            {% if debug1['EVENT_MESSAGES'] %}
-            <div class="t-panel t-event-panel">
-                <div class="t-panel-label event">EVENT LOG</div>
-                <div class="t-output event">
-                    {% for message in debug1['EVENT_MESSAGES'] %}
-                    <div class="t-event-msg">{{ message }}</div>
-                    {% endfor %}
+            {# ── MIDDLE: Action Result (collapses when idle / eliminates duplicate descriptions) ── #}
+            {% set has_action_result = debug1['CMD_RESPONSE'] and debug1['CMD_RESPONSE'].strip() and debug1['CMD_RESPONSE'].strip() != debug1['ROOM_DESCRIPTION'].strip() %}
+
+            {% if has_action_result %}
+            <div class="t-action-story-feed">
+                <div class="t-panel">
+                    <div class="t-panel-label">ACTION RESULT</div>
+                    <div class="t-output">{{ debug1['CMD_RESPONSE'] }}</div>
                 </div>
             </div>
             {% endif %}
 
-            {# Room #}
-            <div class="t-panel">
-                <div class="t-panel-label">LOCATION</div>
-                <div class="t-output">{{ debug1['ROOM_DESCRIPTION'] | safe }}</div>
-            </div>
-
-            {# Exits + room items side by side #}
-            <div class="t-split">
+            {# ── BOTTOM: Tactical Anchor (Exits & Visible Room Items) ── #}
+            <div class="t-split t-tactical-anchor">
                 <div class="t-panel t-split-panel">
                     <div class="t-panel-label">EXITS</div>
                     <div class="t-output mono">{{ debug1['ROOM_EXITS'] }}</div>
@@ -132,7 +146,7 @@
                     <div class="t-panel-label">ROOM ITEMS</div>
                     <div class="t-inv">
                         {% for item in debug1['ROOM_INVENTORY'] %}
-                        <span class="t-tag room">{{ item.name }}</span>
+                        <span class="t-tag room">{{ item.display_name }}</span>
                         {% else %}
                         <span class="t-empty">— clear —</span>
                         {% endfor %}
@@ -145,8 +159,29 @@
         </div>{# end t-right #}
 
     </div>{# end t-main #}
+    {% endif %}
 
 </div>{# end .terminal #}
+
+{# ── Event Modal ──────────────────────────────────────────────── #}
+{% if debug1 and debug1['EVENT_MESSAGES'] and (debug1['EVENT_MESSAGES'] | length > 0) %}
+<div id="event-overlay" onclick="closeEventModal()"></div>
+<div id="event-panel">
+    <div class="intro-scanline"></div>
+    <div class="event-header">
+        <span class="event-badge">EVENT OCCURRED</span>
+        <button type="button" class="event-close-x" onclick="closeEventModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="event-content">
+        {% for message in debug1['EVENT_MESSAGES'] %}
+        <div class="event-text">{{ message }}</div>
+        {% endfor %}
+    </div>
+    <div class="event-footer">
+        <button type="button" id="event-close-btn" class="event-close" onclick="closeEventModal()">[ CLOSE ]</button>
+    </div>
+</div>
+{% endif %}
 
 {# ── Intro Panel ──────────────────────────────────────────────── #}
 {% if show_intro %}
@@ -171,7 +206,7 @@
     </div>
     {% for entry in journal %}
     <div class="journal-entry">
-        <div class="journal-entry-room">{{ loop.index }}. {{ entry.room | upper }}</div>
+        <div class="journal-entry-room">{{ loop.index }}. {{ entry.room | replace('_', ' ') | upper }}</div>
         <div class="journal-entry-text">{{ entry.message }}</div>
     </div>
     {% endfor %}

@@ -15,7 +15,7 @@ class PersistenceManager:
     What gets saved:
         location         — player position, visited rooms, completed events, journal
         player_inventory — item names and their current states
-        room_inventory   — all rooms with their exits, states, inventories, and exit destinations
+        room_inventory   — all rooms with their exits, states, fixture states, inventories, and exit destinations
     """
 
     def __init__(self, controller):
@@ -50,13 +50,22 @@ class PersistenceManager:
                 item.current_state = state
                 self.ctrl.player.inventory.append(item)
 
-        # restore room exits, states, and inventories
+        # restore room exits, states, fixture states, and inventories
         for saved_room in rooms_data:
             for room in self.ctrl.map.list_of_rooms:
                 if room.name == saved_room['name']:
                     room.exits             = saved_room['exits']
                     room.exit_destinations = saved_room.get('exit_destinations', {})
+                    room.locked_exits      = saved_room.get('locked_exits', getattr(room, 'locked_exits', []))
                     room.current_state     = saved_room.get('current_state', 'default')
+
+                    # Restore fixture states if present
+                    saved_fixtures = saved_room.get('fixtures', {})
+                    if hasattr(room, 'fixtures') and isinstance(saved_fixtures, dict):
+                        for fix_name, fix_state in saved_fixtures.items():
+                            if fix_name in room.fixtures:
+                                room.fixtures[fix_name].set_state(fix_state)
+
                     room.inventory         = []
                     for item_dict in saved_room['inventory']:
                         for name, state in item_dict.items():
@@ -87,16 +96,22 @@ class PersistenceManager:
             for i in self.ctrl.player.inventory
         ]
 
-        rooms_data = [
-            {
+        rooms_data = []
+        for room in self.ctrl.map.list_of_rooms:
+            room_dict = {
                 'name':              room.name,
                 'exits':             room.exits,
+                'locked_exits':      getattr(room, 'locked_exits', []),
                 'current_state':     room.current_state,
                 'inventory':         [{i.name: i.current_state} for i in room.inventory],
                 'exit_destinations': room.exit_destinations
             }
-            for room in self.ctrl.map.list_of_rooms
-        ]
+            if hasattr(room, 'fixtures') and room.fixtures:
+                room_dict['fixtures'] = {
+                    fix_name: fix.current_state
+                    for fix_name, fix in room.fixtures.items()
+                }
+            rooms_data.append(room_dict)
 
         return (
             json.dumps(player_data),

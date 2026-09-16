@@ -6,12 +6,28 @@ from functools import wraps
 from game import Controller, State
 import os
 
+from config import DATA_FILE_PATH
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-#app.config['SECRET_KEY'] = 'change-this-secret-in-production'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'delictum-facility-dev-secret-key-39281')
+
 
 
 db = SQLAlchemy(app)
+
+@app.context_processor
+def inject_theme():
+    """Injects game theme settings defined in game_data.yaml into templates."""
+    try:
+        import yaml
+        from pathlib import Path
+        data_path = Path(__file__).resolve().parent / "data" / DATA_FILE_PATH
+        with open(data_path, "r") as f:
+            d = yaml.safe_load(f) or {}
+            return {'game_theme': d.get('theme', {})}
+    except Exception:
+        return {'game_theme': {}}
 
 
 # =============================================================================
@@ -92,6 +108,12 @@ def owns_player(player_id):
     return db_player
 
 
+def clear_controller(player_id):
+    """Removes a controller from memory so fresh state will load next time."""
+    if hasattr(app, 'controllers') and player_id in app.controllers:
+        del app.controllers[player_id]
+
+
 def get_controller(player_id):
     """
     Returns the in-memory Controller for the given player ID.
@@ -103,6 +125,12 @@ def get_controller(player_id):
         app.controllers = {}
     if player_id not in app.controllers:
         app.controllers[player_id] = Controller()
+    else:
+        # Safety check: if an existing controller in memory was loaded for a different player ID,
+        # reset it to ensure state isolation
+        ctrl = app.controllers[player_id]
+        if ctrl.player.id is not None and ctrl.player.id != player_id:
+            app.controllers[player_id] = Controller()
     return app.controllers[player_id]
 
 
@@ -143,7 +171,14 @@ def login():
 
 @app.route('/logout')
 def logout():
-    """Clears the session and returns to the login page."""
+    """Clears the session and in-memory controllers, then returns to login."""
+    if 'user_id' in session and hasattr(app, 'controllers'):
+        try:
+            user_saves = DB_Player.query.filter_by(user_id=session['user_id']).all()
+            for s in user_saves:
+                clear_controller(s.id)
+        except Exception:
+            pass
     session.clear()
     return redirect(url_for('login'))
 
@@ -178,11 +213,18 @@ def index():
         try:
             db.session.add(new_player)
             db.session.commit()
+            # Ensure no lingering controller for this ID
+            clear_controller(new_player.id)
         except Exception as e:
             return f'Error creating save: {e}'
         return redirect('/')
 
     players = DB_Player.query.filter_by(user_id=session['user_id']).order_by(DB_Player.date_create).all()
+    # When sitting at the portal outside of active gameplay, clear any lingering in-memory
+    # controllers for this user so re-entering a game always loads fresh database state
+    if hasattr(app, 'controllers'):
+        for p in players:
+            clear_controller(p.id)
     return render_template('index.html', players=players, username=session.get('username'))
 
 
@@ -267,6 +309,48 @@ def game(id):
         if isinstance(pos, (list, tuple)) and len(pos) == 3:
             visited_rooms.append((pos[0], pos[1], pos[2]))
 
+    # Fog-of-War: Calculate adjacent rooms strictly through currently open/active exits
+    # Engine's room.exits is the sole authority; filter out any in room.locked_exits
+    room = ctrl.get_room()
+    adjacent_rooms = set()
+    if room and current_floor < len(map_layout):
+        floor_grid = map_layout[current_floor]
+        row_count  = len(floor_grid)
+
+        locked       = getattr(room, 'locked_exits', []) or []
+        active_exits = [d for d in (getattr(room, 'exits', []) or []) if d not in locked]
+        exit_dests   = getattr(room, 'exit_destinations', {}) or {}
+
+        for direction in active_exits:
+            if direction in exit_dests:
+                dest       = exit_dests[direction]
+                dest_floor = dest.get('floor')
+                dest_x     = dest.get('x')
+                dest_y     = dest.get('y')
+                if dest_floor == current_floor:
+                    if 0 <= dest_y < row_count:
+                        dest_row = floor_grid[dest_y]
+                        if 0 <= dest_x < len(dest_row) and dest_row[dest_x] is not None:
+                            adjacent_rooms.add((dest_floor, dest_y, dest_x))
+            else:
+                target_x = ctrl.player.pos_x
+                target_y = ctrl.player.pos_y
+                if direction == 'north':
+                    target_y -= 1
+                elif direction == 'south':
+                    target_y += 1
+                elif direction == 'east':
+                    target_x += 1
+                elif direction == 'west':
+                    target_x -= 1
+                else:
+                    continue
+
+                if 0 <= target_y < row_count:
+                    target_row = floor_grid[target_y]
+                    if 0 <= target_x < len(target_row) and target_row[target_x] is not None:
+                        adjacent_rooms.add((current_floor, target_y, target_x))
+
     map_with_indices = []
     for r_idx, row in enumerate(map_layout[current_floor]):
         row_with_indices = []
@@ -279,17 +363,18 @@ def game(id):
 
     return render_template(
         'game.html',
-        cmd           = db_player.cmd_info,
-        db_player     = db_player,
-        debug1        = ctrl.room_info,
-        player_inv    = ctrl.player.inventory,
-        map_layout    = map_with_indices,
-        player_pos    = player_pos,
-        visited_rooms = visited_rooms,
-        journal       = list(reversed(ctrl.player.journal)),
-        show_intro    = not ctrl.player.has_seen_intro,
-        intro         = ctrl.map.intro,
-        win_screen    = ctrl.map.win_screen,
+        cmd            = db_player.cmd_info,
+        db_player      = db_player,
+        debug1         = ctrl.room_info,
+        player_inv     = ctrl.player.inventory,
+        map_layout     = map_with_indices,
+        player_pos     = player_pos,
+        visited_rooms  = visited_rooms,
+        adjacent_rooms = list(adjacent_rooms),
+        journal        = list(reversed(ctrl.player.journal)),
+        show_intro     = not ctrl.player.has_seen_intro,
+        intro          = ctrl.map.intro,
+        win_screen     = ctrl.map.win_screen,
     )
 
 
@@ -307,8 +392,7 @@ def delete(id):
     try:
         db.session.delete(db_player)
         db.session.commit()
-        if hasattr(app, 'controllers') and id in app.controllers:
-            del app.controllers[id]
+        clear_controller(id)
     except Exception as e:
         return f'Error deleting save: {e}'
     return redirect('/')

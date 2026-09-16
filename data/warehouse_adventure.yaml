@@ -1,0 +1,1752 @@
+player:
+  starting_inventory:
+    - field_camera
+    - field_notes
+    - agent_badge
+intro:
+  title: The Warehouse
+  text: |
+    The call came without a case number.
+
+    A warehouse on the edge of the city. Five missing children.
+    No local authorities. No uniforms. No press.
+
+    Your instructions were simple.
+
+    Find the children.
+
+    Do not involve the police.
+
+    Do not contact the parents unless specifically instructed.
+
+    And under no circumstances discuss the contents of the warehouse
+    with anyone outside your chain of command.
+
+    When you arrive, the building looks abandoned.
+
+    It isn't.
+
+    A man in a black suit is waiting beside the main entrance.
+
+    He introduces himself only as your contact.
+
+    You notice several things immediately.
+
+    He has no identification.
+
+    He knows your name.
+
+    He knows you arrived eight minutes earlier than expected.
+
+    And he doesn't seem particularly concerned that five children
+    have disappeared inside a government warehouse.
+
+    "They broke in three nights ago," he tells you.
+
+    "Five of them. Friends, apparently."
+
+    He pauses.
+
+    "They found something they shouldn't have."
+
+    He hands you a camera.
+
+    It looks like an ordinary field camera, except for the additional
+    controls mounted beneath the lens.
+
+    "This isn't ordinary photographic equipment."
+
+    He points toward the warehouse.
+
+    "The first setting lets you see through objects."
+
+    He taps another control.
+
+    "The second shows things that aren't visible to the human eye."
+
+    You look at him.
+
+    "What exactly am I looking for?"
+
+    The man smiles.
+
+    "Anything that shouldn't be there."
+
+    The warehouse door opens.
+
+    You step inside.
+
+    The door closes behind you.
+
+    The man remains outside.
+
+    At least, you think he does.
+  instructions: |
+    Explore the warehouse and investigate the disappearance of the five children.
+
+    Examine objects carefully:
+    type look [item]
+
+    Use items with objects:
+    type use [item] with [target]
+
+    Your field notes record important discoveries.
+
+    The field camera has several viewing modes. Some clues can only be
+    discovered by photographing or scanning objects.
+
+    Some objects may look ordinary until photographed.
+
+    Some photographs may show things that are not physically present.
+
+    Type help for a full list of commands.
+win_conditions:
+  - find_piece_one
+  - rescue_kid_one
+  - find_piece_two
+  - rescue_kid_two
+  - find_piece_three
+  - rescue_kid_three
+  - find_piece_four
+  - rescue_kid_four
+  - find_piece_five
+  - rescue_kid_five
+  - assemble_device
+win_screen:
+  title: THE LAST PIECE
+  text: |
+    The five pieces lock together.
+
+    For several seconds nothing happens.
+
+    Then the device begins to hum.
+
+    The warehouse disappears.
+
+    Not physically.
+
+    Something much stranger happens.
+
+    For one impossible instant you can see every place you have visited
+    during the investigation layered together.
+
+    The warehouse.
+
+    The forest.
+
+    The silent city.
+
+    The machine world.
+
+    The impossible Earth.
+
+    And somewhere inside all of them, five children.
+
+    The device pulses.
+
+    The five children are returned.
+
+    They stumble onto the warehouse floor, confused, exhausted, and alive.
+
+    You turn toward the man in black.
+
+    He is staring at the assembled device.
+
+    "Excellent," he says.
+
+    You look at the wanted posters you collected during the investigation.
+
+    Then at him.
+
+    He notices.
+
+    "Ah."
+
+    He smiles.
+
+    "You noticed those."
+
+    His face changes.
+
+    Not much.
+
+    Just enough.
+
+    His eyes are no longer quite the right shape.
+
+    Something moves beneath the skin of his forehead.
+
+    His hands lengthen for a moment before returning to normal.
+
+    He sighs.
+
+    "I suppose there is no point pretending anymore."
+
+    You raise your weapon.
+
+    He raises both hands.
+
+    "Please. If I wanted you dead, Agent, you would have been dead
+    somewhere around the second dimension."
+
+    He picks up the device.
+
+    "I borrowed this."
+
+    You stare at him.
+
+    "You stole it."
+
+    "Borrowed."
+
+    "You're wanted."
+
+    He looks genuinely offended.
+
+    "On several worlds."
+
+    The device activates.
+
+    A doorway opens where the warehouse wall used to be.
+
+    He steps toward it.
+
+    Then stops.
+
+    "The children?"
+
+    You look behind you.
+
+    All five are together.
+
+    He nods.
+
+    "Good."
+
+    He steps through the doorway.
+
+    Before disappearing completely, he turns.
+
+    "Do try not to mention me in your report."
+
+    The doorway closes.
+
+    You are left standing in the warehouse with five exhausted children,
+    a strange camera, and several questions that no federal agency is
+    prepared to answer.
+
+    You look at the camera.
+
+    Its display contains one final photograph.
+
+    You did not take it.
+
+    It shows the warehouse.
+
+    Fifty years ago.
+
+    In the background stands the man in black.
+
+    Beside him stands you.
+
+    You close the camera.
+
+    You decide not to put that part in the report.
+items:
+  field_camera:
+    aliases:
+      - field camera
+      - camera
+      - special camera
+      - strange camera
+      - government camera
+      - photographic camera
+    solo_keywords:
+      - examine
+      - inspect
+      - photograph
+      - scan
+      - xray
+      - x-ray
+      - use
+    action_keywords:
+      - photograph
+      - scan
+      - xray
+      - x-ray
+    states:
+      default:
+        description: A heavy government field camera with an unusually large lens and several controls beneath it. The manufacturer name has been removed.
+        use: |
+          The camera powers on without a visible battery compartment.
+
+          The display offers three modes:
+
+          NORMAL
+          X-RAY
+          SPECTRAL
+
+          You have no idea what SPECTRAL means.
+      changed:
+        description: The field camera. Its display now occasionally shows faint objects that are not visible in the room around you.
+        use: |
+          The camera's display flickers.
+
+          For a fraction of a second, something appears behind you.
+
+          When you turn around, nothing is there.
+      spectral:
+        description: The field camera operating in spectral mode. The display is filled with shapes and traces invisible to the naked eye.
+        use: |
+          Spectral mode reveals traces of energy, hidden markings, and objects
+          that do not appear to exist in ordinary space.
+  field_notes:
+    aliases:
+      - field notes
+      - notes
+      - notebook
+      - notebook notes
+      - agent notes
+    solo_keywords:
+      - read
+      - open
+      - examine
+      - study
+      - write
+    action_keywords: []
+    states:
+      default:
+        description: Your field notes. You have been recording everything since entering the warehouse.
+        use: |
+          You review your notes.
+
+          Five missing children.
+
+          One unidentified device.
+
+          Five pieces.
+
+          Five impossible destinations.
+
+          And one man in black who knows considerably more than he is
+          willing to explain.
+      changed:
+        description: Your field notes, now filled with photographs, symbols, and dimensional observations.
+        use: |
+          The notes are becoming less like an investigation report
+          and more like evidence from a crime you don't understand.
+  agent_badge:
+    aliases:
+      - agent badge
+      - badge
+      - identification
+      - id
+      - id badge
+      - identification badge
+    solo_keywords:
+      - examine
+      - show
+      - read
+    action_keywords:
+      - show
+      - swipe
+      - scan
+    states:
+      default:
+        description: Your federal identification badge.
+        use: You are relieved to have at least one object in this building that looks normal.
+  warehouse_key:
+    aliases:
+      - warehouse key
+      - key
+      - brass key
+      - old key
+      - maintenance key
+    solo_keywords:
+      - examine
+      - hold
+    action_keywords:
+      - unlock
+      - open
+      - use
+      - turn
+    states:
+      default:
+        description: An old brass maintenance key labeled STORAGE B.
+        use: The key is old but still functional.
+  spectral_film:
+    aliases:
+      - spectral film
+      - strange film
+      - photographic film
+      - film
+      - developed film
+      - black film
+    solo_keywords:
+      - examine
+      - view
+      - study
+    action_keywords:
+      - photograph
+      - develop
+      - use
+    states:
+      default:
+        description: A sheet of undeveloped photographic material that reacts to the special camera.
+        use: |
+          Under ordinary light it appears completely blank.
+
+          The camera's spectral display shows a pattern on it.
+  dimensional_shard_one:
+    aliases:
+      - dimensional shard one
+      - shard one
+      - first shard
+      - first piece
+      - device piece
+      - device fragment
+      - fragment one
+    solo_keywords:
+      - examine
+      - hold
+      - inspect
+    action_keywords:
+      - activate
+      - place
+      - use
+    states:
+      default:
+        description: A black metallic fragment with a faint blue line running through its center. It is warm despite the cold warehouse.
+        use: |
+          The fragment vibrates when you hold it.
+
+          The camera display briefly shows a doorway standing in the middle
+          of an otherwise empty landscape.
+  dimensional_shard_two:
+    aliases:
+      - dimensional shard two
+      - shard two
+      - second shard
+      - second piece
+      - fragment two
+    solo_keywords:
+      - examine
+      - hold
+      - inspect
+    action_keywords:
+      - activate
+      - place
+      - use
+    states:
+      default:
+        description: A second black metallic fragment covered in tiny geometric markings.
+        use: The markings move when you look at them for too long.
+  dimensional_shard_three:
+    aliases:
+      - dimensional shard three
+      - shard three
+      - third shard
+      - third piece
+      - fragment three
+    solo_keywords:
+      - examine
+      - hold
+      - inspect
+    action_keywords:
+      - activate
+      - place
+      - use
+    states:
+      default:
+        description: A dark metallic device fragment that produces a faint electrical hum.
+        use: The hum seems to match the rhythm of your heartbeat.
+  dimensional_shard_four:
+    aliases:
+      - dimensional shard four
+      - shard four
+      - fourth shard
+      - fourth piece
+      - fragment four
+    solo_keywords:
+      - examine
+      - hold
+      - inspect
+    action_keywords:
+      - activate
+      - place
+      - use
+    states:
+      default:
+        description: A warped section of the device. Its surface appears to bend away from the room.
+        use: Your eyes refuse to focus on its edges.
+  dimensional_shard_five:
+    aliases:
+      - dimensional shard five
+      - shard five
+      - fifth shard
+      - fifth piece
+      - fragment five
+    solo_keywords:
+      - examine
+      - hold
+      - inspect
+    action_keywords:
+      - activate
+      - place
+      - use
+    states:
+      default:
+        description: The final device fragment. It is almost completely transparent.
+        use: |
+          You can see the room through it.
+
+          Unfortunately, the room you see is not this room.
+  warehouse_manifest:
+    aliases:
+      - warehouse manifest
+      - manifest
+      - inventory
+      - inventory sheet
+      - shipping manifest
+      - crate manifest
+    solo_keywords:
+      - read
+      - examine
+      - study
+      - check
+    action_keywords:
+      - cross
+      - match
+      - reference
+    states:
+      default:
+        description: A warehouse inventory manifest listing hundreds of sealed containers.
+        use: |
+          Most of the entries are ordinary government equipment.
+
+          Five entries have been marked with the same handwritten symbol.
+
+          The symbol does not appear anywhere else on the manifest.
+  strange_lens:
+    aliases:
+      - strange lens
+      - lens
+      - optical lens
+      - black lens
+      - crystal lens
+    solo_keywords:
+      - examine
+      - look
+      - hold
+    action_keywords:
+      - place
+      - install
+      - insert
+      - attach
+    states:
+      default:
+        description: A black glass lens found inside a locked equipment case.
+        use: |
+          Looking through the lens makes the warehouse appear subtly distorted.
+  audio_recorder:
+    aliases:
+      - audio recorder
+      - recorder
+      - tape recorder
+      - recording
+      - audio log
+      - tape
+    solo_keywords:
+      - play
+      - listen
+      - examine
+      - study
+    action_keywords:
+      - connect
+      - plug
+      - play
+    states:
+      default:
+        description: A small digital recorder containing one corrupted recording.
+        use: |
+          You press play.
+
+          Static.
+
+          A child's voice.
+
+          "If anybody finds this, don't trust the man in black."
+
+          The recording ends.
+
+          Then, beneath the static, you hear another voice.
+
+          "He's not the one who sent us here."
+  wanted_poster_one:
+    aliases:
+      - wanted poster
+      - wanted poster one
+      - poster
+      - first poster
+      - alien poster
+    solo_keywords:
+      - examine
+      - read
+      - photograph
+      - inspect
+    action_keywords:
+      - photograph
+      - remove
+      - take
+    states:
+      default:
+        description: A damaged wanted poster showing a humanoid figure with part of the face scratched away.
+        use: |
+          Only one detail remains clear.
+
+          The creature has three eyes.
+
+          Someone has written beneath the picture:
+
+          DO NOT LET HIM FIND THE GATE.
+  wanted_poster_two:
+    aliases:
+      - wanted poster two
+      - second poster
+      - damaged poster
+      - wanted notice
+    solo_keywords:
+      - examine
+      - read
+      - photograph
+    action_keywords:
+      - photograph
+      - take
+    states:
+      default:
+        description: A badly torn wanted poster depicting a tall figure with unusually long fingers.
+        use: The face is missing, but the hands remain.
+  wanted_poster_three:
+    aliases:
+      - wanted poster three
+      - third poster
+      - damaged wanted poster
+    solo_keywords:
+      - examine
+      - read
+      - photograph
+    action_keywords:
+      - photograph
+      - take
+    states:
+      default:
+        description: A faded wanted poster depicting a figure with pointed ears and a narrow face.
+        use: The criminal's name has been burned away.
+  wanted_poster_four:
+    aliases:
+      - wanted poster four
+      - fourth poster
+      - damaged poster
+    solo_keywords:
+      - examine
+      - read
+      - photograph
+    action_keywords:
+      - photograph
+      - take
+    states:
+      default:
+        description: A heavily damaged wanted poster. Only the silhouette remains.
+        use: |
+          The silhouette is unmistakably humanoid.
+
+          The lower half of the face has been torn away.
+  wanted_poster_five:
+    aliases:
+      - wanted poster five
+      - fifth poster
+      - final poster
+      - last poster
+    solo_keywords:
+      - examine
+      - read
+      - photograph
+    action_keywords:
+      - photograph
+      - take
+    states:
+      default:
+        description: A nearly destroyed wanted poster. Most of the photograph is missing.
+        use: |
+          There is just enough left to recognize the clothing.
+
+          Black suit.
+
+          White shirt.
+
+          Dark tie.
+  dimensional_device:
+    aliases:
+      - dimensional device
+      - device
+      - machine
+      - interdimensional device
+      - dimensional machine
+      - gate device
+    solo_keywords:
+      - examine
+      - inspect
+      - study
+      - activate
+    action_keywords:
+      - activate
+      - assemble
+      - repair
+      - place
+      - insert
+      - combine
+    states:
+      default:
+        description: The remains of an impossible machine. Five empty mounting points surround a central mechanism.
+        use: |
+          Five components are missing.
+
+          The machine appears to have been deliberately designed
+          to come apart.
+      changed:
+        description: The dimensional device, reassembled with all five missing components. Energy moves between the pieces.
+        use: |
+          The machine is complete.
+
+          Something on the other side is waiting.
+  kid_one_clue:
+    aliases:
+      - first clue
+      - kid one clue
+      - first child's clue
+      - child's note
+      - note
+    solo_keywords:
+      - read
+      - examine
+      - study
+    action_keywords: []
+    states:
+      default:
+        description: A handwritten note left by one of the missing children.
+        use: |
+          "The doors aren't really doors.
+
+          They only become doors when you look at them the right way."
+  kid_two_clue:
+    aliases:
+      - second clue
+      - kid two clue
+      - child's drawing
+      - drawing
+      - strange drawing
+    solo_keywords:
+      - examine
+      - study
+      - photograph
+    action_keywords:
+      - photograph
+      - scan
+    states:
+      default:
+        description: A child's drawing showing a forest with several objects floating above the trees.
+        use: The drawing makes no sense until viewed through the special camera.
+  kid_three_clue:
+    aliases:
+      - third clue
+      - kid three clue
+      - audio clue
+      - frequency clue
+    solo_keywords:
+      - examine
+      - listen
+      - study
+      - play
+    action_keywords:
+      - connect
+      - play
+      - scan
+    states:
+      default:
+        description: A recording containing several seconds of distorted electronic noise.
+        use: |
+          It sounds like broken equipment.
+
+          But the waveform contains a repeating pattern.
+
+          Three pulses.
+
+          Pause.
+
+          Five pulses.
+
+          Pause.
+
+          Three pulses.
+  kid_four_clue:
+    aliases:
+      - fourth clue
+      - kid four clue
+      - prank clue
+      - false clue
+    solo_keywords:
+      - examine
+      - read
+      - study
+    action_keywords:
+      - compare
+      - match
+    states:
+      default:
+        description: A deliberately misleading message written by one of the children.
+        use: |
+          "GO EAST."
+
+          Beneath it, in smaller handwriting:
+
+          "Unless I knew you'd find this."
+  kid_five_clue:
+    aliases:
+      - fifth clue
+      - kid five clue
+      - final clue
+      - final child's note
+    solo_keywords:
+      - read
+      - examine
+      - study
+    action_keywords: []
+    states:
+      default:
+        description: A careful technical note written by the fifth child.
+        use: |
+          "The machine didn't send us to five places.
+
+          It sent each of us somewhere the others couldn't reach.
+
+          The pieces came with us.
+
+          If you're reading this, don't just find me.
+
+          Put it back together."
+  kid_one:
+    aliases:
+      - kid one
+      - first kid
+      - first child
+      - child one
+    solo_keywords:
+      - examine
+      - talk
+      - speak
+    action_keywords:
+      - rescue
+      - help
+      - return
+    states:
+      default:
+        description: The first missing child. Frightened but alert.
+        use: |
+          "You're real."
+
+          The child looks past you.
+
+          "I thought maybe you were another version of me."
+  kid_two:
+    aliases:
+      - kid two
+      - second kid
+      - second child
+      - child two
+    solo_keywords:
+      - examine
+      - talk
+      - speak
+    action_keywords:
+      - rescue
+      - help
+      - return
+    states:
+      default:
+        description: The second missing child, carrying a battered notebook.
+        use: |
+          "The pictures kept changing."
+
+          The child looks at your camera.
+
+          "I think it was trying to show me where I was."
+  kid_three:
+    aliases:
+      - kid three
+      - third kid
+      - third child
+      - child three
+    solo_keywords:
+      - examine
+      - talk
+      - speak
+    action_keywords:
+      - rescue
+      - help
+      - return
+    states:
+      default:
+        description: The third missing child, exhausted and carrying an old recorder.
+        use: |
+          "The city was completely empty."
+
+          A pause.
+
+          "But somebody kept answering the radio."
+  kid_four:
+    aliases:
+      - kid four
+      - fourth kid
+      - fourth child
+      - child four
+    solo_keywords:
+      - examine
+      - talk
+      - speak
+    action_keywords:
+      - rescue
+      - help
+      - return
+    states:
+      default:
+        description: The fourth missing child, unusually calm after everything they've experienced.
+        use: |
+          "I knew you'd come."
+
+          You ask how.
+
+          "Because I saw you."
+
+          The child points behind you.
+
+          There is nobody there.
+  kid_five:
+    aliases:
+      - kid five
+      - fifth kid
+      - fifth child
+      - child five
+    solo_keywords:
+      - examine
+      - talk
+      - speak
+    action_keywords:
+      - rescue
+      - help
+      - return
+    states:
+      default:
+        description: The fifth missing child. The one who understands the device.
+        use: |
+          "You found all the pieces."
+
+          The child looks at the device.
+
+          "Then you already know what he wants."
+target_aliases:
+  warehouse_crate:
+    - crate
+    - box
+    - warehouse crate
+    - wooden crate
+    - shipping crate
+    - container
+    - sealed container
+  locked_case:
+    - equipment case
+    - case
+    - locked case
+    - black case
+    - instrument case
+  camera_station:
+    - camera station
+    - scanning station
+    - photographic station
+    - scanner
+    - scanning equipment
+  device_mount:
+    - device mount
+    - mounting frame
+    - machine mount
+    - device frame
+    - assembly frame
+  dimensional_gate:
+    - dimensional gate
+    - gate
+    - portal
+    - doorway
+    - dimensional doorway
+    - opening
+  spectrum_console:
+    - spectrum console
+    - audio console
+    - frequency console
+    - analyzer
+    - spectrum analyzer
+  forest_gateway:
+    - gateway
+    - stone arch
+    - arch
+    - dimensional arch
+  city_terminal:
+    - terminal
+    - computer terminal
+    - city terminal
+    - public terminal
+  machine_console:
+    - machine console
+    - control console
+    - control panel
+    - console
+  mirror_gateway:
+    - mirror
+    - dimensional mirror
+    - glass gateway
+    - gateway mirror
+  wrong_earth:
+    - street
+    - poster
+    - wall
+    - wrong earth
+    - road
+    - sign
+custom_verbs:
+  two_object:
+    - photograph
+    - scan
+    - xray
+    - x-ray
+    - examine
+    - inspect
+    - use
+    - activate
+    - open
+    - unlock
+    - insert
+    - place
+    - attach
+    - connect
+    - plug
+    - wire
+    - align
+    - calibrate
+    - tune
+    - combine
+    - assemble
+    - join
+    - fit
+    - match
+    - compare
+    - rescue
+    - return
+    - help
+    - enter
+    - cross
+rooms:
+  - name: warehouse_entrance
+    exits:
+      - east
+      - south
+    states:
+      default: The main warehouse entrance. Huge loading doors dominate the north wall. Rows of shipping crates stretch into the darkness. A security desk stands abandoned beside the entrance. The man in black is nowhere to be seen.
+      changed: The warehouse entrance. The security lights are now operating. Somewhere deeper inside the building, machinery has begun to cycle.
+    items:
+      - warehouse_manifest
+      - dimensional_device
+    exit_destinations: {}
+  - name: storage_bay
+    exits:
+      - west
+      - east
+      - south
+    states:
+      default: A massive storage bay filled with government equipment. Crates are stacked several levels high. Most carry mundane inventory labels, but a handful have markings that don't correspond to any government classification.
+      changed: The storage bay. Several crates have been opened and examined. The special camera has revealed that some containers contain objects that do not exist in ordinary photographs.
+    items:
+      - warehouse_key
+      - strange_lens
+    exit_destinations: {}
+  - name: equipment_room
+    exits:
+      - west
+      - east
+      - south
+    states:
+      default: A small equipment room. Old cameras, scanners, inspection equipment, and sealed cases fill the shelves. One black equipment case sits untouched on a workbench.
+    items:
+      - locked_case
+      - spectral_film
+    exit_destinations: {}
+  - name: loading_floor
+    exits:
+      - west
+      - east
+      - south
+    states:
+      default: The central loading floor. A freight elevator occupies one wall. Pallets and crates form narrow corridors through the warehouse. A child's shoe lies beneath one of the pallets.
+      changed: The central loading floor. The warehouse seems subtly different now. Several aisles appear longer than they were before.
+    items:
+      - kid_one_clue
+    exit_destinations: {}
+  - name: photographic_lab
+    exits:
+      - west
+    states:
+      default: An old photographic processing room. Chemical trays and obsolete photographic equipment remain on the benches. A strange scanning station occupies the center of the room.
+      changed: The photographic lab. The scanning station is active. The special camera responds to the equipment as though they were designed to work together.
+    items:
+      - audio_recorder
+    exit_destinations: {}
+  - name: restricted_storage
+    exits:
+      - north
+      - east
+    states:
+      default: A restricted storage room behind a mechanical security door. The crates here are unlike the others. Several are completely unmarked.
+      changed: The restricted storage room. One crate has opened by itself. Inside is the first fragment of the impossible machine.
+    items: []
+    exit_destinations: {}
+  - name: device_chamber
+    exits: []
+    states:
+      default: A circular chamber hidden behind the restricted storage area. At its center stands an incomplete machine surrounded by five empty mounting points.
+      changed: The device chamber. The first fragment is seated in the machine. A thin blue line of light now connects the device to the floor.
+    items: []
+    exit_destinations: {}
+  - name: warehouse_office
+    exits:
+      - west
+      - north
+      - south
+    states:
+      default: A small administrative office overlooking the warehouse. Filing cabinets line the walls. Someone has recently searched the room. One desk drawer remains locked.
+      changed: The warehouse office. A photograph has been discovered inside the locked drawer. It shows the five children standing outside the warehouse before they disappeared.
+    items:
+      - wanted_poster_one
+    exit_destinations: {}
+  - name: dimensional_room
+    exits:
+      - north
+    states:
+      default: A sealed room containing equipment that appears to have been designed for dimensional experiments. The walls are covered in geometric markings.
+      changed: The dimensional room. The first gateway is active. The air on the other side smells like wet earth.
+    items: []
+    exit_destinations: {}
+  - name: strange_forest
+    exits:
+      - east
+    states:
+      default: A forest beneath an unfamiliar sky. The trees grow at impossible angles and several objects appear to float among the branches. Somewhere nearby, someone is moving.
+      changed: The strange forest. The gateway back to the warehouse is stable. The child has left a clear trail of clues.
+    items:
+      - kid_two_clue
+      - wanted_poster_two
+    exit_destinations: {}
+  - name: forest_clearing
+    exits:
+      - west
+    states:
+      default: A clearing surrounded by enormous trees. A stone arch stands in the center, but there is no opening inside it.
+      changed: The clearing. The stone arch now contains a shimmering doorway. Someone is standing on the other side.
+    items:
+      - kid_two
+    exit_destinations: {}
+  - name: silent_city
+    exits:
+      - east
+    states:
+      default: A deserted city under a gray sky. Cars sit abandoned in the streets. Traffic lights continue changing despite the absence of traffic.
+      changed: The silent city. A distant radio has begun transmitting. The signal repeats the same three words.
+    items:
+      - wanted_poster_three
+    exit_destinations: {}
+  - name: city_terminal
+    exits:
+      - west
+      - south
+    states:
+      default: A public terminal inside an empty transit station. Every screen displays the same time. The clocks disagree with one another.
+      changed: The terminal is displaying a map of the city with one location blinking repeatedly.
+    items:
+      - kid_three_clue
+    exit_destinations: {}
+  - name: silent_radio_room
+    exits:
+      - north
+    states:
+      default: A small communications room. Dozens of radios line the walls. Only one is active.
+      changed: The radio room. The active radio is now transmitting a frequency that matches the signal from the warehouse.
+    items:
+      - kid_three
+    exit_destinations: {}
+  - name: machine_world
+    exits:
+      - east
+    states:
+      default: A world built entirely from machinery. Towers of gears and enormous pistons disappear into the distance. There is no visible sky.
+      changed: The machine world. The machinery has synchronized to a single rhythm.
+    items:
+      - wanted_poster_four
+    exit_destinations: {}
+  - name: machine_console
+    exits:
+      - west
+      - east
+    states:
+      default: A control chamber surrounded by moving machinery. A central console contains a series of impossible controls.
+      changed: The console has aligned itself with the dimensional frequency. A doorway has opened.
+    items:
+      - kid_four_clue
+    exit_destinations: {}
+  - name: machine_gateway
+    exits:
+      - west
+    states:
+      default: A chamber containing a doorway made entirely from rotating gears. Something is standing beyond it.
+      changed: The gateway has stabilized. The fourth child is waiting nearby.
+    items:
+      - kid_four
+    exit_destinations: {}
+  - name: wrong_earth
+    exits:
+      - east
+    states:
+      default: |-
+        The place looks like Earth.
+        Almost.
+        Buildings are familiar. Roads are familiar. The sky is familiar.
+        But every sign contains slightly different words.
+        People walk the streets without looking at you.
+        Then one of them turns and says your name.
+      changed: The wrong Earth. Several people have disappeared. You are beginning to suspect that this place recognizes you.
+    items:
+      - wanted_poster_five
+    exit_destinations: {}
+  - name: impossible_archive
+    exits:
+      - west
+    states:
+      default: An archive containing records of events that have not happened yet. Shelves contain photographs of places you have visited.
+      changed: The archive. One photograph has appeared showing the warehouse from fifty years ago.
+    items:
+      - kid_five_clue
+    exit_destinations: {}
+  - name: final_gateway
+    exits:
+      - east
+    states:
+      default: A white room containing nothing except a standing mirror. Your reflection is delayed by approximately one second.
+      changed: The mirror has become transparent. The fifth child is standing on the other side.
+    items:
+      - kid_five
+    exit_destinations: {}
+  - name: return_chamber
+    exits:
+      - west
+    states:
+      default: The central chamber of the dimensional machine. Five empty mounting points surround the device.
+      changed: The machine is complete. Five fragments glow within their mounting points. The entire chamber is vibrating.
+    items: []
+    exit_destinations: {}
+  - name: generic_warehouse_hall
+    exits:
+      - west
+      - north
+      - east
+    states:
+      default: A long warehouse corridor lined with numbered storage doors.
+    items: []
+    exit_destinations: {}
+  - name: generic_service_hall
+    exits:
+      - north
+    states:
+      default: A narrow service corridor filled with pipes and electrical conduit.
+    items: []
+    exit_destinations: {}
+events:
+  - id: discover_camera
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: field_camera
+      target: warehouse_crate
+      room: storage_bay
+    result:
+      set_item_state:
+        - item: field_camera
+          state: changed
+      message: |
+        You activate the camera's X-ray mode.
+
+        The crate appears empty.
+
+        Then you switch to spectral mode.
+
+        Something is inside.
+
+        Not something hidden inside the crate.
+
+        Something occupying the same space as the crate.
+
+        The camera displays a single word:
+
+        RESONANCE.
+  - id: find_piece_one
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: field_camera
+      target: warehouse_crate
+      room: restricted_storage
+    result:
+      set_state:
+        - room: restricted_storage
+          state: changed
+        - room: device_chamber
+          state: changed
+      add_item:
+        item: dimensional_shard_one
+        room: device_chamber
+      open_exit:
+        - room: restricted_storage
+          direction: south
+          destination:
+            floor: 0
+            x: 0
+            'y': 2
+        - room: device_chamber
+          direction: north
+          destination:
+            floor: 0
+            x: 0
+            'y': 1
+      message: |
+        The camera shows a shape inside the unmarked crate.
+
+        There is no visible object when you open it.
+
+        You photograph the empty interior.
+
+        The photograph develops instantly.
+
+        A black metallic fragment appears in the image.
+
+        When you reach into the crate, your hand closes around it.
+
+        The first piece is real.
+  - id: rescue_kid_one
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: dimensional_shard_one
+      target: dimensional_gate
+      room: dimensional_room
+      prerequisites:
+        - find_piece_one
+    result:
+      set_state:
+        - room: dimensional_room
+          state: changed
+        - room: forest_clearing
+          state: changed
+      open_exit:
+        - room: dimensional_room
+          direction: east
+          destination:
+            floor: 1
+            x: 0
+            'y': 0
+        - room: strange_forest
+          direction: west
+          destination:
+            floor: 0
+            x: 2
+            'y': 2
+      message: |
+        The shard locks into the dimensional gateway.
+
+        The room disappears.
+
+        For one moment you see somewhere else.
+
+        A child is standing alone beneath a strange sky.
+
+        Then the gateway stabilizes.
+
+        You can cross.
+  - id: find_piece_two
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: field_camera
+      target: forest_gateway
+      room: forest_clearing
+      prerequisites:
+        - rescue_kid_one
+    result:
+      set_state:
+        - room: strange_forest
+          state: changed
+      add_item:
+        item: dimensional_shard_two
+        room: strange_forest
+      message: |
+        You photograph the stone arch.
+
+        The photograph shows a second arch behind the first.
+
+        The child points toward it.
+
+        "That's where it landed."
+
+        Beneath the second arch lies the second fragment.
+  - id: rescue_kid_two
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: dimensional_shard_two
+      target: dimensional_gate
+      room: strange_forest
+      prerequisites:
+        - find_piece_two
+    result:
+      set_state:
+        - room: strange_forest
+          state: changed
+        - room: forest_clearing
+          state: changed
+      message: |
+        The second fragment activates.
+
+        The forest folds inward like a photograph being closed.
+
+        When the world settles, the second child is standing beside you.
+
+        In the child's hand is a photograph of a city with no people.
+
+        The third piece is there.
+      open_exit:
+        - room: strange_forest
+          direction: north
+          destination:
+            floor: 1
+            x: 3
+            'y': 0
+        - room: silent_city
+          direction: south
+          destination:
+            floor: 1
+            x: 0
+            'y': 0
+  - id: find_piece_three
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: field_camera
+      target: city_terminal
+      room: city_terminal
+      prerequisites:
+        - rescue_kid_two
+    result:
+      set_state:
+        - room: city_terminal
+          state: changed
+        - room: silent_city
+          state: changed
+      add_item:
+        item: dimensional_shard_three
+        room: silent_city
+      message: |
+        You photograph the terminal screen.
+
+        The visible map disappears.
+
+        A second map appears beneath it.
+
+        One location is marked:
+
+        UNIT 03.
+
+        You follow the signal.
+
+        The third fragment is waiting inside the radio room.
+  - id: rescue_kid_three
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: audio_recorder
+      target: spectrum_console
+      room: photographic_lab
+      prerequisites:
+        - find_piece_three
+    result:
+      set_state:
+        - room: silent_radio_room
+          state: changed
+        - room: city_terminal
+          state: changed
+      message: |
+        The corrupted recording is not corrupted.
+
+        It is encoded.
+
+        You feed the recording into the spectrum analyzer.
+
+        The noise becomes a sequence of coordinates.
+
+        The radio room.
+
+        The child is alive.
+
+        You follow the signal and find the third child.
+  - id: find_piece_four
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: dimensional_shard_three
+      target: dimensional_gate
+      room: silent_radio_room
+      prerequisites:
+        - rescue_kid_three
+    result:
+      set_state:
+        - room: machine_world
+          state: changed
+      add_item:
+        item: dimensional_shard_four
+        room: machine_world
+      message: |
+        The third fragment opens another passage.
+
+        This world is made of machinery.
+
+        The fourth piece is embedded inside the largest machine
+        you can see.
+      open_exit:
+        - room: silent_radio_room
+          direction: south
+          destination:
+            floor: 1
+            x: 0
+            'y': 2
+        - room: machine_world
+          direction: north
+          destination:
+            floor: 1
+            x: 4
+            'y': 1
+  - id: rescue_kid_four
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: dimensional_shard_four
+      target: machine_console
+      room: machine_console
+      prerequisites:
+        - find_piece_four
+    result:
+      set_state:
+        - room: machine_console
+          state: changed
+        - room: machine_gateway
+          state: changed
+      message: |
+        You insert the fourth fragment into the machine console.
+
+        Every machine in the world stops.
+
+        Silence.
+
+        Then one enormous gear begins moving.
+
+        The gateway opens.
+
+        The fourth child steps through.
+
+        "One more," the child says.
+
+        "Then we go home."
+      open_exit:
+        - room: machine_gateway
+          direction: east
+          destination:
+            floor: 2
+            x: 0
+            'y': 0
+        - room: wrong_earth
+          direction: west
+          destination:
+            floor: 1
+            x: 2
+            'y': 2
+  - id: find_piece_five
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: field_camera
+      target: wrong_earth
+      room: wrong_earth
+      prerequisites:
+        - rescue_kid_four
+    result:
+      set_state:
+        - room: wrong_earth
+          state: changed
+        - room: impossible_archive
+          state: changed
+      add_item:
+        item: dimensional_shard_five
+        room: wrong_earth
+      message: |
+        You photograph the street.
+
+        The camera shows a wanted poster that does not exist on the wall.
+
+        Behind the poster is a door.
+
+        Behind the door is the fifth fragment.
+
+        The photograph disappears.
+
+        The door remains.
+
+        You open it.
+
+        The fifth piece is waiting.
+  - id: rescue_kid_five
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: dimensional_shard_five
+      target: mirror_gateway
+      room: final_gateway
+      prerequisites:
+        - find_piece_five
+    result:
+      set_state:
+        - room: final_gateway
+          state: changed
+        - room: impossible_archive
+          state: changed
+      message: |
+        The fifth fragment touches the mirror.
+
+        Your reflection disappears.
+
+        The fifth child walks through the glass.
+
+        "You found all five."
+
+        The child looks at the fragments.
+
+        "Now put it back together."
+      open_exit:
+        - room: impossible_archive
+          direction: east
+          destination:
+            floor: 2
+            x: 3
+            'y': 0
+        - room: final_gateway
+          direction: west
+          destination:
+            floor: 2
+            x: 1
+            'y': 0
+  - id: assemble_device
+    type: puzzle
+    check_type: item_used_with
+    parameters:
+      item: dimensional_shard_five
+      target: device_mount
+      room: return_chamber
+      prerequisites:
+        - rescue_kid_one
+        - rescue_kid_two
+        - rescue_kid_three
+        - rescue_kid_four
+        - rescue_kid_five
+    result:
+      set_state:
+        - room: return_chamber
+          state: changed
+        - room: warehouse_entrance
+          state: changed
+      set_item_state:
+        - item: dimensional_shard_one
+          state: changed
+        - item: dimensional_shard_two
+          state: changed
+        - item: dimensional_shard_three
+          state: changed
+        - item: dimensional_shard_four
+          state: changed
+        - item: dimensional_shard_five
+          state: changed
+      message: |
+        You place the final fragment into the machine.
+
+        The five pieces lock together.
+
+        The device hums.
+
+        The children stand behind you.
+
+        The man in black steps into the chamber.
+
+        He looks at the completed machine.
+
+        "Finally."
+
+        You look at him.
+
+        He smiles.
+
+        "I suppose you've figured out why those posters kept following you."
+floors:
+  - - - warehouse_entrance
+      - storage_bay
+      - loading_floor
+      - equipment_room
+      - photographic_lab
+    - - restricted_storage
+      - generic_warehouse_hall
+      - warehouse_office
+      - generic_service_hall
+      - null
+    - - device_chamber
+      - null
+      - dimensional_room
+      - null
+      - null
+  - - - strange_forest
+      - forest_clearing
+      - null
+      - silent_city
+      - city_terminal
+    - - null
+      - null
+      - null
+      - null
+      - silent_radio_room
+    - - machine_world
+      - machine_console
+      - machine_gateway
+      - null
+      - null
+  - - - wrong_earth
+      - impossible_archive
+      - null
+      - final_gateway
+      - return_chamber
