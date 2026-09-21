@@ -1,0 +1,162 @@
+# =============================================================================
+# INTEGRATION TEST ADVENTURE
+# Contract verification between Adventure Editor and Python Game Engine
+# =============================================================================
+
+intro:
+  title: "Integration Test Manor"
+  text: "You awaken in a quiet entry hall. Dust motes drift in the faint light filtering through a high transom window."
+  instructions: "Type commands like 'look', 'take key', 'use key on gate', or 'go north'."
+
+player:
+  starting_location:
+    floor: 0
+    x: 2
+    y: 2
+  starting_inventory:
+    - pocket_flashlight
+
+items:
+  pocket_flashlight:
+    display_name: "Pocket Flashlight"
+    presence: "A pocket flashlight"
+    keywords:
+      - flashlight
+      - light
+      - torch
+    aliases:
+      - flashlight
+      - light
+    states:
+      default:
+        description: "A compact brass flashlight with a polished lens."
+        examine: "A compact brass flashlight. The bulb casts a steady warm beam."
+        use: "You click the flashlight on and off. The beam cuts clearly through the shadows."
+
+  brass_key:
+    display_name: "Brass Key"
+    presence: "An ornate brass key"
+    keywords:
+      - key
+      - brass key
+    aliases:
+      - key
+      - brass key
+    states:
+      default:
+        description: "A heavy, notched brass key with an ornate clover bow."
+        examine: "A heavy, notched brass key with an ornate clover bow."
+        use: "Try using this key on a locked door or gate."
+
+  ancient_relic:
+    display_name: "Ancient Relic"
+    presence: "A gleaming ancient relic"
+    keywords:
+      - relic
+      - artifact
+    aliases:
+      - relic
+      - artifact
+    states:
+      default:
+        description: "A mysterious crystalline artifact humming with ancient energy."
+        examine: "The relic glows faintly with azure phosphorescence."
+        use: "The relic resonates quietly in your grasp."
+
+target_aliases:
+  heavy_gate:
+    - gate
+    - iron gate
+    - lock
+    - padlock
+  pedestal:
+    - pedestal
+    - stone pedestal
+
+rooms:
+  - name: entry_hall
+    display_name: "Grand Entry Hall"
+    base_description: "You stand in a vaulted entry hall with checkered stone tiles underfoot."
+    fixtures:
+      pedestal:
+        display_name: "Stone Pedestal"
+        priority: 10
+        state: default
+        states:
+          default: "In the center of the hall stands a carved stone pedestal."
+        examine:
+          default: "The marble pedestal is carved with leaf motifs. A brass key rests on top."
+    items:
+      - brass_key
+    exits:
+      - north
+    locked_exits: []
+    trailing_description: "A wide arched corridor leads north toward the courtyard."
+
+  - name: courtyard
+    display_name: "Sunlit Courtyard"
+    base_description: "An open-air courtyard surrounded by stone columns and ivy."
+    fixtures:
+      heavy_gate:
+        display_name: "Heavy Iron Gate"
+        priority: 10
+        state: locked
+        states:
+          locked: "To the north, a towering iron gate is chained shut with a sturdy brass padlock."
+          unlocked: "To the north, the iron gate stands unlocked and swinging open."
+        examine:
+          locked: "Heavy iron bars sealed with a brass padlock. A key should open this."
+          unlocked: "The gate is unlocked and swings freely."
+    items:
+      - ancient_relic
+    exits:
+      - south
+    locked_exits:
+      - north
+    trailing_description: "Stone arches lead south back to the entry hall."
+
+floors:
+  - - [null, null, null, null, null]
+    - [null, null, courtyard, null, null]
+    - [null, null, entry_hall, null, null]
+    - [null, null, null, null, null]
+    - [null, null, null, null, null]
+
+events:
+  - id: unlock_gate
+    trigger:
+      type: use_item
+      action: use
+      source: brass_key
+      target: heavy_gate
+    conditions:
+      - type: in_room
+        room: courtyard
+        fail_hint: "You need to be in the courtyard near the gate."
+    result:
+      message: "You insert the brass key into the padlock. With a solid click, the heavy iron gate swings open!"
+      set_fixture_state:
+        - room: courtyard
+          fixture: heavy_gate
+          state: unlocked
+      open_exit:
+        - room: courtyard
+          direction: north
+
+  - id: claim_relic
+    trigger:
+      type: on_turn
+    conditions:
+      - type: required_items
+        required_items:
+          - ancient_relic
+    result:
+      message: "You hold the ancient relic in your grasp. An aura of triumph envelops you!"
+
+win_conditions:
+  - unlock_gate
+  - claim_relic
+
+win_screen:
+  title: "ADVENTURE COMPLETE"
+  text: "You unlocked the courtyard gate and secured the ancient relic!"

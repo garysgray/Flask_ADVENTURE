@@ -6,7 +6,7 @@ class Parser:
     Classic Adventure-grade text parser engine.
     """
 
-    DIRECTIONS = {'north', 'south', 'east', 'west', 'up', 'down'}
+    DIRECTIONS = {'north', 'south', 'east', 'west', 'up', 'down', 'portal'}
 
     DIRECTION_SHORTHAND = {
         'n': 'north',
@@ -15,11 +15,12 @@ class Parser:
         'w': 'west',
         'u': 'up',
         'd': 'down',
+        'p': 'portal',
     }
 
     MOVE_VERBS = {
         'go', 'move', 'walk', 'run', 'head', 'proceed', 'travel',
-        'climb', 'step', 'navigate', 'wander'
+        'climb', 'step', 'navigate', 'wander', 'enter'
     }
 
     PICKUP_VERBS = {
@@ -274,6 +275,12 @@ class Parser:
             return text
         if text in self.DIRECTION_SHORTHAND:
             return self.DIRECTION_SHORTHAND[text]
+        if text in {'portal', 'the portal', 'into portal', 'into the portal', 'through portal', 'through the portal'}:
+            return 'portal'
+        if text in {'upstairs', 'up the stairs', 'the stairs up', 'ladder up'}:
+            return 'up'
+        if text in {'downstairs', 'down the stairs', 'the stairs down', 'ladder down'}:
+            return 'down'
         return None
 
     def _parse_two_object_command(self, norm_text, vocab, ambiguous_vocab):
@@ -384,6 +391,20 @@ class Parser:
         dir_match = self._match_direction(norm)
         if dir_match:
             return {"CMD": "move", "OBJ": dir_match}
+
+        if norm in {
+            "use portal", "enter portal", "take portal", "step into portal",
+            "step through portal", "go into portal", "go through portal",
+            "enter the portal", "step into the portal", "step through the portal",
+            "go into the portal", "go through the portal"
+        }:
+            return {"CMD": "move", "OBJ": "portal"}
+
+        if norm in {"climb ladder", "take stairs", "use stairs", "go upstairs"}:
+            return {"CMD": "move", "OBJ": "up"}
+
+        if norm in {"climb down ladder", "go downstairs"}:
+            return {"CMD": "move", "OBJ": "down"}
 
         if len(words) == 1:
             shorthand = self.DIRECTION_SHORTHAND.get(norm)

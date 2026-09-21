@@ -21,7 +21,8 @@ class Controller:
     def __init__(self, file_path=None):
         self.State  = State.LOAD
         self.map    = Map(file_path=file_path)
-        self.player = Player(self.map.game_map)
+        start_loc   = getattr(self.map, 'starting_location', {'floor': 0, 'x': 0, 'y': 0})
+        self.player = Player(self.map.game_map, location=start_loc)
         self.player.inventory = [self.map.make_item(item.name) for item in self.map.player_start_invent]
 
         self.room_info = {}
@@ -40,12 +41,10 @@ class Controller:
             pos   = (self.player.level, self.player.pos_y, self.player.pos_x)
             if pos not in self.player.visited_rooms:
                 self.player.visited_rooms.append(pos)
-            if room.name not in self.player.visited_room_names:
                 self.player.visited_room_names.append(room.name)
             return room
         except Exception:
             return False
-
     def get_new_map(self):
         self.map = Map()
 
@@ -78,6 +77,7 @@ class Controller:
             'ROOM_EXIT_DEST':   room.exit_destinations,
             'GAME_WON':         game_won,
             'SHOW_JOURNAL':     cmd == 'journal',
+            'GAME_TITLE':       getattr(self.map, 'intro', {}).get('title', 'Text Adventure'),
         }
         self.room_info['ROOM_DESCRIPTION'] = self.room_info['ROOM_DESCRIPTION'].replace("\n", "<br>")
 

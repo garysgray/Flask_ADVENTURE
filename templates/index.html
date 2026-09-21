@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block head %}
-    <title>DELICTUM — PORTAL</title>
+    <title>{{ game_title | upper }} — PORTAL</title>
 {% endblock %}
 {% block body %}
 <div class="terminal">
 
     <div class="t-header">
-        <span class="t-header-title">DELICTUM FACILITY</span>
+        <span class="t-header-title">{{ game_title | upper }}</span>
         <span class="t-header-sep">///</span>
-        <span class="t-header-sub">OPERATIVE PORTAL</span>
+        <span class="t-header-sub">PORTAL</span>
         <span class="t-header-blink">█</span>
         <div class="top-right" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
             <span style="font-size:10px;color:var(--text-dim);letter-spacing:2px;">{{ username | upper }}</span>

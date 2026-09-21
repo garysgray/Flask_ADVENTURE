@@ -99,6 +99,39 @@ target_aliases:
     - wall crevice
     - secret compartment
 
+  spiral_stairs:
+    - stairs
+    - spiral stairs
+    - staircase
+    - steps
+    - ladder
+
+  rift_emitter:
+    - emitter
+    - rift
+    - rift emitter
+    - portal generator
+    - gateway
+
+  resonance_conduit:
+    - conduit
+    - resonance conduit
+    - upper portal
+    - gateway
+
+  ancient_pedestal:
+    - pedestal
+    - ancient pedestal
+    - terminal
+    - archive portal
+
+  hatch_mechanism:
+    - hatch
+    - hatch mechanism
+    - emergency hatch
+    - maintenance hatch
+    - latch
+
 # =============================================================================
 # CUSTOM VERBS
 # =============================================================================
@@ -116,6 +149,8 @@ rooms:
   - name: specimen_vault
     exits:
       - south
+      - up
+      - east
 
     # 1. Base Description: Permanent opening paragraph
     base_description: |
@@ -129,10 +164,10 @@ rooms:
         state: default
         states:
           default: "A heavy knife-switch lever is mounted to the north wall, currently flipped to OFF."
-          energized: "The knife-switch on the north wall is pulled DOWN, bathing the conduit in a steady blue glow."
+          energized: "The knife-switch on the north wall is pulled DOWN, bathing the conduit in a steady blue glow and tearing open an ethereal portal."
         examine:
-          default: "An industrial steel knife-switch. Pulling it will route auxiliary power into the room."
-          energized: "The switch handle is latched down. High-voltage capacitors hum rhythmically behind the plate."
+          default: "An industrial steel knife-switch. Pulling it will route auxiliary power into the room and activate the spatial portal."
+          energized: "The switch handle is latched down. High-voltage capacitors hum rhythmically behind the plate, sustaining an open portal."
 
       # Fixture 2: Appears second in the room description (priority: 20)
       containment_pod:
@@ -159,17 +194,124 @@ rooms:
 
     # 3. Trailing Description: Permanent closing paragraph
     trailing_description: |
-      A heavy blast door to the south leads back to the security corridor.
+      Spiral stairs lead UP to the mezzanine. A blast door to the south leads to security, and an airlock to the east leads to the translocation lab.
 
     items: []
     exit_destinations: {}
+
+  - name: security_corridor
+    exits:
+      - north
+    base_description: |
+      A fortified security corridor. Low amber light glints against the interlocking floor plates.
+    fixtures:
+      hatch_mechanism:
+        priority: 10
+        state: default
+        states:
+          default: "A reinforced emergency maintenance hatch is sealed tightly into the steel flooring."
+          unlocked: "The emergency maintenance hatch is unlatched and standing open, with an iron ladder leading DOWN into the depths."
+        examine:
+          default: "A heavy sub-level access hatch. The locking console requires a security keycard to release."
+          unlocked: "The heavy hatch is swung open. An iron ladder descends through the darkness."
+    trailing_description: |
+      The specimen vault blast door is to the north.
+    items: []
+    exit_destinations: {}
+
+  - name: translocation_lab
+    exits:
+      - west
+      - portal
+    exit_destinations:
+      portal:
+        floor: 1
+        x: 1
+        y: 0
+    base_description: |
+      The translocation laboratory. High-voltage coils surround an active stationary dimensional rift in the chamber.
+    fixtures:
+      rift_emitter:
+        priority: 10
+        state: default
+        states:
+          default: "A spinning rift emitter projects a stable swirling blue portal against the containment field."
+        examine:
+          default: "A high-precision transit gateway. Stepping into or through the PORTAL will instantly warp you to the upper catwalk."
+    trailing_description: |
+      An airlock to the west returns to the specimen vault. A humming PORTAL shimmers in the center.
+    items: []
+
+  - name: mezzanine_observation
+    exits:
+      - down
+      - east
+    base_description: |
+      An elevated mezzanine observation gallery overlooking the containment chambers.
+    fixtures:
+      spiral_stairs:
+        priority: 10
+        state: default
+        states:
+          default: "A spiral staircase curves DOWN through the floor, returning to the specimen vault."
+        examine:
+          default: "Reinforced industrial steel stairs leading down to Floor 1 specimen vault."
+    trailing_description: |
+      A reinforced catwalk extends to the east. You can also head DOWN the stairs.
+    items: []
+    exit_destinations: {}
+
+  - name: upper_catwalk
+    exits:
+      - west
+      - portal
+    exit_destinations:
+      portal:
+        floor: 0
+        x: 1
+        y: 0
+    base_description: |
+      The high-altitude upper catwalk above the facility floor.
+    fixtures:
+      resonance_conduit:
+        priority: 10
+        state: default
+        states:
+          default: "A matching dimensional portal hovers at the edge of the platform, linked to the translocation lab."
+        examine:
+          default: "A vertical spatial displacement field. Entering the PORTAL will transport you back down to the translocation lab."
+    trailing_description: |
+      The catwalk heads west to the mezzanine gallery, or you can enter the PORTAL.
+    items: []
+
+  - name: archive_sanctum
+    exits:
+      - portal
+    exit_destinations:
+      portal:
+        floor: 0
+        x: 0
+        y: 0
+    base_description: |
+      A secret archive sanctum hidden deep in the subterranean facility foundations.
+    fixtures:
+      ancient_pedestal:
+        priority: 10
+        state: default
+        states:
+          default: "An illuminated terminal pedestal sits in the center, surrounded by a swirling return portal."
+        examine:
+          default: "Subterranean control systems. Entering the PORTAL here will return you to the specimen vault."
+    trailing_description: |
+      The active return PORTAL hums quietly on the pedestal.
+    items: []
 
 # =============================================================================
 # EVENTS
 # =============================================================================
 events:
   # ACTION 1: Pull the power switch
-  # Changes only the 'power_switch' fixture state without touching the pod
+  # Changes fixture state AND opens an event-created portal to archive_sanctum!
   - id: activate_vault_power
     trigger:
       type: solo
@@ -184,9 +326,17 @@ events:
         - room: specimen_vault
           fixture: power_switch
           state: energized
+      open_exit:
+        - room: specimen_vault
+          direction: portal
+          destination:
+            floor: 2
+            x: 0
+            y: 0
       message: |
         With a heavy mechanical thud, you pull the switch down!
         Auxiliary generators spin up, energizing the blue conduit along the walls.
+        A tear in the fabric of space forms in the center of the vault — an active PORTAL has opened!
 
   # ACTION 2: Use crystal on the pod
   # Changes the 'containment_pod' fixture to 'breached' AND reveals 'wall_crevice'
@@ -218,8 +368,50 @@ events:
         A harmonic chord rings through the chamber, and the seal unlatches with a hiss of vapor!
         The pod opens, exposing a concealed crevice in the wall and dropping a keycard into your hands.
 
+  # ACTION 3: Use keycard on hatch in security corridor
+  # Opens an event-created 'down' exit leading to archive_sanctum!
+  - id: unlock_maintenance_hatch
+    trigger:
+      type: dual
+      source: containment_keycard
+      target: hatch_mechanism
+      action: use
+    conditions:
+      - type: in_room
+        room: security_corridor
+        fail_hint: "The maintenance hatch is in the security corridor."
+      - type: required_items
+        required_items:
+          - containment_keycard
+        fail_hint: "You need the magnetic keycard to release the hatch latches."
+    result:
+      set_fixture_state:
+        - room: security_corridor
+          fixture: hatch_mechanism
+          state: unlocked
+      open_exit:
+        - room: security_corridor
+          direction: down
+          destination:
+            floor: 2
+            x: 0
+            y: 0
+      message: |
+        You swipe the magnetic keycard through the hatch console.
+        Heavy pneumatic latches release with a loud clatter! The maintenance hatch pops open, revealing an iron ladder leading DOWN into the archive sanctum!
+
 # =============================================================================
 # MAP FLOORS GRID
 # =============================================================================
 floors:
-  - - - specimen_vault
+  # Floor 0 (Ground level)
+  - - [specimen_vault, translocation_lab]
+    - [security_corridor, null]
+
+  # Floor 1 (Upper level)
+  - - [mezzanine_observation, upper_catwalk]
+    - [null, null]
+
+  # Floor 2 (Subterranean level)
+  - - [archive_sanctum, null]
+    - [null, null]

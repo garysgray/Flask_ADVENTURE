@@ -2,7 +2,7 @@
 {% from 'macros.html' import cell_class, cell_contents %}
 
 {% block head %}
-    <title>DELICTUM — TERMINAL</title>
+    <title>{{ game_title | upper }} — TERMINAL</title>
 {% endblock %}
 
 {% block body %}
@@ -10,9 +10,9 @@
 
     {# ── Header bar ─────────────────────────────────────────── #}
     <div class="t-header">
-    <span class="t-header-title">DELICTUM FACILITY</span>
+    <span class="t-header-title">{{ game_title | upper }}</span>
     <span class="t-header-sep">///</span>
-    <span class="t-header-sub t-header-terminal">FIELD INVESTIGATOR TERMINAL</span>
+    <span class="t-header-sub t-header-terminal">TERMINAL</span>
     <span style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
         <span class="t-header-sub">{{ db_player.save_name | upper }}</span>
         <span class="t-header-sep">///</span>

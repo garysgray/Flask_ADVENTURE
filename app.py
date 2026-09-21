@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -18,16 +18,21 @@ db = SQLAlchemy(app)
 
 @app.context_processor
 def inject_theme():
-    """Injects game theme settings defined in game_data.yaml into templates."""
+    """Injects game theme settings and title defined in the adventure YAML into templates."""
     try:
         import yaml
         from pathlib import Path
         data_path = Path(__file__).resolve().parent / "data" / DATA_FILE_PATH
         with open(data_path, "r") as f:
             d = yaml.safe_load(f) or {}
-            return {'game_theme': d.get('theme', {})}
+            intro = d.get('intro', {})
+            title = intro.get('title', 'Text Adventure') if isinstance(intro, dict) else 'Text Adventure'
+            return {
+                'game_theme': d.get('theme', {}),
+                'game_title': title
+            }
     except Exception:
-        return {'game_theme': {}}
+        return {'game_theme': {}, 'game_title': 'Text Adventure'}
 
 
 # =============================================================================
@@ -375,6 +380,7 @@ def game(id):
         show_intro     = not ctrl.player.has_seen_intro,
         intro          = ctrl.map.intro,
         win_screen     = ctrl.map.win_screen,
+        game_title     = ctrl.map.intro.get('title', 'Text Adventure'),
     )
 
 
@@ -396,6 +402,61 @@ def delete(id):
     except Exception as e:
         return f'Error deleting save: {e}'
     return redirect('/')
+
+
+# =============================================================================
+# YAML EDITOR ROUTES & ERROR INTERCEPTOR
+# =============================================================================
+
+@app.route('/editor')
+@app.route('/editor/')
+@app.route('/yaml_editor')
+@app.route('/yaml_editor/')
+def serve_editor_index():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(os.path.join(base_dir, 'yaml_editor'), 'index.html')
+
+
+@app.route('/editor/<path:filename>')
+@app.route('/yaml_editor/<path:filename>')
+def serve_editor_static(filename):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(os.path.join(base_dir, 'yaml_editor'), filename)
+
+
+@app.errorhandler(ValueError)
+def handle_value_error(e):
+    err_str = str(e)
+    if "YAML Validation Error:" in err_str:
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Adventure YAML Error</title>
+          <style>
+            body {{ background: #0c0e14; color: #e2e8f0; font-family: monospace; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }}
+            .card {{ background: #151921; border: 1px solid #ef4444; border-radius: 8px; padding: 24px 32px; max-width: 650px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }}
+            h1 {{ color: #ef4444; font-size: 18px; margin-top: 0; display: flex; align-items: center; gap: 8px; }}
+            p {{ font-size: 14px; line-height: 1.6; color: #cbd5e1; }}
+            .details {{ background: #0c0e14; border: 1px solid #2d3748; padding: 14px; border-radius: 6px; color: #f87171; margin: 16px 0; word-break: break-word; }}
+            .btn {{ display: inline-block; background: #38bdf8; color: #000; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; margin-top: 10px; }}
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>⚠️ ADVENTURE YAML CONFIGURATION ERROR</h1>
+            <p>The game engine encountered an invalid adventure structure in your YAML file:</p>
+            <div class="details">{err_str}</div>
+            <p>To fix this, open the <strong>YAML Editor</strong>, review the pre-flight checks in the <strong>Sanity Validator</strong> or <strong>Map &amp; Roadmap</strong> tab, correct the placement/floor limits, and export the file.</p>
+            <div style="display:flex; gap:10px;">
+              <a href="/editor" class="btn">Open YAML Editor</a>
+              <a href="/" class="btn" style="background:#475569; color:#fff;">Back to Saves</a>
+            </div>
+          </div>
+        </body>
+        </html>
+        """, 400
+    raise e
 
 
 if __name__ == "__main__":

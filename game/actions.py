@@ -22,11 +22,18 @@ class ActionHandler:
         return ""
 
     def move_player(self, dir):
-        if self.ctrl.player.move(dir, self.ctrl.get_room(), len(self.ctrl.map.game_map)):
+        if not dir:
+            return "What direction?"
+        room = self.ctrl.get_room()
+        if hasattr(room, 'locked_exits') and room.locked_exits and dir in room.locked_exits:
+            return f"The way {dir} is locked."
+        if self.ctrl.player.move(dir, room, len(self.ctrl.map.game_map)):
+            if dir == 'portal':
+                return "You step through the portal."
+            elif dir in ('up', 'down'):
+                return f"You went {dir}."
             return f"You came from the {dir}."
         else:
-            if dir == "":
-                return "What direction?"
             return f"You cant go {dir}."
 
     # ─── Inventory ────────────────────────────────────────────────────────────

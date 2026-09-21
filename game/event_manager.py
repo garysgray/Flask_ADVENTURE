@@ -73,6 +73,8 @@ class EventManager:
                 for sc in fc:
                     if sc.get('room') == getattr(room, 'name', '') and sc.get('fixture') in room.fixtures:
                         room.fixtures[sc.get('fixture')].set_state(sc.get('state'))
+            if 'open_exit' in res:
+                self._open_exits(res['open_exit'])
             if event.id not in player.completed_events:
                 player.completed_events.append(event.id)
             return msgs
@@ -92,21 +94,28 @@ class EventManager:
         for exit_data in exits_to_open:
             target_room_name = exit_data['room']
             direction        = exit_data['direction']
-            destination      = exit_data['destination']
+            destination      = exit_data.get('destination')
 
             room_was_found = False
             for room in self.ctrl.map.list_of_rooms:
                 if room.name == target_room_name:
                     room_was_found = True
-                    if direction not in room.exits:
-                        room.exits.append(direction)
+                    if isinstance(room.exits, list):
+                        if direction not in room.exits:
+                            room.exits.append(direction)
+                    elif isinstance(room.exits, dict):
+                        if direction not in room.exits:
+                            room.exits[direction] = exit_data.get('target', True)
+                    elif isinstance(room.exits, set):
+                        room.exits.add(direction)
                     if hasattr(room, 'locked_exits') and direction in room.locked_exits:
                         room.locked_exits.remove(direction)
-                    room.exit_destinations[direction] = {
-                        'floor': destination['floor'],
-                        'x':     destination['x'],
-                        'y':     destination['y']
-                    }
+                    if destination:
+                        room.exit_destinations[direction] = {
+                            'floor': destination['floor'],
+                            'x':     destination['x'],
+                            'y':     destination['y']
+                        }
 
             if not room_was_found:
                 print(f"[EXIT ERROR] Room not found: {target_room_name}")
@@ -462,7 +471,10 @@ class EventManager:
         return None
 
     def check_win(self):
+        win_conditions = self.ctrl.map.win_conditions
+        if not win_conditions:
+            return False
         return all(
             event_id in self.ctrl.player.completed_events
-            for event_id in self.ctrl.map.win_conditions
-        )
+            for event_id in win_conditions
+    )

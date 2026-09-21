@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YAML Adventure Editor</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+</head>
+<body>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="up-title">YAML Adventure Editor</div>
+  <div class="up-sub">UNIFIED WORKBENCH — MODULAR ROOMS / MAP / SCRIPT</div>
+
+  <!-- Restore banner on upload screen -->
+  <div class="restore-banner" id="upload-restore-banner">
+    <span class="restore-banner-text" id="upload-restore-text">Found autosaved work from previous session.</span>
+    <div class="restore-btn-group">
+      <button class="btn btn-accent" onclick="restoreAutosave()">Restore Draft</button>
+      <button class="btn btn-dim" onclick="discardAutosave()">Discard</button>
+    </div>
+  </div>
+
+  <div class="up-zone" id="up-zone">
+    <div class="up-zone-label">Drop your game_data.yaml or test_the_room.yaml here</div>
+    <div class="up-zone-hint">or click to browse your computer</div>
+    <div style="display: flex; gap: 10px; margin-top: 14px; justify-content: center; z-index: 10; flex-wrap: wrap;">
+      <button type="button" class="btn btn-accent" style="padding: 10px 18px; font-weight: bold; background: var(--accent); color: #000;" onclick="event.stopPropagation(); createNewAdventure()">+ Create New Adventure (barebones.yaml)</button>
+      <label class="up-btn" for="file-input" onclick="event.stopPropagation()">Choose File</label>
+      <button type="button" class="btn btn-dim" style="padding: 10px 18px;" onclick="event.stopPropagation(); loadLiveTestRoom()">Load test_the_room.yaml</button>
+      <button type="button" class="btn btn-dim" style="padding: 10px 18px;" onclick="event.stopPropagation(); loadLiveGameData()">Load game_data.yaml</button>
+    </div>
+    <input type="file" id="file-input" accept=".yaml,.yml">
+  </div>
+  <div class="up-error" id="up-error"></div>
+</div>
+
+<!-- MAIN WORKBENCH -->
+<div id="main-app">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <span class="top-title">YAML WORKBENCH</span>
+    <span class="top-sep">///</span>
+    <span class="top-file" id="top-file" onclick="promptRenameFile()" style="cursor:pointer;" title="Click to rename adventure file">no file loaded</span>
+
+    <!-- Mode Selector Tabs -->
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btn-mode-map" onclick="switchMode('map')">Map &amp; Roadmap</button>
+      <button class="mode-btn" id="btn-mode-story" onclick="switchMode('story')">Story &amp; Metadata</button>
+      <button class="mode-btn" id="btn-mode-dialog" onclick="switchMode('dialog')">Dialog &amp; Script</button>
+      <button class="mode-btn" id="btn-mode-yaml" onclick="switchMode('yaml')">YAML Source</button>
+      <button class="mode-btn" id="btn-mode-validator" onclick="switchMode('validator')">Sanity Validator</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="top-actions">
+      <span class="val-top-badge val-badge-ok" id="top-val-badge" onclick="switchMode('validator')">✓ 0 ISSUES</span>
+      <span class="unsaved-badge" id="unsaved-count">0 UNSAVED EDITS</span>
+      <button class="btn btn-dim" onclick="openEmojiPicker()" title="Browse emojis, characters, and glyphs">🎨 Emojis</button>
+      <button class="btn btn-dim" onclick="createNewAdventure()" title="Create fresh adventure template">+ New Adventure</button>
+      <button class="btn btn-dim" onclick="resetToUpload()">Open File</button>
+      <button class="btn btn-accent" onclick="exportYaml()">Export YAML</button>
+    </div>
+  </div>
+
+  <!-- Restore banner inside main app if draft found -->
+  <div class="restore-banner" id="app-restore-banner">
+    <span class="restore-banner-text" id="app-restore-text">Found autosaved draft with more recent edits.</span>
+    <div class="restore-btn-group">
+      <button class="btn btn-accent" onclick="restoreAutosave()">Restore Draft</button>
+      <button class="btn btn-dim" onclick="discardAutosave()">Discard</button>
+    </div>
+  </div>
+
+  <!-- VIEW 1: MAP & ROADMAP -->
+  <div class="view-container active-view" id="view-map">
+    <div class="filter-bar" style="margin-bottom: 0;">
+      <div class="legend" style="margin-bottom: 0; flex: 1; border: none; background: transparent; padding: 0;">
+        <div class="legend-item"><div class="legend-dot" style="background:#4af0c0"></div>KEY ITEM</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e8c46a"></div>LORE ITEM</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#5a9acc"></div>FLAVOR ITEM</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e85555"></div>STARTING INV</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4af0c0;border-left:3px solid #4af0c0;border-radius:0"></div>HAS EVENT</div>
+      </div>
+      <!-- Live Map Search Bar -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="map-search" class="search-input" placeholder="Search rooms, fixtures, items..." oninput="onMapSearchChange(this.value)">
+        <span class="search-clear" id="map-search-clear" onclick="clearMapSearch()">✕</span>
+      </div>
+    </div>
+
+    <!-- Floor Maps Container -->
+    <div id="map-section"></div>
+
+    <hr class="divider">
+    <div id="room-list-section"></div>
+
+    <hr class="divider">
+    <div id="event-flow-section"></div>
+
+    <hr class="divider">
+    <div id="item-list-section"></div>
+  </div>
+
+  <!-- VIEW: STORY & METADATA EDITOR -->
+  <div class="view-container" id="view-story">
+    <div class="story-container">
+      <!-- Live Status & Summary Bar -->
+      <div class="story-meta-bar">
+        <div class="story-meta-item">
+          <span class="story-meta-label">FACILITY:</span>
+          <span class="story-meta-val" id="story-status-title">--</span>
+        </div>
+        <span class="top-sep">///</span>
+        <div class="story-meta-item">
+          <span class="story-meta-label">ARCHITECTURE:</span>
+          <span class="story-meta-val" style="color: var(--accent);">MODULAR ROOMS</span>
+        </div>
+        <span class="top-sep">///</span>
+        <div class="story-meta-item">
+          <span class="story-meta-label">SPAWN TILE:</span>
+          <span class="story-meta-val" id="story-status-spawn" style="color: var(--accent);">Floor 0 [0,0]</span>
+        </div>
+        <span class="top-sep">///</span>
+        <div class="story-meta-item">
+          <span class="story-meta-label">WIN CONDITIONS:</span>
+          <span class="story-meta-val" id="story-status-win-count" style="color: var(--amber);">0 Objectives</span>
+        </div>
+        <span class="top-sep">///</span>
+        <div class="story-meta-item" style="margin-left: auto;">
+          <span class="val-badge-pill val-badge-ok" id="story-status-val-pill">✓ VALIDATION PASSING</span>
+        </div>
+      </div>
+
+      <!-- ROW 1: Game Title -->
+      <div class="story-grid-2col">
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">1. Facility Identity &amp; Game Title</span>
+            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">YAML: intro.title</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-field">
+              <div class="story-field-header">
+                <label class="story-label" for="story-field-title">Game / Adventure Title</label>
+                <span class="story-subtext">Mapped directly to intro.title</span>
+              </div>
+              <input type="text" id="story-field-title" class="story-input" placeholder="e.g. The Research Facility" oninput="onStoryTitleChange(this.value)">
+              <span class="story-subtext">Title displayed on terminal header banner and briefing dossier.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">2. Architecture Status</span>
+            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">MODULAR FORMAT</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-notice-card">
+              <div class="story-notice-title">
+                <span>✓</span>
+                <span>MODULAR ROOM SPECIFICATION ACTIVE</span>
+              </div>
+              <div>
+                Room descriptions are dynamically stitched from:
+                <br><code>base_description → fixtures (priority ordered) → trailing_description</code>
+              </div>
+              <div style="color: var(--dim);">
+                Legacy <code>room.states</code> are eliminated. Fixtures support independent states, visibility, and targeted examine descriptions.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Narrative Briefing Prose & Preview -->
+      <div class="story-grid-2col">
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">3. Narrative Briefing &amp; Instructions</span>
+            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">YAML: intro.*</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-field">
+              <div class="story-field-header">
+                <label class="story-label" for="story-field-intro-text">Narrative Briefing Prose (intro.text)</label>
+                <span class="story-subtext" id="story-intro-text-count">0 words</span>
+              </div>
+              <textarea id="story-field-intro-text" class="story-textarea" rows="6" placeholder="Background story..." oninput="onStoryIntroTextChange(this.value)"></textarea>
+            </div>
+
+            <div class="story-field">
+              <div class="story-field-header">
+                <label class="story-label" for="story-field-intro-instructions">Operational Instructions (intro.instructions)</label>
+                <span class="story-subtext" id="story-intro-instructions-count">0 words</span>
+              </div>
+              <textarea id="story-field-intro-instructions" class="story-textarea" rows="3" placeholder="Command instructions..." oninput="onStoryIntroInstructionsChange(this.value)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">Live Briefing Modal Preview</span>
+            <span class="story-card-badge" style="background: rgba(90,154,204,0.15); color: var(--blue);">TERMINAL HUD</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-preview-container">
+              <span class="story-preview-badge">TRANSMISSION /// DOSSIER</span>
+              <div class="story-preview-title" id="story-preview-intro-title">ADVENTURE TITLE</div>
+              <div class="story-preview-body" id="story-preview-intro-text">Briefing text...</div>
+              <hr class="story-preview-divider">
+              <div class="story-preview-instructions" id="story-preview-intro-instructions">Instructions text...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Starting Room & Starting Inventory -->
+      <div class="story-grid-2col">
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">4. Starting Room &amp; Spawn Tile</span>
+            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">YAML: floors[0][0][0]</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-field">
+              <label class="story-label" for="story-field-start-room">Initial Spawn Room</label>
+              <select id="story-field-start-room" class="story-select" onchange="onStoryStartRoomChange(this.value)"></select>
+            </div>
+            <div id="story-start-room-card" style="margin-top: 6px; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-dim); border-radius: 4px; font-family: var(--mono); font-size: 11px;"></div>
+          </div>
+        </div>
+
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">5. Starting Inventory</span>
+            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">YAML: player.starting_inventory</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-field">
+              <div class="story-field-header">
+                <label class="story-label">Current Starting Items</label>
+                <span class="story-subtext" id="story-inv-count">0 items</span>
+              </div>
+              <div class="story-chip-container" id="story-inv-chips"></div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 6px;">
+              <select id="story-select-add-inv" class="story-select" style="flex: 1;"></select>
+              <button type="button" class="btn btn-accent" style="padding: 10px 16px; white-space: nowrap;" onclick="onAddStartingInventoryItem()">+ ADD ITEM</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 4: Win Conditions -->
+      <div class="story-card">
+        <div class="story-card-header">
+          <span class="story-card-title">6. Win Conditions &amp; Objectives</span>
+          <span class="story-card-badge" style="background: rgba(232,196,106,0.15); color: var(--amber);">YAML: win_conditions</span>
+        </div>
+        <div class="story-card-body">
+          <div class="story-win-list" id="story-win-list"></div>
+          <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+            <select id="story-select-add-win" class="story-select" style="flex: 1;"></select>
+            <button type="button" class="btn btn-accent" style="padding: 10px 16px; white-space: nowrap;" onclick="onAddWinCondition()">+ ADD WIN OBJECTIVE</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 5: Victory Screen & Epilogue -->
+      <div class="story-grid-2col">
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">7. Victory Epilogue Screen</span>
+            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">YAML: win_screen.*</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-field">
+              <label class="story-label" for="story-field-win-title">Victory Screen Title (win_screen.title)</label>
+              <input type="text" id="story-field-win-title" class="story-input" placeholder="YOU HAVE ESCAPED" oninput="onStoryWinTitleChange(this.value)">
+            </div>
+            <div class="story-field">
+              <label class="story-label" for="story-field-win-text">Epilogue Narrative Prose (win_screen.text)</label>
+              <textarea id="story-field-win-text" class="story-textarea" rows="6" placeholder="Epilogue narrative..." oninput="onStoryWinTextChange(this.value)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">Live Epilogue Preview</span>
+            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">EPILOGUE HUD</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-preview-container">
+              <span class="story-preview-badge">INCIDENT RESOLUTION</span>
+              <div class="story-preview-title" id="story-preview-win-title" style="color: var(--accent);">YOU HAVE ESCAPED</div>
+              <div class="story-preview-body" id="story-preview-win-text">Epilogue narrative...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 6: Real-time Diagnostics -->
+      <div class="story-card">
+        <div class="story-card-header">
+          <span class="story-card-title">Sanity Diagnostics (Story &amp; Setup Checks)</span>
+          <span class="story-card-badge" id="story-diag-status-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">ALL CHECKS PASSING</span>
+        </div>
+        <div class="story-card-body">
+          <div class="story-diag-grid" id="story-diag-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: DIALOG & SCRIPT EDITOR -->
+  <div class="view-container" id="view-dialog">
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterDialog('all', this)">ALL</button>
+        <button class="filter-tab" onclick="filterDialog('intro', this)">INTRO</button>
+        <button class="filter-tab" onclick="filterDialog('items', this)">ITEMS</button>
+        <button class="filter-tab" onclick="filterDialog('rooms', this)">ROOMS (MODULAR)</button>
+        <button class="filter-tab" onclick="filterDialog('events', this)">EVENTS</button>
+      </div>
+
+      <!-- Live Search Bar -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="dialog-search" class="search-input" placeholder="Search rooms, fixtures, prose..." oninput="onSearchChange(this.value)">
+        <span class="search-clear" id="search-clear" onclick="clearSearch()">✕</span>
+      </div>
+    </div>
+
+    <!-- Dialog Entries / Modular Rooms List -->
+    <div class="dialog-list" id="dialog-entries"></div>
+  </div>
+
+  <!-- VIEW 3: RAW YAML SOURCE EDITOR -->
+  <div class="view-container" id="view-yaml">
+    <div class="yaml-toolbar">
+      <span class="yaml-toolbar-title">DIRECT YAML DATA EDITOR</span>
+      <div class="search-wrap" style="width: 240px; margin-left: 10px;">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="yaml-search-input" class="search-input" placeholder="Find in YAML text..." onkeydown="if(event.key==='Enter') findNextYamlMatch()">
+        <span id="yaml-find-count" style="font-family: var(--mono); font-size: 10px; color: var(--dim); white-space: nowrap;"></span>
+        <button class="btn btn-dim" style="padding: 2px 8px; font-size: 9px;" onclick="findNextYamlMatch()">NEXT</button>
+      </div>
+      <button class="btn btn-accent" onclick="applyYamlSource(false)">Apply &amp; Refresh Map ↻</button>
+      <span class="yaml-status" id="yaml-sync-status">IN SYNC</span>
+    </div>
+    <div class="yaml-error-box" id="yaml-error-box"></div>
+    <textarea id="raw-yaml-textarea" class="yaml-editor-textarea" spellcheck="false" placeholder="Loading YAML data..."></textarea>
+  </div>
+
+  <!-- VIEW 4: SANITY VALIDATOR -->
+  <div class="view-container" id="view-validator">
+    <div id="val-summary-banner" class="val-summary-banner val-banner-pass">
+      <div class="val-icon" id="val-banner-icon">✓</div>
+      <div>
+        <div class="val-summary-title" id="val-banner-title">ALL SANITY CHECKS PASSING</div>
+        <div class="val-summary-desc" id="val-banner-desc">No orphan rooms, broken exits, or missing fixtures detected.</div>
+      </div>
+      <div style="margin-left: auto; display: flex; gap: 8px;">
+        <button class="btn btn-accent" onclick="runValidation()">Re-run Diagnostics</button>
+      </div>
+    </div>
+
+    <div class="val-filter-row">
+      <span style="font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: 1.5px;">FILTER:</span>
+      <button class="filter-tab active" id="val-filter-all" onclick="filterValidationCategory('all', this)">ALL CHECKS (<span id="val-count-all">0</span>)</button>
+      <button class="filter-tab" id="val-filter-err" onclick="filterValidationCategory('errors', this)">ERRORS (<span id="val-count-errors">0</span>)</button>
+      <button class="filter-tab" id="val-filter-warn" onclick="filterValidationCategory('warnings', this)">WARNINGS (<span id="val-count-warnings">0</span>)</button>
+      <button class="filter-tab" id="val-filter-ok" onclick="filterValidationCategory('passed', this)">HEALTHY PASSES (<span id="val-count-passed">0</span>)</button>
+    </div>
+
+    <div id="validator-cards-container"></div>
+  </div>
+
+  <!-- Common Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-item">ENTRIES <span class="stat-val" id="stat-entries">0</span></div>
+    <div class="stat-item">UNSAVED <span class="stat-val" id="stat-changed">0</span></div>
+    <div class="stat-item">WORDS <span class="stat-val" id="stat-words">0</span></div>
+    <div class="stat-item" style="margin-left:auto;">ROOMS <span class="stat-val" id="stat-rooms">0</span></div>
+    <div class="stat-item">ITEMS <span class="stat-val" id="stat-items">0</span></div>
+    <div class="stat-item">EVENTS <span class="stat-val" id="stat-events">0</span></div>
+  </div>
+</div>
+
+<!-- ON-THE-FLY ROOM INSPECT & EDIT MODAL -->
+<div id="room-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-room-title">ROOM INSPECTOR</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" class="btn btn-dim" style="padding: 3px 8px; font-size: 11px;" onclick="openEmojiPicker()">🎨 Emojis</button>
+        <button class="modal-close" onclick="closeRoomModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-room-body"></div>
+  </div>
+</div>
+
+<!-- Export Toast -->
+<div id="toast">YAML EXPORTED</div>
+
+<script src="js/state.js"></script>
+<script src="js/schema.js"></script>
+<script src="js/validator.js"></script>
+<script src="js/map_view.js"></script>
+<script src="js/dialog_view.js"></script>
+<script src="js/story_view.js"></script>
+<script src="js/yaml_view.js"></script>
+<script src="js/emoji_picker.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

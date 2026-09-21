@@ -1,0 +1,746 @@
+# =============================================================================
+# FLASK ADVENTURE ENGINE -- COMPLETE DEVELOPER YAML TUTORIAL & HANDBOOK
+# =============================================================================
+#
+# Welcome to the definitive guide and playable reference for authoring worlds
+# in the Flask Adventure engine!
+#
+# This file is both an interactive playable tutorial and a complete code handbook.
+# It teaches every key engine system:
+#   1. THEME & INTRO CONFIGURATION (visual palettes, fonts, starting popup)
+#   2. PLAYER SETUP (starting coordinates, starting inventory)
+#   3. WIN CONDITIONS & WIN SCREEN (how games are won and epilogue screen)
+#   4. ITEMS & INVENTORY (names, keywords, aliases, floor presence, states, usage)
+#   5. TARGET ALIASES (mapping multiple nouns to fixtures and scenery)
+#   6. CUSTOM VERBS (registering 1-object solo verbs and 2-object interaction verbs)
+#   7. ROOM ARCHITECTURE (base prose, modular fixtures, items, trailing prose)
+#   8. FIXTURES & SCENERY (priority sorting, examine text, the hidden fixture pattern)
+#   9. EXITS & DESTINATIONS (grid movement, locked exits, vertical stairs, portals)
+#  10. EVENTS & CONDITIONS (ECA system: solo triggers, dual triggers, hints, mutations)
+#  11. MAP FLOORS & GRID (2D/3D coordinate matrices, voids, multi-level layouts)
+#
+# =============================================================================
+
+
+# =============================================================================
+# SECTION 1: THEME CONFIGURATION
+# =============================================================================
+# The 'theme' block injects CSS variables into templates/base.html at runtime.
+# This lets each scenario have its own color scheme and typography without
+# editing any CSS files.
+#
+# Available options:
+#   accent: Main accent color for borders, prompts, player highlights, and badges
+#   bg:     Background color for the terminal shell and panels
+#   font:   CSS font family override (e.g., "'Share Tech Mono', monospace")
+# =============================================================================
+theme:
+  accent: "#debb62"          # Amber terminal glow
+  bg: "#050709"              # Deep dark slate-black
+  font: "'Share Tech Mono', monospace"
+
+
+# =============================================================================
+# SECTION 2: PLAYER STARTING STATE
+# =============================================================================
+# Defines what the player carries when a brand-new save is created.
+# Every entry in 'starting_inventory' must match an item key defined in the
+# 'items' section below.
+# =============================================================================
+player:
+  starting_inventory:
+    - field_magnifier        # A tool for inspecting fixtures (single-object action)
+    - copper_tuning_fork     # A resonance key for opening doors (two-object action)
+
+
+# =============================================================================
+# SECTION 3: INTRO SCREEN
+# =============================================================================
+# The intro panel appears as an overlay on the player's very first visit.
+# Clicking "[ ENTER FACILITY ]" (or the button in game.html) fires a background
+# POST to /seen_intro/<id>, ensuring it only pops up once per player save.
+#
+#   title:        Header displayed at the top of the modal
+#   text:         Narrative background story (supports multiple paragraphs)
+#   instructions: Tactical gameplay tips (e.g. commands to try)
+# =============================================================================
+intro:
+  title: "WELCOME TO THE DEVELOPER LAB"
+  text: |
+    Welcome to the interactive YAML Tutorial Chamber!
+    
+    This simulation demonstrates how the Flask Adventure engine interprets
+    world data: rooms, stateful fixtures, item interactions, dynamic exits,
+    and event triggers.
+    
+    Explore the lab rooms, test commands, and observe how the terminal,
+    mini-map, and room descriptions react in real time.
+  instructions: |
+    Essential commands to test:
+      - Movement:  'north', 'south', 'east', 'west', 'up', 'down' (or n, s, e, w, u, d)
+      - Inspect:   'look', 'examine <target>', 'examine <fixture>'
+      - Inventory: 'inventory' (or 'i'), 'take <item>', 'drop <item>'
+      - Solo Verbs:'pull lever', 'press button', 'read notes'
+      - Dual Verbs:'use fork on resonator', 'insert card into terminal'
+      - Field Notes:'journal' or 'field notes'
+
+
+# =============================================================================
+# SECTION 4: WIN CONDITIONS & WIN SCREEN
+# =============================================================================
+# The engine checks for victory on every single turn!
+#
+# win_conditions:
+#   A list of event IDs (defined in the 'events' section).
+#   When ALL listed events exist in the player's 'completed_events' history,
+#   the game transitions to the dedicated Epilogue / Win Screen.
+#
+# win_screen:
+#   title: The victory banner text.
+#   text:  The final resolution story text displayed to the player.
+# =============================================================================
+win_conditions:
+  - activate_generator       # Event 1: Pull the power lever
+  - harmonize_resonator      # Event 2: Use fork on the acoustic resonator
+  - breach_upper_observatory # Event 3: Ascend to Floor 1 and unlock the console
+
+win_screen:
+  title: "SIMULATION CERTIFICATION ACHIEVED"
+  text: |
+    Congratulations! You have mastered the engine's core mechanics:
+      1. Single-object fixture manipulation (power lever).
+      2. Two-object item-to-scenery interaction (harmonic tuning fork).
+      3. Dynamic exit unlocking (staircase ascension to Floor 1).
+      4. Vertical multi-floor mapping and victory condition triggers.
+    
+    You are now ready to design and write your own complete adventure worlds!
+
+
+# =============================================================================
+# SECTION 5: ITEMS
+# =============================================================================
+# Items are portable objects that can be picked up, dropped, inspected, or used.
+#
+# Key anatomy:
+#   display_name: The readable name displayed in the UI carrying panel & lists.
+#   presence:     The sentence fragment rendered when the item is on the floor.
+#                 (e.g., "Items in the room are: <presence>.")
+#   aliases:      Synonyms the player can type to refer to this item.
+#   keywords:     Single-word tokens the parser will match.
+#   states:       Dictionary of states (must include 'default').
+#     description: Text shown when player inspects it with 'look <item>' or 'examine <item>'.
+#     use:         Solo text shown if player types 'use <item>' by itself.
+# =============================================================================
+items:
+  field_magnifier:
+    display_name: "brass field magnifier"
+    presence: "a brass field magnifier with etched lenses"
+    aliases:
+      - magnifier
+      - glass
+      - lens
+      - magnifying glass
+    keywords:
+      - magnifier
+      - glass
+      - lens
+    states:
+      default:
+        description: |
+          A jeweler's loupe framed in heavy antiqued brass.
+          Looking through the lens reveals microscopic engravings on fixtures.
+        use: |
+          You peer through the magnifier. Its convex lens sharpens the tiniest details.
+
+  copper_tuning_fork:
+    display_name: "copper tuning fork"
+    presence: "a dual-pronged copper tuning fork"
+    aliases:
+      - fork
+      - tuning fork
+      - copper fork
+    keywords:
+      - fork
+      - resonator
+    states:
+      default:
+        description: |
+          A solid copper tuning fork stamped with '432 Hz'.
+          Striking it generates a sustained acoustic tone.
+        use: |
+          You strike the fork against your palm. A pure, resonant hum rings out.
+
+  security_keycard:
+    display_name: "level-3 clearance card"
+    presence: "a laminated security keycard stamped with 'LEVEL 3'"
+    aliases:
+      - card
+      - keycard
+      - badge
+      - security card
+    keywords:
+      - card
+      - keycard
+    states:
+      default:
+        description: |
+          A magnetic swipe card with a gold-plated microchip.
+          Clearance Level 3 is authorized for upper observatory access.
+        use: |
+          A security keycard. Swipe it through an authorized terminal to grant access.
+
+  ancient_schematic:
+    display_name: "schematic parchment"
+    presence: "a rolled architectural blueprint"
+    aliases:
+      - schematic
+      - blueprint
+      - parchment
+      - map
+      - notes
+    keywords:
+      - schematic
+      - blueprint
+      - notes
+    states:
+      default:
+        description: |
+          An architectural floorplan of this testing facility.
+          It notes: 'The power lever in the Generator Room unlocks the acoustic lock.'
+        use: |
+          You unroll the schematic. It outlines the power conduit running from
+          the Generator Room (East) to the Acoustic Chamber (West).
+
+
+# =============================================================================
+# SECTION 6: TARGET ALIASES (SCENERY & FIXTURES)
+# =============================================================================
+# Players type natural words like 'lever', 'box', or 'screen'.
+# 'target_aliases' maps those words to the internal IDs of fixtures and scenery.
+#
+# Format:
+#   <internal_identifier>:
+#     - alias1
+#     - alias2
+# =============================================================================
+target_aliases:
+  main_generator_lever:
+    - lever
+    - switch
+    - generator switch
+    - knife switch
+    - handle
+
+  acoustic_resonator_pedestal:
+    - pedestal
+    - resonator
+    - acoustic pedestal
+    - sound lock
+    - receptor
+
+  secret_wall_safe:
+    - safe
+    - wall safe
+    - compartment
+    - secret safe
+    - lockbox
+
+  observatory_console:
+    - console
+    - terminal
+    - computer
+    - main console
+    - computer terminal
+
+  reinforced_stair_gate:
+    - gate
+    - stairs
+    - stair gate
+    - security gate
+    - metal gate
+
+
+# =============================================================================
+# SECTION 7: CUSTOM VERBS
+# =============================================================================
+# The parser comes with built-in verbs (look, examine, take, drop, use, etc.).
+# 'custom_verbs' lets you register specialized verbs for puzzles:
+#
+#   single_object:
+#     Verbs acting on one target without an instrument:
+#     e.g., 'pull lever', 'press button', 'tune dial', 'flip switch'
+#
+#   two_object:
+#     Verbs connecting an instrument item to a target:
+#     e.g., 'use key on door', 'insert card into terminal', 'strike fork on pedestal'
+# =============================================================================
+custom_verbs:
+  single_object:
+    - pull
+    - push
+    - press
+    - flip
+    - crank
+    - tune
+    - strike
+
+  two_object:
+    - use
+    - insert
+    - strike
+    - swipe
+    - tune
+    - combine
+
+
+# =============================================================================
+# SECTION 8: ROOMS & SCENERY ARCHITECTURE
+# =============================================================================
+# Rooms are the heart of the world. In this engine, room descriptions are NOT
+# static strings; they are assembled dynamically on every 'look' via 4 parts:
+#
+#   1. base_description: Opening environment narrative (permanent).
+#
+#   2. fixtures: Stationary objects (switches, pods, panels, safes).
+#      Each fixture has:
+#        priority:      Integer controlling paragraph display order (lowest first).
+#        state:         Initial state (e.g. 'default', 'pulled', 'hidden').
+#        states:        Map of state names to descriptions rendered in the room.
+#        examine:       Map of state names to targeted descriptions shown on 'examine <fixture>'.
+#
+#      * THE HIDDEN FIXTURE PATTERN *:
+#        If a fixture has `states: { hidden: "" }`, it produces zero text in the
+#        room overview! The player won't see it until an event mutates its state to
+#        'revealed', but curious players can still 'examine' it beforehand!
+#
+#   3. items: Loose items in the room (automatically listed by the engine).
+#
+#   4. trailing_description: Closing narrative text (permanent, e.g. exits).
+#
+# Exits:
+#   exits: Standard open exits ('north', 'south', 'east', 'west', 'up', 'down').
+#   locked_exits: Exits shown on the mini-map with a lock icon ([LOCKED]) that cannot
+#                 be entered until an event removes them from locked_exits.
+#   exit_destinations: For vertical floors or teleports. Specifies explicit
+#                      target floor and grid coordinates:
+#                      up: { floor: 1, x: 1, y: 0 }
+# =============================================================================
+rooms:
+
+  # ---------------------------------------------------------------------------
+  # ROOM 1: TUTORIAL HUB (CENTRAL CHAMBER)
+  # Demonstrates:
+  #   - Multi-fixture sorting by priority
+  #   - Hidden fixture pattern (secret safe revealed later)
+  #   - Locked exits (the northern gate to the upper floor)
+  #   - Positioned at (X=0, Y=0) so new players spawn directly here!
+  # ---------------------------------------------------------------------------
+  - name: tutorial_hub
+    display_name: "Central Tutorial Hub"
+
+    exits:
+      - east
+      - south
+      - north
+
+    # The northern exit leads upstairs, but is locked initially
+    locked_exits:
+      - north
+
+    # exit_destinations tells the engine where 'north' goes (Floor 1, Grid X=0, Y=0)
+    exit_destinations:
+      north:
+        floor: 1
+        x: 0
+        y: 0
+
+    base_description: |
+      You stand in the Central Tutorial Hub. Polished slate tiles reflect the amber
+      glow of ceiling conduit strips.
+
+    fixtures:
+      # Fixture 1 (Priority 10): Appears first in the room prose
+      reinforced_stair_gate:
+        priority: 10
+        state: default
+        states:
+          default: |
+            To the north, a heavy hydraulic security gate bars the stairway leading up.
+            A red electromagnetic indicator light pulses above the lock.
+          unlocked: |
+            To the north, the hydraulic security gate stands wide open, revealing
+            a spiral staircase ascending to the upper observatory.
+        examine:
+          default: "A reinforced titanium gate. Auxiliary power is offline, keeping the magnetic latch locked."
+          unlocked: "The magnetic latch is disengaged. The stairway to Floor 1 is completely clear."
+
+      # Fixture 2 (Priority 20): Appears second
+      information_terminal:
+        priority: 20
+        state: default
+        states:
+          default: |
+            A brass pedestal in the center holds an architectural schematic parchment.
+          cleared: |
+            A brass pedestal stands in the center with an empty velvet cradle.
+        examine:
+          default: "The pedestal displays facility blueprints. You can 'take schematic' to study it."
+          cleared: "The display pedestal is empty."
+
+      # Fixture 3 (Priority 30): HIDDEN FIXTURE PATTERN
+      # In state 'hidden', the room state text is "" (empty string).
+      # The player does not see it in 'look' until an event flips it to 'revealed'!
+      secret_wall_safe:
+        priority: 30
+        state: hidden
+        states:
+          hidden: ""
+          revealed: |
+            Behind a sliding wall panel, a concealed electronic safe has unlocked
+            and swung open, revealing a glowing compartment.
+        examine:
+          hidden: "You notice hairline seams in the masonry, as if a panel could slide open."
+          revealed: "A small wall vault. Inside lies the Level 3 security keycard!"
+
+    trailing_description: |
+      Corridors lead EAST toward the Generator Room and SOUTH toward the Acoustic Lab.
+
+    items:
+      - ancient_schematic
+
+
+  # ---------------------------------------------------------------------------
+  # ROOM 2: GENERATOR ROOM (EAST OF HUB)
+  # Demonstrates:
+  #   - Single-object solo verb event ('pull lever')
+  #   - Fixture state mutation ('default' -> 'energized')
+  #   - Cross-room mutation (energizing unlocks the gate in tutorial_hub!)
+  # ---------------------------------------------------------------------------
+  - name: generator_room
+    display_name: "Power Generator Room"
+
+    exits:
+      - west
+
+    base_description: |
+      You enter the Generator Room. Massive dynamos sit dormant along the copper-clad walls.
+
+    fixtures:
+      main_generator_lever:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A heavy cast-iron knife switch is mounted to the main circuit wall, set to OFF.
+          energized: |
+            The main knife switch is pulled DOWN into the live contacts.
+            High-voltage capacitors thrum steadily, bathing the room in a warm amber light.
+        examine:
+          default: "An industrial knife-switch lever. Type 'pull lever' or 'pull switch' to engage power."
+          energized: "The lever is engaged in the lower contacts. Generator power is flowing through the facility."
+
+    trailing_description: |
+      The archway to the WEST leads back to the Central Tutorial Hub.
+
+    items: []
+
+
+  # ---------------------------------------------------------------------------
+  # ROOM 3: ACOUSTIC LAB (SOUTH OF HUB)
+  # Demonstrates:
+  #   - Two-object interaction event ('use fork on resonator')
+  #   - Multi-condition requirements (must be in room + hold tuning fork + generator on)
+  #   - Revealing hidden fixtures and awarding new items
+  # ---------------------------------------------------------------------------
+  - name: acoustic_lab
+    display_name: "Acoustic Resonance Lab"
+
+    exits:
+      - north
+
+    base_description: |
+      You are inside the Acoustic Resonance Lab. Acoustic foam panels baffle all echoes.
+
+    fixtures:
+      acoustic_resonator_pedestal:
+        priority: 10
+        state: default
+        states:
+          default: |
+            In the room center sits an acoustic pedestal fitted with a hollow brass cylinder.
+          tuned: |
+            In the room center, the acoustic pedestal vibrates in perpetual resonance,
+            emitting a soothing 432 Hz chord.
+        examine:
+          default: |
+            A sound-activated receptor. A plaque reads: 'Harmonic frequency 432 Hz required'.
+            Try: 'use fork on pedestal' or 'strike fork on resonator'.
+          tuned: "The receptor is vibrating in perfect acoustic harmony."
+
+    trailing_description: |
+      The doorway to the NORTH returns to the Central Tutorial Hub.
+
+    items: []
+
+
+  # ---------------------------------------------------------------------------
+  # ROOM 4: UPPER OBSERVATORY (FLOOR 1 - NORTH STAIRWAY)
+  # Demonstrates:
+  #   - Multi-floor elevation navigation (Floor 1)
+  #   - Using a keycard acquired from a previous puzzle to win the game
+  #   - Downward exit returning to Floor 0
+  # ---------------------------------------------------------------------------
+  - name: upper_observatory
+    display_name: "Upper Star Observatory"
+
+    exits:
+      - south
+
+    # exit_destinations maps 'south' back down to Floor 0, Grid X=0, Y=0 (tutorial_hub)
+    exit_destinations:
+      south:
+        floor: 0
+        x: 0
+        y: 0
+
+    base_description: |
+      You stand on the upper observation deck beneath a panoramic crystal dome.
+      Constellations glitter across the dark sky above.
+
+    fixtures:
+      observatory_console:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A central astrolabe terminal stands here. Its swipe slot blinks with
+            a steady yellow amber prompt: 'INSERT LEVEL 3 KEYCARD'.
+          activated: |
+            The astrolabe terminal is fully unlocked! Starcharts rotate in a luminous
+            three-dimensional holographic sphere above the console.
+        examine:
+          default: "The primary control terminal. Type: 'use keycard on terminal' or 'insert card into console'."
+          activated: "The terminal has completed its calculation cycle. The simulation is solved!"
+
+    trailing_description: |
+      A spiral staircase to the SOUTH leads back down to the Central Hub on Floor 0.
+
+    items: []
+
+
+# =============================================================================
+# SECTION 9: EVENTS (EVENT-CONDITION-ACTION ENGINE)
+# =============================================================================
+# Events bring the world to life. They react to player commands or movements,
+# check necessary conditions, give helpful failure hints if conditions aren't
+# met, and perform world mutations.
+#
+# Event Structure:
+#   id: Unique identifier string (referenced by win_conditions and conditions).
+#
+#   trigger:
+#     type: solo | dual | passive
+#     action: The verb (e.g. 'pull', 'press', 'use', 'insert')
+#     target: The object being acted upon (solo or dual)
+#     source: The item being used as a tool (dual only)
+#
+#   conditions:
+#     - type: in_room             -> room: <room_name>
+#     - type: required_items      -> required_items: [<item_name>]
+#     - type: events_completed    -> events: [<event_id>]
+#     - type: rooms_visited       -> rooms: [<room_name>]
+#     fail_hint: Text shown if this specific condition fails! (Crucial for UX)
+#
+#   result:
+#     message:           Popup dialog text shown to the player.
+#     set_fixture_state: Updates a fixture in any room (e.g. state: energized).
+#     set_item_state:    Updates an item's state in inventory.
+#     open_exit:         Opens an exit or removes it from locked_exits:
+#                        - room: <name>
+#                          direction: <dir>
+#                          destination: { floor: <f>, x: <x>, y: <y> }
+#     add_item:          Adds an item to inventory (or to room with 'to: room').
+#     remove_item:       Consumes an item from player inventory.
+#     journal:           Appends an entry to the player's permanent Field Notes.
+# =============================================================================
+events:
+
+  # ---------------------------------------------------------------------------
+  # EVENT 1: Pull the generator switch (Solo action)
+  # ---------------------------------------------------------------------------
+  - id: activate_generator
+    trigger:
+      type: solo
+      target: main_generator_lever
+      action: pull
+    conditions:
+      - type: in_room
+        room: generator_room
+        fail_hint: "The main power switch is located in the Generator Room."
+    result:
+      # 1. Update the lever fixture in the generator room
+      set_fixture_state:
+        - room: generator_room
+          fixture: main_generator_lever
+          state: energized
+        # 2. Cross-room effect: Unlock the stair gate in the Central Hub!
+        - room: tutorial_hub
+          fixture: reinforced_stair_gate
+          state: unlocked
+      # 3. Mechanically unlock the exit on the map
+      open_exit:
+        - room: tutorial_hub
+          direction: north
+          destination:
+            floor: 1
+            x: 0
+            y: 0
+      # 4. Record to the player's field notes
+      journal:
+        room: generator_room
+        message: "Pulled the main generator switch. Auxiliary power restored and stair gate disengaged."
+      # 5. Display modal alert to player
+      message: |
+        With a resounding mechanical CLANK, you pull the heavy knife switch down!
+        High-voltage capacitors hum to life. A pulse of energy surges along the wall conduits,
+        and you hear hydraulic locks disengaging back in the Central Hub!
+
+
+  # ---------------------------------------------------------------------------
+  # EVENT 2: Harmonize the tuning fork with the acoustic pedestal (Dual action)
+  # Requires: Generator must be powered on first (events_completed condition)!
+  # ---------------------------------------------------------------------------
+  - id: harmonize_resonator
+    trigger:
+      type: dual
+      source: copper_tuning_fork
+      target: acoustic_resonator_pedestal
+      action: use
+    conditions:
+      - type: in_room
+        room: acoustic_lab
+        fail_hint: "The acoustic resonator pedestal is inside the Acoustic Lab."
+      - type: required_items
+        required_items:
+          - copper_tuning_fork
+        fail_hint: "You need a resonant acoustic instrument to trigger the receptor."
+      - type: events_completed
+        events:
+          - activate_generator
+        fail_hint: "The acoustic pedestal remains silent. It seems to need electrical power from the generator first."
+    result:
+      # 1. Mutate the pedestal fixture state
+      set_fixture_state:
+        - room: acoustic_lab
+          fixture: acoustic_resonator_pedestal
+          state: tuned
+        # 2. REVEAL THE HIDDEN SAFE in the Central Hub!
+        - room: tutorial_hub
+          fixture: secret_wall_safe
+          state: revealed
+      # 3. Give the player the security keycard
+      add_item: security_keycard
+      # 4. Record note in journal
+      journal:
+        room: acoustic_lab
+        message: "Harmonized the acoustic pedestal. A hidden wall safe opened in the Central Hub, granting the Level 3 Keycard."
+      # 5. Modal message
+      message: |
+        You strike the copper tuning fork against the brass pedestal!
+        A crystal-clear 432 Hz tone reverberates through the acoustic foam.
+        
+        The pedestal's frequency sensor lights up green, and a distant hydraulic hiss
+        echoes from the Central Hub as a concealed wall vault slides open!
+        You recover a Level 3 Clearance Keycard.
+
+
+  # ---------------------------------------------------------------------------
+  # EVENT 3: Swipe Keycard at Observatory Console (Final Puzzle)
+  # ---------------------------------------------------------------------------
+  - id: breach_upper_observatory
+    trigger:
+      type: dual
+      source: security_keycard
+      target: observatory_console
+      action: use
+    conditions:
+      - type: in_room
+        room: upper_observatory
+        fail_hint: "The main observatory console is located upstairs on Floor 1."
+      - type: required_items
+        required_items:
+          - security_keycard
+        fail_hint: "The console requires a Level 3 clearance card to operate."
+    result:
+      # 1. Update console state
+      set_fixture_state:
+        - room: upper_observatory
+          fixture: observatory_console
+          state: activated
+      # 2. Consume or retain item (here we retain or can remove)
+      journal:
+        room: upper_observatory
+        message: "Authorized Level 3 clearance at the observatory terminal. Final simulation verified."
+      message: |
+        You slide the Level 3 keycard through the terminal reader.
+        
+        The amber prompt blinks green: [ACCESS GRANTED - CLEARANCE LEVEL 3].
+        
+        The celestial astrolabe awakens with a whisper of gears, projecting
+        a dazzling starfield into the center of the dome!
+
+
+# =============================================================================
+# SECTION 10: MAP FLOORS & GRID LAYOUT
+# =============================================================================
+# The 'floors' array defines the physical grid layout for the mini-map.
+#
+# Structure:
+#   floors:
+#     - [Floor 0 Rows]
+#     - [Floor 1 Rows]
+#
+# Grid Coordinate System:
+#   Each floor is a 2D matrix: floor[Y][X]
+#     - X increases going EAST (left to right)
+#     - Y increases going SOUTH (top to bottom)
+#     - Use 'null' or '~' for empty voids or non-room spaces
+#
+# =============================================================================
+# CRITICAL ENGINE RULE: SPAWN POINT POSITIONING
+# =============================================================================
+# In the Flask Adventure engine, every new game session initializes the player
+# at: Floor 0, Grid (X=0, Y=0).
+#
+# Therefore, cell floor[0][0][0] MUST ALWAYS be an active room (never null)!
+# If cell (0,0) on Floor 0 is set to null, the engine would place the player
+# into a void and fail to resolve the starting room.
+#
+# Floor 0 Diagram (2 wide x 2 tall):
+#   Row 0 (Y=0): [ tutorial_hub, generator_room ]
+#                 (X=0)         (X=1)
+#   Row 1 (Y=1): [ acoustic_lab, null           ]
+#                 (X=0)         (X=1)
+#
+# Floor 1 Diagram (Upper Level - 2 wide x 2 tall):
+#   Row 0 (Y=0): [ upper_observatory, null ]
+#                 (X=0)              (X=1)
+#   Row 1 (Y=1): [ null,              null ]
+#                 (X=0)              (X=1)
+# =============================================================================
+floors:
+  # FLOOR 0 (Ground Level)
+  - - - tutorial_hub    # (X=0, Y=0) <- PLAYER STARTING LOCATION
+      - generator_room  # (X=1, Y=0) <- EAST OF HUB
+    - - acoustic_lab    # (X=0, Y=1) <- SOUTH OF HUB
+      - null            # (X=1, Y=1) <- Void
+
+  # FLOOR 1 (Upper Observatory)
+  - - - upper_observatory # (X=0, Y=0) <- Reached via northern stairs from hub
+      - null
+    - - null
+      - null
+
+# =============================================================================
+# END OF TUTORIAL YAML
+# =============================================================================

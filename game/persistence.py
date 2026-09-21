@@ -36,6 +36,7 @@ class PersistenceManager:
         self.ctrl.player.id               = db_player.id
         self.ctrl.player.pos_x            = player_location['X']
         self.ctrl.player.pos_y            = player_location['Y']
+        self.ctrl.player.level            = player_location.get('floor', player_location.get('level', 0))
         self.ctrl.player.visited_rooms    = player_location.get('visited_rooms', [])
         self.ctrl.player.visited_room_names = player_location.get('visited_room_names', [])
         self.ctrl.player.completed_events = player_location.get('completed_events', [])
@@ -83,6 +84,7 @@ class PersistenceManager:
         player_data = {
             'X':               self.ctrl.player.pos_x,
             'Y':               self.ctrl.player.pos_y,
+            'floor':           getattr(self.ctrl.player, 'level', 0),
             'visited_rooms':   self.ctrl.player.visited_rooms,
             'completed_events':self.ctrl.player.completed_events,
             'journal':         self.ctrl.player.journal,

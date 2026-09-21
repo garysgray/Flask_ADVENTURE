@@ -195,6 +195,25 @@ class Map:
         self.win_screen     = data.get('win_screen', {})
         self.theme          = data.get('theme', {})
 
+        # Validation Guardrail: Maximum 6 floors limit
+        if len(self.floor_recipes) > 6:
+            raise ValueError(
+                f"YAML Validation Error: Floor layout defines {len(self.floor_recipes)} floors, "
+                f"which exceeds the maximum allowed 6 floors (Floors 0 to 5)."
+            )
+
+        # Parse player starting location (supports center spawn e.g. [2,2])
+        p_data = data.get('player', {}) or {}
+        raw_start = p_data.get('starting_location') or self.intro.get('starting_location')
+        if isinstance(raw_start, dict):
+            self.starting_location = {
+                'floor': int(raw_start.get('floor', 0)),
+                'x': int(raw_start.get('x', 0)),
+                'y': int(raw_start.get('y', 0))
+            }
+        else:
+            self.starting_location = {'floor': 0, 'x': 0, 'y': 0}
+
         player_start_stuff = data.get('player', {}).get('starting_inventory', [])
         self.player_start_invent = [self.make_item(stuff) for stuff in player_start_stuff]
 
@@ -202,6 +221,19 @@ class Map:
 
         rooms = self.create_fresh_rooms_from_recipes()
         self.rebuild_from_rooms(rooms)
+
+        # Validation Guardrail: Ensure spawn location resolves to an active room
+        s_floor = self.starting_location['floor']
+        s_y = self.starting_location['y']
+        s_x = self.starting_location['x']
+        if (s_floor >= len(self.game_map) or
+            s_y >= len(self.game_map[s_floor]) or
+            s_x >= len(self.game_map[s_floor][s_y]) or
+            self.game_map[s_floor][s_y][s_x] is None):
+            raise ValueError(
+                f"YAML Validation Error: Starting location (Floor {s_floor}, X={s_x}, Y={s_y}) "
+                f"is empty (null) or out of bounds. The player must spawn in an active room."
+            )
 
         self.list_of_items = [self.make_item(name) for name in self.item_recipes]
 
@@ -271,12 +303,33 @@ class Map:
                         display_name  = fix_data.get('display_name', fix_name.replace('_', ' '))
                     )
 
+            raw_exits = recipe.get('exits', [])
+            if isinstance(raw_exits, list):
+                room_exits = raw_exits.copy()
+            elif isinstance(raw_exits, dict):
+                room_exits = list(raw_exits.keys())
+            elif isinstance(raw_exits, str):
+                room_exits = [raw_exits.lstrip('-').strip()]
+            else:
+                room_exits = []
+
+            raw_dest = recipe.get('exit_destinations', {})
+            room_dest = raw_dest.copy() if isinstance(raw_dest, dict) else {}
+
+            raw_locked = recipe.get('locked_exits', [])
+            if isinstance(raw_locked, list):
+                room_locked = raw_locked.copy()
+            elif isinstance(raw_locked, str):
+                room_locked = [raw_locked.lstrip('-').strip()]
+            else:
+                room_locked = []
+
             room = Room(
                 name                 = recipe['name'],
-                exits                = recipe['exits'].copy(),
+                exits                = room_exits,
                 inventory            = [self.make_item(name) for name in recipe.get('items', [])],
-                exit_destinations    = recipe.get('exit_destinations', {}).copy(),
-                locked_exits         = recipe.get('locked_exits', []).copy(),
+                exit_destinations    = room_dest,
+                locked_exits         = room_locked,
                 states               = recipe.get('states', {}),
                 display_name         = recipe.get('display_name', recipe['name'].replace('_', ' ')),
                 base_description     = recipe.get('base_description', ''),

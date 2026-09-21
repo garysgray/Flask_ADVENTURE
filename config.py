@@ -1,1 +1,1 @@
-DATA_FILE_PATH = "test_the_room.yaml"
+DATA_FILE_PATH = "barebones4.yaml"

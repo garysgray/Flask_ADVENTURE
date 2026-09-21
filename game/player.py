@@ -5,7 +5,7 @@ class Player:
     State is saved to the database after every command via PersistenceManager.
     """
 
-    DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down']
+    DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down', 'portal']
 
     def __init__(self, game_map=None, location=None, inventory=None):
         self.id               = None
@@ -29,21 +29,26 @@ class Player:
     # ─── Location ─────────────────────────────────────────────────────────────
 
     def get_location(self):
-        return {'X': self.pos_x, 'Y': self.pos_y}
+        return {'X': self.pos_x, 'Y': self.pos_y, 'floor': self.level}
 
     # ─── Movement ─────────────────────────────────────────────────────────────
 
     def move(self, dir, room, level_max):
         """
         Moves the player in the given direction.
-        Checks exit_destinations first for teleport/stair exits defined by events.
+        Checks locked exits first to prevent moving through locked passages.
+        Checks exit_destinations next for custom portals, stairs, or event-defined exits.
+        Handles default vertical movement (up/down) between floors at the same (x, y) coordinates.
         Falls back to grid movement for same-floor cardinal directions.
         Returns True if the move succeeded, False if blocked.
         """
         if dir not in room.exits and dir not in room.exit_destinations:
             return False
-        
-        # teleport or stair exit defined by an event
+
+        if hasattr(room, 'locked_exits') and room.locked_exits and dir in room.locked_exits:
+            return False
+
+        # teleport, portal, or stair exit defined in exit_destinations
         if dir in room.exit_destinations:
             dest       = room.exit_destinations[dir]
             self.level = dest['floor']
@@ -51,15 +56,36 @@ class Player:
             self.pos_y = dest['y']
             return True
 
+        # default vertical movement (up / down) between floors at same (x, y)
+        if dir == 'up' and dir in room.exits:
+            target_level = self.level + 1
+            if target_level < len(self.game_map):
+                target_floor = self.game_map[target_level]
+                if self.pos_y < len(target_floor) and self.pos_x < len(target_floor[self.pos_y]):
+                    if target_floor[self.pos_y][self.pos_x] is not None:
+                        self.level = target_level
+                        return True
+            return False
+
+        if dir == 'down' and dir in room.exits:
+            target_level = self.level - 1
+            if 0 <= target_level < len(self.game_map):
+                target_floor = self.game_map[target_level]
+                if self.pos_y < len(target_floor) and self.pos_x < len(target_floor[self.pos_y]):
+                    if target_floor[self.pos_y][self.pos_x] is not None:
+                        self.level = target_level
+                        return True
+            return False
+
         # same-floor grid movement
         floor = self.game_map[self.level]
         row   = floor[self.pos_y]
 
         moves = {
-            'north': lambda: self.pos_y > 0,
-            'south': lambda: self.pos_y + 1 < len(floor),
-            'east':  lambda: self.pos_x + 1 < len(row),
-            'west':  lambda: self.pos_x > 0,
+            'north': lambda: self.pos_y > 0 and floor[self.pos_y - 1][self.pos_x] is not None,
+            'south': lambda: self.pos_y + 1 < len(floor) and floor[self.pos_y + 1][self.pos_x] is not None,
+            'east':  lambda: self.pos_x + 1 < len(row) and floor[self.pos_y][self.pos_x + 1] is not None,
+            'west':  lambda: self.pos_x > 0 and floor[self.pos_y][self.pos_x - 1] is not None,
         }
 
         if dir in moves and moves[dir]():

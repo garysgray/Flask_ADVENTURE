@@ -198,7 +198,7 @@ class ECAEvent:
         Supports direct match, required_items multi-tool match, and symmetric target match.
         """
         trig_type = self.trigger.get("type")
-        if trig_type not in ("use_with", "dual", "two_object", "combine"):
+        if trig_type not in ("use_with", "dual", "two_object", "combine", "use_item", "use"):
             return False
 
         t_item = self.trigger.get("item") or self.trigger.get("source") or ""
