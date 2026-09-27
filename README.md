@@ -1,16 +1,17 @@
 ![Game Splash](static/images/flask_splash.png)
 # Flask Adventure
 
-A browser-based text adventure game built with Flask. Started as a simple experiment and evolved into a structured, session-driven adventure engine — built from the ground up, not copied from tutorials.
+A browser-based text adventure game engine built with Flask and Python. Started as a simple experiment and evolved into a structured, data-driven, session-persistent adventure engine — built from the ground up with modular architecture, natural language parsing, dynamic fixture states, and an action-unlocking progression system.
 
 ---
 
 ## Project Goals
 
-- Learn Flask deeply through real building
-- Create a modular, extensible text-adventure engine
-- Manage game state cleanly on the server
-- Build a foundation that can evolve into a reusable engine template
+- Learn Flask and modern Python architecture deeply through real building
+- Create a modular, extensible text-adventure engine driven by declarative YAML adventure files
+- Manage game state cleanly on the server with user authentication and multiple save slots
+- Support rich natural language input (locative prepositions, verb-unlocking, multi-word aliases)
+- Build a foundation that can evolve into a reusable engine template for any genre
 
 ---
 
@@ -18,262 +19,166 @@ A browser-based text adventure game built with Flask. Started as a simple experi
 
 ### Core Engine Architecture
 
-The game is split into focused modules:
+The game is split into focused, single-responsibility modules:
 
 | File | Purpose |
 |------|---------|
-| `controller.py` | Orchestrates all game systems |
-| `parser.py` | Parses raw text commands into structured input |
-| `actions.py` | Executes player actions (move, pick up, drop, use, look) |
-| `event_manager.py` | Manages event checking and firing |
-| `event_types.py` | Event class definitions — each event type knows how to check itself |
-| `persistence.py` | Save and load game state to/from database |
-| `gameObjects.py` | Map, Room, Item classes and YAML loading |
-| `player.py` | Player state and movement logic |
+| `controller.py` | Orchestrates all game systems, player commands, and turn cycles |
+| `loader.py` | Loads, normalizes, and validates YAML adventure files and exit integrity |
+| `parser.py` | Parses raw text into structured commands with entity resolution & preposition support |
+| `actions.py` | Executes player actions with action-gating, movement, items, and fixtures |
+| `event_manager.py` | Manages event checking, conditions, and firing results |
+| `event_types.py` | Base and typed event classes with condition checks |
+| `persistence.py` | Saves and loads complete game sessions to and from SQLite database |
+| `gameObjects.py` | Map, Room, Fixture, and Item classes with state handling |
+| `player.py` | Player state, inventory, visited rooms, and unlocked actions tracking |
 
-### Game Objects
+---
 
-- `Item` — name, states (description + use text per state), current state, solo and action keywords
-- `Room` — name, states (description per state), exits, inventory, exit destinations
-- `Map` — floors, rooms, events, win conditions, intro text, loaded from `game_data.yaml`
+### Data-Driven Adventure Architecture
 
-Rooms and items support a state system — descriptions and use text change dynamically as the player progresses through the game.
+Adventures are completely decoupled from Python code and defined in modular YAML files in `/data/` (configured via `config.py`):
 
-### Command System
+- **Modular Adventures**: Run fantasy quests (`delictum.yaml`), modern skate adventures (`skate_adventure.yaml`), sci-fi Jedi trials (`lightsaber_training.yaml`), or custom scenarios.
+- **`loader.py` Validation**: Automatically validates adventure schema, checks coordinate layouts, ensures all exits connect to valid rooms, and catches syntax issues at startup.
 
-Commands are parsed from plain English input:
+---
+
+### Room & Fixture System
+
+Rooms are no longer monolithic static text blocks. The engine dynamically composes room descriptions:
+
+1. **`base_description`**: Atmospheric foundation text for the room.
+2. **`fixtures`**: Interactive scene setpieces (e.g. pedestals, terminals, rails, droids) with independent states, priorities, and custom examination text:
+   ```yaml
+   fixtures:
+     training_dummy:
+       priority: 10
+       state: default
+       states:
+         default: "A carbonite practice dummy stands bolted to the floor."
+         slashed: "The practice dummy bears a glowing molten seam across its chest."
+       examine:
+         default: "A sturdy mechanical sparring dummy designed for blade fundamentals."
+         slashed: "The dummy's armor hums with dissipating thermal energy."
+   ```
+3. **Room Inventory**: Items currently on the floor rendered cleanly.
+4. **`trailing_description`**: Exit pathways and environmental transitions.
+
+---
+
+### Command System & Natural Language Parser
+
+The parser translates natural English sentences into structured commands:
 
 ```
-go south / south
-get knife / pickup knife
-drop knife
-look knife
-read map
-wind music_box
-light lantern with matches
-open box with key
+south / go south
+examine dummy / look at dummy
+strike dummy / strike over dummy
+do kickflip over gap
+deflect over droid
+open chest with brass_key
 drop locket into well
-use matches with lantern
+activate holocron
 read journal
 help
 ```
 
-The parser converts input into a structured command dict which the action handler executes. Supports:
-- Direction synonyms and move words
-- Multiple pickup words
-- Solo keywords — single item actions e.g. `read map`, `wind music_box`
-- Action keywords — two item interactions e.g. `light lantern with matches`
-- Connectors — `with`, `into`, `onto`
-- Inventory-aware resolution — parser checks player inventory to determine which word is the item and which is the target
-- Event recipe resolution — parser checks event definitions to determine correct item/target order when both sides are in inventory
-- Already-done detection — repeating a completed event returns a contextual response instead of a generic failure
-- Fallback `use [item] with [target]` always works regardless of keywords
+Key parser capabilities:
+- **Locative Prepositions**: Full parsing support for `over`, `across`, `under`, `through`, `around`, `along`, `from`, `off`, `with`, `into`, and `onto`.
+- **Filler Word Stripping**: Strips leading verbs and auxiliary fluff (e.g., `do kickflip over gap` resolves to verb `kickflip` on target `gap`).
+- **Entity Vocabulary Resolution**: Canonical IDs, display names, and `aliases` (including multi-word phrases like `"marksman droid"`) resolve seamlessly.
+- **Direction Synonyms**: Standard directions and abbreviations (`n`, `s`, `e`, `w`, `up`, `down`).
+- **Contextual Already-Done Handling**: Attempting a completed puzzle event gives narrative feedback rather than a generic failure.
 
-### Item Keywords
+---
 
-Items define two keyword types in `game_data.yaml`:
+### Custom Verbs & Action-Unlocking System
 
-```yaml
-lantern:
-  solo_keywords:   [raise, hold]       # work alone e.g. "hold lantern"
-  action_keywords: [light, hang]       # require a connector e.g. "light lantern with matches"
-```
+Adventure authors can introduce genre-specific verbs and gate them behind gameplay progression:
 
-- `solo_keywords` trigger single item use with no target required
-- `action_keywords` only trigger when used with a connector and a target
-- Item name is always a valid fallback — `use lantern` always works
-- Keywords are action words only — they describe what you do, not what the item is called
+1. **Custom Action Declaration (`custom_verbs`)**:
+   ```yaml
+   custom_verbs:
+     single_object: [strike, parry, deflect, thrust, ollie, kickflip, grind]
+     two_object: [use, strike, parry]
+   ```
+
+2. **Initial Action Gating (`player.unlocked_actions`)**:
+   Player starts with basic moves unlocked (`strike`, `parry`, `ollie`, `examine`).
+
+3. **Contextual Locked Messages (`player.locked_messages`)**:
+   When a player attempts a locked maneuver before learning it, the engine provides tailored narrative hints instead of generic failures:
+   ```yaml
+   locked_messages:
+     deflect: "You haven't mastered blaster deflection yet! Study the holocron in the Archives."
+     kickflip: "You haven't learned how to kickflip yet! Ask Coach at the skate shop."
+   ```
+
+4. **Dynamic Unlocking via Events (`unlock_action`)**:
+   Solving puzzles or training with NPCs unlocks new actions dynamically:
+   ```yaml
+   result:
+     unlock_action: deflect
+     message: "[ NEW COMBAT ACTION UNLOCKED: DEFLECT ]"
+   ```
+
+---
 
 ### Event System
 
-Events are defined in `game_data.yaml` and fire based on game conditions:
+Events drive game logic, story progression, and puzzles without writing Python code:
 
-- `all_rooms_visited` — triggers when required rooms have been visited
-- `item_used_with` — triggers when a specific item is used on a specific target in a specific room
-- `all_events_completed` — triggers when a set of required events have all been completed (used for win event)
+- **Triggers**: `solo` (action on target) or `two_object` (item used with/on target).
+- **Conditions**: `in_room`, `events_completed`, `item_in_inventory`, `item_in_room`, `all_rooms_visited`.
+- **Event Results**:
+  | Key | Description |
+  |-----|-------------|
+  | `unlock_action` / `unlock_actions` | Grants the player new custom actions/verbs |
+  | `set_fixture_state` | Updates fixture visual and examination state |
+  | `open_exit` / `set_exit` | Unlocks directional exits between rooms |
+  | `add_item` | Spawns an item into a room or inventory |
+  | `remove_item` | Removes an item from player inventory |
+  | `journal` | Logs room-specific narrative entries into the player's journal |
+  | `message` | Displays formatted story text to the player |
 
-Events can:
-- Unlock exits between rooms
-- Add items to rooms
-- Remove items from player inventory
-- Change room states
-- Change item states
-- Display messages to the player
-- Write entries to the player journal
+---
 
-#### Event Architecture
+### Win Conditions & Win Screen
 
-All event logic lives in a proper class hierarchy:
+- **Win Conditions**: Defined in YAML as a checklist of event IDs (`win_conditions`) that must all be completed.
+- **Win Screen**: When the final win condition is met, the engine transitions to a dedicated victory display featuring the adventure's `win_screen` narrative, final stats, and a play-again option while preserving journal access.
 
-**`event_types.py`** defines a base `Event` class and one class per event type:
+---
 
-```python
-class Event                    # base class, all events inherit from this
-class AllRoomsVisitedEvent     # fires when a set of rooms have all been visited
-class AllEventsCompletedEvent  # fires when a set of events have all been completed
-class ItemUsedWithEvent        # fires when item + target + room all match
-```
+### Journal & Intro System
 
-Each event class holds its own parameters and knows how to check itself via a `check()` method. Adding a new event type means adding a new class — nothing else changes.
+- **Persistent Journal**: Records all major discoveries and event narratives as they happen, viewable at any time via `read journal` or the UI button.
+- **Intro Modal**: Story backstory and command instructions display in an elegant entrance modal on first visit and persist permanently in the journal.
 
-**`gameObjects.py`** builds event objects from YAML via `make_event()` when the map loads.
+---
 
-**`event_manager.py`** checks events by type and fires them via a shared `_fire_event()` method that handles all result types consistently.
+### Save / Load & User Session Persistence
 
-#### Event Result Types
+Full game state is saved securely in SQLite via Flask-SQLAlchemy:
 
-Events in `game_data.yaml` support the following result keys:
+- **User Accounts**: Automatic user onboarding and private save slots.
+- **Hashed Passwords**: Passwords secured via `werkzeug.security`.
+- **Full State Rehydration**: Player position, inventory items, fixture states, completed events, unlocked actions, visited rooms, and journal history are restored cleanly on top of YAML recipes.
 
-| Key | What it does |
-|-----|-------------|
-| `open_exit` | Unlocks a directional exit on a room |
-| `add_item` | Spawns an item into a room |
-| `remove_item` | Removes an item from the player's inventory |
-| `set_state` | Changes a room to a new state |
-| `set_item_state` | Changes an item to a new state |
-| `message` | Displays a message to the player and writes to journal |
+---
 
-### Win Conditions
+### Authoring & Developer Tools
 
-Win conditions are defined in `game_data.yaml` as a list of event IDs that must all be completed:
-
-```yaml
-win_conditions:
-  - light_lantern
-  - unlock_vault
-  - all_rooms_floor0
-  - locket_into_well
-  - mirror_in_gallery
-```
-
-After every action the engine checks if all win conditions are in the player's completed events. A separate `game_won` event fires via `AllEventsCompletedEvent` which writes the win message to the journal. This separates required puzzle events from optional flavour events.
-
-### Journal System
-
-The player has a permanent journal that cannot be dropped or lost. It records all major events as they happen.
-
-- Intro text is pinned as the first journal entry when a new player is created
-- Events write to the journal automatically when they fire
-- Journal shows latest entries at the top, intro always at the bottom
-- `read journal` command opens a styled panel that slides in from the right
-- When a player tries to repeat a completed event they get a contextual response instead of a generic failure
-- This works even when the item has been removed from inventory (e.g. locket dropped into well)
-- Win event writes to journal when all win conditions are met
-- Journal persists between sessions
-
-### Intro System
-
-- Backstory and instructions are defined in `game_data.yaml` under `intro:`
-- On a new player's first visit the intro panel fades in as a centered modal
-- Player dismisses it by clicking "Enter the Facility"
-- The intro is pinned permanently as the last journal entry
-- Never auto-shows again after dismissal — tracked via `has_seen_intro` flag saved to database
-
-### State System
-
-Rooms and items are no longer static — they have states that change as the player interacts with the world.
-
-**Room states** — each room has a `default` state and optional additional states:
-
-```yaml
-vault:
-  states:
-    default: "A locked iron box sits apart, humming..."
-    changed: "The box hangs open. The humming has stopped."
-```
-
-**Item states** — each item has a `default` state and optional additional states with both description and use text:
-
-```yaml
-lantern:
-  states:
-    default:
-      description: "A dusty oil lantern. It still has oil in it."
-      use: "You hold the lantern up. Shadows retreat from its warm glow."
-    changed:
-      description: "A lit oil lantern. It burns with a steady warm flame."
-      use: "The lantern is already lit. It burns steadily."
-```
-
-### Action / Response Separation
-
-`use [item] with [target]` events return a tuple of `(cmd_response, event_message)`. This means event messages and regular command responses are cleanly separated before reaching the template:
-
-- `CMD_RESPONSE` — direct feedback from the action ("You picked up the lantern")
-- `EVENT_MESSAGES` — story/puzzle events triggered by the action ("The wall opens...")
-
-### Save / Load System
-
-Full game state is persisted to SQLite via Flask-SQLAlchemy:
-
-- Player position and floor
-- Player inventory and item states
-- Room inventories and room states
-- Visited rooms (tuples) and visited room names (strings) — stored separately
-- Completed events
-- Unlocked exits and exit destinations
-- Journal entries
-- `has_seen_intro` flag
-
-Items and rooms are always rebuilt from YAML recipes on load, with saved state restored on top. This means recipe changes are always picked up cleanly.
-
-Each player ID gets its own controller instance so multiple players can run simultaneously. Deleting a player also clears their controller from memory so new players with the same ID start completely fresh.
-
-### User Account & Save System
-
-Players create an account with a username and password on their first visit — no separate registration page. The same login page handles both new and returning users automatically.
-
-- Each user account is private — no user can see another user's saves
-- Each user can have multiple independent save files
-- Save files are named by the player at creation
-- Passwords are hashed using `werkzeug.security` — never stored in plain text
-- Sessions persist until the browser is closed or the user logs out
-- Logout button visible in the portal header
-
-### Map System
-
-The map is defined entirely in `game_data.yaml` — no hardcoded room data in Python. Items, rooms, events, states, keywords, use responses, and intro text are all data-driven.
-
-- Floor layout defined via `floors` array using room names — fully dynamic
-- Empty cells use `"_"` as a placeholder — renders as a void on the mini map
-- Supports multiple floors with stair and teleport connections between them
-- All exit connections defined in events — rooms start locked and open through gameplay
-- Teleport exits using cardinal directions show ✦ on the mini map
-- Stair exits using up/down show ▲▼ on the mini map
-- Interactable targets highlighted in room descriptions via `<em>` tags
-
-### UI Features
-
-- Terminal-style CSS with monospace fonts, amber accents, and metallic red highlights
-- Scanline texture overlay over atmospheric background image
-- Two-column layout — command input, map, and inventory on the left; all output on the right
-- Mini map showing explored rooms, current position, and floor-aware tracking
-- Floor indicator displayed alongside the mini map
-- Empty grid cells render as true voids preserving the map shape
-- Mobile responsive layout — stacks to single column on small screens
-- Event messages displayed separately from command responses in a blue accent panel
-- Win screen displayed when all win conditions are met
-- Journal panel slides in from the right
-- Journal auto-opens when `read journal` command is typed
-- Intro panel fades in on first visit as a centered modal
-- Journal JS in static file `journal.js`
-
-### Developer Tools
-
-- **Roadmap viewer** (`game_roadmap.html`) — standalone browser tool, load any `game_data.yaml` to visualize the full map grid by floor, room list, event flow, and item master list
-- **Dialog editor** (`dialog_editor.html`) — standalone browser tool, load `game_data.yaml` to edit all narrative text (descriptions, use text, event messages, intro) inline and export a corrected YAML
+- **YAML Editor Suite (`yaml_editor/`)**: Built-in web editor and schema inspection tool to view map layouts, validate rooms and fixtures, edit event chains, and export clean adventure files.
 
 ---
 
 ## Tech Stack
 
-- Python 3
-- Flask + Flask-SQLAlchemy
-- SQLite
-- PyYAML
-- Werkzeug (password hashing)
-- Jinja2 Templates
-- HTML5 / CSS3 / JS (no frontend framework)
+- **Backend**: Python 3, Flask, Flask-SQLAlchemy, SQLite, PyYAML, Werkzeug
+- **Frontend**: Jinja2 Templates, HTML5, CSS3, JavaScript (Vanilla, no bulky frameworks)
+- **Tooling**: Comprehensive unit test suite (`unittest`), schema validator (`loader.py`), and interactive YAML editor
 
 ---
 
@@ -297,28 +202,32 @@ flask_adventure/
 │   └── macros.html
 │
 ├── data/
-│   └── game_data.yaml
+│   ├── delictum.yaml              # Original dark mystery adventure
+│   ├── skate_adventure.yaml       # Action-unlocking skateboarding adventure
+│   ├── lightsaber_training.yaml   # Jedi trials combat training adventure
+│   └── yaml_tutorial_guide.yaml   # Authoring guide & recipe reference
 │
 ├── game/
 │   ├── __init__.py
-│   ├── controller.py
-│   ├── parser.py
-│   ├── actions.py
-│   ├── event_manager.py
-│   ├── event_types.py
-│   ├── persistence.py
-│   ├── gameObjects.py
-│   └── player.py
+│   ├── controller.py              # Main loop & command coordinator
+│   ├── loader.py                  # YAML loading & validation engine
+│   ├── parser.py                  # Natural language command parser
+│   ├── actions.py                 # Action execution & verb gatekeeper
+│   ├── event_manager.py           # Event checking & execution
+│   ├── event_types.py             # Event definitions & conditions
+│   ├── persistence.py             # Save/load database manager
+│   ├── gameObjects.py             # Map, Room, Fixture, and Item models
+│   └── player.py                  # Player state & unlocked actions
 │
-├── tools/
-│   ├── game_roadmap.html
-│   └── dialog_editor.html
+├── yaml_editor/                   # Standalone browser-based adventure editor
+│   ├── index.html
+│   ├── js/
+│   ├── css/
+│   └── yamlEditorHints.md
 │
-├── instance/
-│   └── test.db
-│
-├── app.py
-├── Procfile
+├── tests/                         # Automated unit test suite
+├── app.py                         # Flask server entry point
+├── config.py                      # Active adventure & database settings
 └── requirements.txt
 ```
 
@@ -326,54 +235,47 @@ flask_adventure/
 
 ## How to Run
 
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/garysgray/Flask_ADVENTURE.git
+   cd Flask_ADVENTURE
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Start the application**:
+   ```bash
+   python app.py
+   ```
+
+4. **Play in your browser**:
+   Open `http://127.0.0.1:5000` (or port configured in `app.py`). Create an account on your first visit to start an adventure.
+
+---
+
+## Running Automated Tests
+
+Run the full test suite using Python's built-in test runner:
+
 ```bash
-git clone https://github.com/garysgray/Flask_ADVENTURE.git
-cd Flask_ADVENTURE
-pip install -r requirements.txt
-python app.py
-```
-
-Open in browser: `http://127.0.0.1:5000`
-
-On first visit, enter a username and password to create your account. The same login page handles returning users automatically.
-
----
-
-## Resetting the Database
-
-If the database schema changes (e.g. after adding the User model), drop and recreate:
-
-```python
-python
->>> from app import app, db
->>> with app.app_context():
-...     db.drop_all()
-...     db.create_all()
+python3 -m unittest discover -s tests -p "test_*.py"
 ```
 
 ---
 
-## Planned Improvements
+## Future Roadmap
 
-- **Win screen** — replace UI with win message and play again option, journal remains accessible
-- **Room images** — optional image field per room in YAML, displayed when player enters
-- **NPC system** — characters with dialogue states using existing event class pattern
-- **Conditional item combinations** — items that only work in certain room states
-- **Polish parser** — fuzzy matching, filler word stripping, better unknown command responses
-- **Better help & item hints** — richer help command, contextual hints based on item keywords
-- **Item aliases** — multi-word item names, players can type natural variations
-- **Refactor room targets** — remove em tag scraping from parser, use event targets from YAML only
-- **Constants file** — settings, enums, magic numbers in one place
-- **Command history** — press up arrow to cycle previous commands
-- **Admin panel** — edit rooms, items, events without touching YAML
-- **Deploy to cloud** — Railway, Render, or Heroku using existing Procfile
+- **Room Illustration Artwork**: Optional image asset field per room/state in YAML to display scene art in the header panel.
+- **Branching NPC Dialogue Trees**: Multi-choice conversation states using the existing event class pattern.
+- **Audio Effect Triggers**: Ambient audio tracks and sound effect cues triggered on specific event completions.
+- **Command History Recall**: Up/down arrow key recall in the command input box.
+- **Cloud Deployment Profiles**: Pre-configured deployment scripts for containerized hosting.
 
 ---
 
 ## License
 
-MIT
-
----
-
-Built by Gary Fn Gray.
+MIT License. Built with passion by Gary Fn Gray.

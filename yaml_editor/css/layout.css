@@ -191,8 +191,8 @@
 }
 .stat-val { color: var(--bright); font-weight: 600; }
 
-/* Room Modal */
-#room-modal {
+/* Room & Exit Modals */
+#room-modal, #exit-linker-modal {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -252,4 +252,217 @@
   border-radius: 4px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   z-index: 300;
+}
+
+/* Tools Dropdown Menu */
+.tools-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.tools-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 260px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.75);
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 1000;
+}
+
+.tools-dropdown-menu.visible {
+  display: flex;
+}
+
+.tools-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+  width: 100%;
+}
+
+.tools-menu-item:hover {
+  background: var(--panel-alt);
+}
+
+.tools-menu-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.tools-menu-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tools-menu-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bright);
+}
+
+.tools-menu-desc {
+  font-size: 10px;
+  color: var(--dim);
+  line-height: 1.2;
+}
+
+.tools-menu-divider {
+  height: 1px;
+  background: var(--border-dim);
+  margin: 4px 0;
+}
+
+/* Narrative Sub-Navigation Tabs */
+.narrative-subnav {
+  display: flex;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.narrative-subnav-btn {
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.narrative-subnav-btn:hover {
+  color: var(--bright);
+}
+
+.narrative-subnav-btn.active {
+  background: var(--panel-alt);
+  color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.narrative-subtab-content {
+  display: none;
+}
+
+.narrative-subtab-content.active-subtab {
+  display: block;
+}
+
+/* Contextual Two-Way Exit Linker */
+.exit-linker-panel {
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.exit-linker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.exit-linker-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+.exit-linker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.exit-linker-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  gap: 8px;
+}
+
+.exit-linker-dir {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exit-linker-dirname {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bright);
+}
+
+.exit-linker-target {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.exit-linker-target.has-neighbor {
+  color: var(--blue, #5a9acc);
+  font-weight: 500;
+}
+
+.exit-link-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid var(--border-dim);
+  background: var(--panel-alt);
+  color: var(--dim);
+  transition: all 0.12s ease;
+}
+
+.exit-link-btn:hover {
+  border-color: var(--accent);
+  color: var(--bright);
+}
+
+.exit-link-btn.connected-2way {
+  border-color: var(--accent);
+  background: rgba(74, 240, 192, 0.15);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.exit-link-btn.broken-1way {
+  border-color: var(--amber);
+  background: rgba(232, 196, 106, 0.15);
+  color: var(--amber);
 }

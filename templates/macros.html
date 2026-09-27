@@ -11,64 +11,70 @@
 {% endmacro %}
 
 {# Renders the 3x3 sub-grid contents of a single map cell #}
-{% macro cell_contents(pos, cell, player_pos, visited_rooms, adjacent_rooms=None) %}
+{% macro cell_contents(pos, cell, player_pos, visited_rooms, adjacent_rooms=None, map_glyphs=None) %}
     {% set is_player = (pos == player_pos) %}
     {% set is_visited = (pos in visited_rooms) %}
     {% set is_adjacent = (adjacent_rooms and pos in adjacent_rooms) %}
+    {% set g_player = (map_glyphs.player if map_glyphs and map_glyphs.player else '👤') %}
+    {% set g_locked = (map_glyphs.locked if map_glyphs and map_glyphs.locked else '🔒') %}
+    {% set g_up = (map_glyphs.stairs_up if map_glyphs and map_glyphs.stairs_up else '⬆️') %}
+    {% set g_down = (map_glyphs.stairs_down if map_glyphs and map_glyphs.stairs_down else '⬇️') %}
+    {% set g_portal = (map_glyphs.portal if map_glyphs and map_glyphs.portal else '🌀') %}
+    {% set g_unexplored = (map_glyphs.unexplored if map_glyphs and map_glyphs.unexplored else '?') %}
 
     {% if cell and (is_player or is_visited) %}
-        {# Row 1: NW (clean), North (locked door / north exit), NE (UP exit: stairs/ladder ⬆️) #}
+        {# Row 1: NW (clean), North (locked door / north exit), NE (UP exit: stairs/ladder) #}
         <span class="cell-sub slot-nw"></span>
         <span class="cell-sub slot-n">
-            {%- if cell.locked_exits and 'north' in cell.locked_exits -%}🔒
+            {%- if cell.locked_exits and 'north' in cell.locked_exits -%}{{ g_locked }}
             {%- endif -%}
         </span>
         <span class="cell-sub slot-ne">
-            {%- if cell.locked_exits and 'up' in cell.locked_exits -%}🔒
-            {%- elif 'up' in cell.exits -%}⬆️
+            {%- if cell.locked_exits and 'up' in cell.locked_exits -%}{{ g_locked }}
+            {%- elif 'up' in cell.exits -%}{{ g_up }}
             {%- endif -%}
         </span>
 
-        {# Row 2: West (locked door / west exit), Center (Player / portal 🌀 / clean visited), East (locked door / east exit) #}
+        {# Row 2: West (locked door / west exit), Center (Player / portal / clean visited), East (locked door / east exit) #}
         <span class="cell-sub slot-w">
-            {%- if cell.locked_exits and 'west' in cell.locked_exits -%}🔒
+            {%- if cell.locked_exits and 'west' in cell.locked_exits -%}{{ g_locked }}
             {%- endif -%}
         </span>
         <span class="cell-sub slot-c">
-            {%- if is_player -%}👤
-            {%- elif 'portal' in cell.exits and (not cell.locked_exits or 'portal' not in cell.locked_exits) -%}🌀
+            {%- if is_player -%}{{ g_player }}
+            {%- elif 'portal' in cell.exits and (not cell.locked_exits or 'portal' not in cell.locked_exits) -%}{{ g_portal }}
             {%- endif -%}
         </span>
         <span class="cell-sub slot-e">
-            {%- if cell.locked_exits and 'east' in cell.locked_exits -%}🔒
+            {%- if cell.locked_exits and 'east' in cell.locked_exits -%}{{ g_locked }}
             {%- endif -%}
         </span>
 
-        {# Row 3: SW (DOWN exit: stairs/trapdoor ⬇️), South (locked door / south exit), SE (Portal indicator 🌀 if player is in cell) #}
+        {# Row 3: SW (DOWN exit: stairs/trapdoor), South (locked door / south exit), SE (Portal indicator if player is in cell) #}
         <span class="cell-sub slot-sw">
-            {%- if cell.locked_exits and 'down' in cell.locked_exits -%}🔒
-            {%- elif 'down' in cell.exits -%}⬇️
+            {%- if cell.locked_exits and 'down' in cell.locked_exits -%}{{ g_locked }}
+            {%- elif 'down' in cell.exits -%}{{ g_down }}
             {%- endif -%}
         </span>
         <span class="cell-sub slot-s">
-            {%- if cell.locked_exits and 'south' in cell.locked_exits -%}🔒
+            {%- if cell.locked_exits and 'south' in cell.locked_exits -%}{{ g_locked }}
             {%- endif -%}
         </span>
         <span class="cell-sub slot-se">
-            {%- if 'portal' in cell.exits and is_player and (not cell.locked_exits or 'portal' not in cell.locked_exits) -%}🌀{%- endif -%}
+            {%- if 'portal' in cell.exits and is_player and (not cell.locked_exits or 'portal' not in cell.locked_exits) -%}{{ g_portal }}{%- endif -%}
         </span>
     {% elif cell and is_adjacent %}
-        {# Adjacent open-exit room: faint dashed border with centered ? #}
+        {# Adjacent open-exit room: faint dashed border with centered unexplored symbol #}
         <span class="cell-sub slot-nw"></span>
         <span class="cell-sub slot-n"></span>
         <span class="cell-sub slot-ne"></span>
         <span class="cell-sub slot-w"></span>
-        <span class="cell-sub slot-c">?</span>
+        <span class="cell-sub slot-c">{{ g_unexplored }}</span>
         <span class="cell-sub slot-e"></span>
         <span class="cell-sub slot-sw"></span>
         <span class="cell-sub slot-s"></span>
         <span class="cell-sub slot-se"></span>
     {% elif is_player %}
-        <span class="cell-sub slot-c">👤</span>
+        <span class="cell-sub slot-c">{{ g_player }}</span>
     {% endif %}
 {% endmacro %}

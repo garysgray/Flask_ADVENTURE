@@ -80,7 +80,7 @@
                             {% set cell = cell_data['cell'] %}
                             {% if cell %}
                             <div class="t-map-cell {{ cell_class(pos, player_pos, visited_rooms, adjacent_rooms) }}">
-                                {{ cell_contents(pos, cell, player_pos, visited_rooms, adjacent_rooms) }}
+                                {{ cell_contents(pos, cell, player_pos, visited_rooms, adjacent_rooms, map_glyphs) }}
                             </div>
                             {% else %}
                             <div class="t-map-cell void"></div>

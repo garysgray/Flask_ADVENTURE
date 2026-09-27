@@ -849,12 +849,19 @@ rooms:
 
 events:
   - id: restore_power
-    type: puzzle
-    check_type: item_used_with
-    parameters:
-      item: wiring_kit
+    trigger:
+      type: dual
+      source: wiring_kit
       target: panel
-      room: entry_corridor
+      action: use
+    conditions:
+      - type: in_room
+        room: entry_corridor
+        fail_hint: "Nice try. This seems like something that might work somewhere else."
+      - type: required_items
+        required_items:
+          - wiring_kit
+        fail_hint: "You need the wiring kit to repair the cables."
     result:
       set_state:
         - room: entry_corridor
@@ -884,17 +891,23 @@ events:
         releasing. Somewhere below you hear a mechanical door disengage.
 
   - id: unlock_cryo_bay
-    type: puzzle
-    check_type: item_used_with
-    parameters:
-      item: access_card
+    trigger:
+      type: dual
+      source: access_card
       target: reader
-      room: cryo_bay
-      prerequisites:
-        - restore_power
-      hints:
-        wrong_room: "Nice try. This seems like something that might work somewhere else."
-        missing_prerequisite: "The reader remains cold and unpowered. Facility power must be restored first."
+      action: use
+    conditions:
+      - type: in_room
+        room: cryo_bay
+        fail_hint: "Nice try. This seems like something that might work somewhere else."
+      - type: events_completed
+        events:
+          - restore_power
+        fail_hint: "The reader remains cold and unpowered. Facility power must be restored first."
+      - type: required_items
+        required_items:
+          - access_card
+        fail_hint: "You need the Delta-clearance card to swipe through the reader."
     result:
       set_state:
         - room: cryo_bay
@@ -926,14 +939,15 @@ events:
         Cold air floods the room. Somewhere above you, a hidden panel slides open.
 
   - id: all_rooms_intake
-    type: achievement
-    check_type: all_rooms_visited
-    parameters:
-      required_rooms:
-        - entry_corridor
-        - intake_hall
-        - records_room
-        - break_room
+    trigger:
+      type: on_turn
+    conditions:
+      - type: rooms_visited
+        required_rooms:
+          - entry_corridor
+          - intake_hall
+          - records_room
+          - break_room
     result:
       set_state:
         - room: records_room
@@ -960,12 +974,19 @@ events:
         cabinet slides open with a sound like an exhaled breath.
 
   - id: frequency_calibration
-    type: puzzle
-    check_type: item_used_with
-    parameters:
-      item: frequency_rod
+    trigger:
+      type: dual
+      source: frequency_rod
       target: array
-      room: relay_room
+      action: use
+    conditions:
+      - type: in_room
+        room: relay_room
+        fail_hint: "Nice try. This seems like something that might work somewhere else."
+      - type: required_items
+        required_items:
+          - frequency_rod
+        fail_hint: "You need the frequency rod to seat in the calibration array."
     result:
       set_state:
         - room: relay_room
@@ -995,12 +1016,19 @@ events:
         the concrete north wall of the relay room splits open. The passage beyond is very cold.
 
   - id: log_assembled
-    type: puzzle
-    check_type: item_used_with
-    parameters:
-      item: log_fragment_b
+    trigger:
+      type: dual
+      source: log_fragment_b
       target: log_fragment_a
-      room: archive_vault
+      action: use
+    conditions:
+      - type: in_room
+        room: archive_vault
+        fail_hint: "Nice try. This seems like something that might work somewhere else."
+      - type: required_items
+        required_items:
+          - log_fragment_b
+        fail_hint: "You need log fragment B to combine."
     result:
       set_state:
         - room: archive_vault
@@ -1041,15 +1069,16 @@ events:
         beginning of something that is not a procedure.
 
   - id: game_won
-    type: achievement
-    check_type: all_events_completed
-    parameters:
-      required_events:
-        - restore_power
-        - unlock_cryo_bay
-        - all_rooms_intake
-        - frequency_calibration
-        - log_assembled
+    trigger:
+      type: on_turn
+    conditions:
+      - type: events_completed
+        events:
+          - restore_power
+          - unlock_cryo_bay
+          - all_rooms_intake
+          - frequency_calibration
+          - log_assembled
     result:
       message: |
         The revival sequence completes.
@@ -1083,6 +1112,7 @@ events:
         Maybe it is not.
 
         You write it in your field notes and do not have an answer.
+
 
 # ==============================================================================
 # 6. FLOOR LAYOUTS (GRID MATRICES)

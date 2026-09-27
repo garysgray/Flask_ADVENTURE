@@ -203,6 +203,18 @@ function buildMapGrids(data) {
   limitBadge.textContent = `${floors.length} / 6 FLOORS (MAX 6)`;
   controlsBar.appendChild(limitBadge);
 
+  // Auto-Link Grid Exits Button
+  const autoLinkBtn = document.createElement('button');
+  autoLinkBtn.type = 'button';
+  autoLinkBtn.className = 'btn btn-dim';
+  autoLinkBtn.style.padding = '5px 10px';
+  autoLinkBtn.style.fontSize = '11px';
+  autoLinkBtn.style.marginLeft = 'auto';
+  autoLinkBtn.innerHTML = '⚡ Auto-Link Grid Exits (2-Way)';
+  autoLinkBtn.title = 'Automatically connect all adjacent placed rooms on this floor with reciprocal 2-way exits';
+  autoLinkBtn.onclick = () => autoLinkFloorExits(currentFloorIdx, data);
+  controlsBar.appendChild(autoLinkBtn);
+
   stage.appendChild(controlsBar);
 
   // 5x5 Grid Board
@@ -286,9 +298,70 @@ function buildMapGrids(data) {
         }
         tile.appendChild(badges);
 
+        // Visual exits indicators
+        const roomExitsList = ensureRoomExitsList(room);
+        if (roomExitsList.length > 0) {
+          const exitPills = document.createElement('div');
+          exitPills.className = 'tile-exit-pills';
+          exitPills.style.cssText = 'display:flex; flex-wrap:wrap; gap:3px; margin:4px 0 2px 0;';
+
+          const cardinalMap = { north: '↑N', south: '↓S', east: '→E', west: '←W' };
+          roomExitsList.forEach(x => {
+            const xStr = String(x).toLowerCase().trim();
+            const lbl = cardinalMap[xStr] || xStr.toUpperCase();
+            const pill = document.createElement('span');
+            pill.style.cssText = 'font-family:var(--mono); font-size:9px; padding:1px 4px; border-radius:3px; cursor:pointer; font-weight:600; line-height:1.2;';
+
+            let is2Way = false;
+            let hasNeighbor = false;
+            if (cardinalMap[xStr]) {
+              const nc = getNeighborCoords(r, c, xStr);
+              if (nc && currentFloorGrid[nc.row] && currentFloorGrid[nc.row][nc.col]) {
+                hasNeighbor = true;
+                const neighbor = roomsByName[currentFloorGrid[nc.row][nc.col]];
+                if (neighbor && ensureRoomExitsList(neighbor).includes(OPPOSITE_DIRECTIONS[xStr])) {
+                  is2Way = true;
+                }
+              }
+            }
+
+            if (is2Way) {
+              pill.style.background = 'rgba(74, 240, 192, 0.2)';
+              pill.style.color = 'var(--accent)';
+              pill.title = `${xStr.toUpperCase()}: 2-way linked`;
+            } else if (hasNeighbor) {
+              pill.style.background = 'rgba(232, 196, 106, 0.2)';
+              pill.style.color = 'var(--amber)';
+              pill.title = `${xStr.toUpperCase()}: 1-way out only (no return exit)`;
+            } else {
+              pill.style.background = 'rgba(255, 255, 255, 0.08)';
+              pill.style.color = 'var(--dim)';
+              pill.title = `${xStr.toUpperCase()} exit`;
+            }
+            pill.textContent = lbl;
+            pill.onclick = (ev) => {
+              ev.stopPropagation();
+              openExitLinkerModal(room.name, currentFloorIdx, r, c);
+            };
+            exitPills.appendChild(pill);
+          });
+          tile.appendChild(exitPills);
+        }
+
         // Actions toolbar
         const actions = document.createElement('div');
         actions.className = 'placed-tile-actions';
+
+        const exitBtn = document.createElement('button');
+        exitBtn.type = 'button';
+        exitBtn.className = 'placed-action-btn';
+        exitBtn.innerHTML = '⇄ Exits';
+        exitBtn.title = 'Open 2-Way Exit Linker';
+        exitBtn.onclick = (e) => {
+          e.stopPropagation();
+          openExitLinkerModal(room.name, currentFloorIdx, r, c);
+        };
+        actions.appendChild(exitBtn);
 
         const startBtn = document.createElement('button');
         startBtn.type = 'button';
@@ -719,6 +792,511 @@ function clearMapSearch() {
   onMapSearchChange('');
 }
 
+/* =========================================================================
+   TWO-WAY CONTEXTUAL EXIT LINKER SYSTEM
+   ========================================================================= */
+
+const OPPOSITE_DIRECTIONS = {
+  north: 'south',
+  south: 'north',
+  east: 'west',
+  west: 'east',
+  up: 'down',
+  down: 'up',
+  in: 'out',
+  out: 'in'
+};
+
+function ensureRoomExitsList(room) {
+  if (!room) return [];
+  if (!room.exits) {
+    room.exits = [];
+    return room.exits;
+  }
+  if (Array.isArray(room.exits)) return room.exits;
+  if (typeof room.exits === 'object') {
+    room.exits = Object.keys(room.exits);
+    return room.exits;
+  }
+  room.exits = [];
+  return room.exits;
+}
+
+function getNeighborCoords(row, col, dir) {
+  switch (dir) {
+    case 'north': return { row: row - 1, col: col };
+    case 'south': return { row: row + 1, col: col };
+    case 'east':  return { row: row, col: col + 1 };
+    case 'west':  return { row: row, col: col - 1 };
+    default: return null;
+  }
+}
+
+function toggleTwoWayExit(roomName, neighborRoomName, dir) {
+  const State = window.State;
+  if (!State || !State.yamlData) return;
+  const data = State.yamlData;
+  const opp = OPPOSITE_DIRECTIONS[dir];
+  if (!opp) return;
+
+  const room = (data.rooms || []).find(r => r.name === roomName);
+  const neighbor = (data.rooms || []).find(r => r.name === neighborRoomName);
+  if (!room || !neighbor) return;
+
+  const rExits = ensureRoomExitsList(room);
+  const nExits = ensureRoomExitsList(neighbor);
+
+  const isConnected = rExits.includes(dir) && nExits.includes(opp);
+
+  if (isConnected) {
+    // Disconnect both
+    room.exits = rExits.filter(x => x !== dir);
+    neighbor.exits = nExits.filter(x => x !== opp);
+    State.showToast(`UNLINKED 2-WAY: ${roomName} ↮ ${neighborRoomName}`);
+  } else {
+    // Connect both
+    if (!rExits.includes(dir)) room.exits.push(dir);
+    if (!nExits.includes(opp)) neighbor.exits.push(opp);
+    State.showToast(`LINKED 2-WAY (${dir} ⇄ ${opp}): ${roomName} ⇄ ${neighborRoomName}`);
+  }
+
+  onDataModified('toggle_twoway_exit');
+  buildMapView(data);
+  refreshActiveExitLinkerModal();
+}
+
+function toggleOneWayExit(roomName, dir) {
+  const State = window.State;
+  if (!State || !State.yamlData) return;
+  const data = State.yamlData;
+  const room = (data.rooms || []).find(r => r.name === roomName);
+  if (!room) return;
+
+  const rExits = ensureRoomExitsList(room);
+  if (rExits.includes(dir)) {
+    room.exits = rExits.filter(x => x !== dir);
+    State.showToast(`REMOVED EXIT: ${dir.toUpperCase()}`);
+  } else {
+    room.exits.push(dir);
+    State.showToast(`ADDED EXIT: ${dir.toUpperCase()}`);
+  }
+
+  onDataModified('toggle_oneway_exit');
+  buildMapView(data);
+  refreshActiveExitLinkerModal();
+}
+
+function linkAllAdjacentNeighbors(roomName, floorIdx, row, col) {
+  const State = window.State;
+  if (!State || !State.yamlData) return;
+  const data = State.yamlData;
+  const room = (data.rooms || []).find(r => r.name === roomName);
+  if (!room) return;
+
+  const grid = data.floors && data.floors[floorIdx];
+  if (!grid) return;
+
+  const cardinals = ['north', 'south', 'east', 'west'];
+  let linkedCount = 0;
+
+  cardinals.forEach(dir => {
+    const opp = OPPOSITE_DIRECTIONS[dir];
+    const nc = getNeighborCoords(row, col, dir);
+    if (nc && nc.row >= 0 && nc.row < 5 && nc.col >= 0 && nc.col < 5) {
+      const neighborName = grid[nc.row][nc.col];
+      if (neighborName) {
+        const neighbor = (data.rooms || []).find(r => r.name === neighborName);
+        if (neighbor) {
+          const rExits = ensureRoomExitsList(room);
+          const nExits = ensureRoomExitsList(neighbor);
+          if (!rExits.includes(dir)) rExits.push(dir);
+          if (!nExits.includes(opp)) nExits.push(opp);
+          linkedCount++;
+        }
+      }
+    }
+  });
+
+  onDataModified('link_all_adjacent');
+  buildMapView(data);
+  refreshActiveExitLinkerModal();
+  State.showToast(`LINKED ${linkedCount} ADJACENT EXITS (2-WAY)`);
+}
+
+function unlinkAllAdjacentExits(roomName, floorIdx, row, col) {
+  const State = window.State;
+  if (!State || !State.yamlData) return;
+  const data = State.yamlData;
+  const room = (data.rooms || []).find(r => r.name === roomName);
+  if (!room) return;
+
+  const grid = data.floors && data.floors[floorIdx];
+  if (!grid) return;
+
+  const cardinals = ['north', 'south', 'east', 'west'];
+  cardinals.forEach(dir => {
+    const opp = OPPOSITE_DIRECTIONS[dir];
+    const nc = getNeighborCoords(row, col, dir);
+    if (nc && nc.row >= 0 && nc.row < 5 && nc.col >= 0 && nc.col < 5) {
+      const neighborName = grid[nc.row][nc.col];
+      if (neighborName) {
+        const neighbor = (data.rooms || []).find(r => r.name === neighborName);
+        if (neighbor) {
+          room.exits = ensureRoomExitsList(room).filter(x => x !== dir);
+          neighbor.exits = ensureRoomExitsList(neighbor).filter(x => x !== opp);
+        }
+      }
+    }
+  });
+
+  onDataModified('unlink_adjacent');
+  buildMapView(data);
+  refreshActiveExitLinkerModal();
+  State.showToast(`DISCONNECTED ADJACENT EXITS FOR ${roomName}`);
+}
+
+function autoLinkFloorExits(floorIdx, data) {
+  if (!data || !data.floors || !data.floors[floorIdx]) return;
+  const grid = data.floors[floorIdx];
+  let linkCount = 0;
+
+  const roomsByName = {};
+  (data.rooms || []).forEach(r => { roomsByName[r.name] = r; });
+
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const roomName = grid[r][c];
+      if (!roomName || !roomsByName[roomName]) continue;
+      const room = roomsByName[roomName];
+
+      // Check East neighbor
+      if (c + 1 < 5 && grid[r][c + 1] && roomsByName[grid[r][c + 1]]) {
+        const eastNeighbor = roomsByName[grid[r][c + 1]];
+        const rExits = ensureRoomExitsList(room);
+        const eExits = ensureRoomExitsList(eastNeighbor);
+        let added = false;
+        if (!rExits.includes('east')) { rExits.push('east'); added = true; }
+        if (!eExits.includes('west')) { eExits.push('west'); added = true; }
+        if (added) linkCount++;
+      }
+
+      // Check South neighbor
+      if (r + 1 < 5 && grid[r + 1][c] && roomsByName[grid[r + 1][c]]) {
+        const southNeighbor = roomsByName[grid[r + 1][c]];
+        const rExits = ensureRoomExitsList(room);
+        const sExits = ensureRoomExitsList(southNeighbor);
+        let added = false;
+        if (!rExits.includes('south')) { rExits.push('south'); added = true; }
+        if (!sExits.includes('north')) { sExits.push('north'); added = true; }
+        if (added) linkCount++;
+      }
+    }
+  }
+
+  onDataModified('auto_link_grid_exits');
+  buildMapView(data);
+  if (window.State) {
+    window.State.showToast(`AUTO-LINKED ${linkCount} GRID CORRIDORS (2-WAY)`);
+  }
+}
+
+let activeExitModalInfo = null;
+
+function refreshActiveExitLinkerModal() {
+  if (activeExitModalInfo) {
+    openExitLinkerModal(activeExitModalInfo.roomName, activeExitModalInfo.floorIdx, activeExitModalInfo.row, activeExitModalInfo.col);
+  }
+}
+
+function openExitLinkerModal(roomName, floorIdx, row, col) {
+  const State = window.State;
+  if (!State || !State.yamlData) return;
+  const data = State.yamlData;
+  const room = (data.rooms || []).find(r => r.name === roomName);
+  if (!room) return;
+
+  activeExitModalInfo = { roomName, floorIdx, row, col };
+  const grid = data.floors && data.floors[floorIdx];
+
+  const titleEl = document.getElementById('modal-exit-title');
+  if (titleEl) {
+    titleEl.textContent = `⇄ TWO-WAY EXIT LINKER: ${(room.display_name || room.name).toUpperCase()} [${col}, ${row}]`;
+  }
+
+  const body = document.getElementById('modal-exit-body');
+  if (!body) return;
+  body.innerHTML = '';
+
+  const rExits = ensureRoomExitsList(room);
+
+  // Top header card with current exits summary and bulk actions
+  const topCard = document.createElement('div');
+  topCard.style.cssText = 'background:var(--bg); border:1px solid var(--border-dim); border-radius:6px; padding:12px 14px; margin-bottom:14px;';
+  topCard.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <div>
+        <div style="font-family:var(--mono); font-size:12px; font-weight:700; color:var(--bright);">
+          ${room.display_name || room.name} <span style="font-weight:400; color:var(--dim); font-size:11px;">(ID: ${room.name} &bull; Floor ${floorIdx})</span>
+        </div>
+        <div style="font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:4px;">
+          Active exits (${rExits.length}): <span style="color:var(--accent); font-weight:600;">${rExits.join(', ') || 'None (isolated room)'}</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-accent" style="padding:5px 10px; font-size:11px;" onclick="linkAllAdjacentNeighbors('${room.name}', ${floorIdx}, ${row}, ${col})">⚡ Link All Adjacent (2-Way)</button>
+        <button type="button" class="btn btn-dim" style="padding:5px 10px; font-size:11px; color:var(--red);" onclick="unlinkAllAdjacentExits('${room.name}', ${floorIdx}, ${row}, ${col})">✕ Unlink Adjacent</button>
+      </div>
+    </div>
+  `;
+  body.appendChild(topCard);
+
+  // Section: Cardinal Grid Exits
+  const cardinalSec = document.createElement('div');
+  cardinalSec.innerHTML = `<div style="font-family:var(--mono); font-size:11px; font-weight:700; color:var(--dim); letter-spacing:1px; margin-bottom:8px;">CARDINAL GRID CONNECTIONS (5x5 GRID)</div>`;
+
+  const cardinalsGrid = document.createElement('div');
+  cardinalsGrid.className = 'exit-linker-grid';
+
+  const directions = [
+    { dir: 'north', label: 'NORTH (↑)', opp: 'south', oppLabel: 'South (↓)' },
+    { dir: 'south', label: 'SOUTH (↓)', opp: 'north', oppLabel: 'North (↑)' },
+    { dir: 'east',  label: 'EAST (→)',  opp: 'west',  oppLabel: 'West (←)' },
+    { dir: 'west',  label: 'WEST (←)',  opp: 'east',  oppLabel: 'East (→)' }
+  ];
+
+  directions.forEach(d => {
+    const nc = getNeighborCoords(row, col, d.dir);
+    const card = document.createElement('div');
+    card.className = 'exit-linker-card';
+
+    const isInsideGrid = (nc && nc.row >= 0 && nc.row < 5 && nc.col >= 0 && nc.col < 5);
+    const neighborRoomName = isInsideGrid && grid ? grid[nc.row][nc.col] : null;
+    const neighborRoom = neighborRoomName ? (data.rooms || []).find(r => r.name === neighborRoomName) : null;
+
+    const hasOut = rExits.includes(d.dir);
+    const nExits = neighborRoom ? ensureRoomExitsList(neighborRoom) : [];
+    const hasIn = neighborRoom ? nExits.includes(d.opp) : false;
+
+    const dirInfo = document.createElement('div');
+    dirInfo.className = 'exit-linker-dir';
+
+    let targetDesc = '';
+    if (!isInsideGrid) {
+      targetDesc = `<span style="color:var(--dim); font-size:10px;">Grid Boundary Edge</span>`;
+    } else if (!neighborRoomName) {
+      targetDesc = `<span style="color:var(--dim); font-size:10px;">Empty Cell [${nc.col}, ${nc.row}]</span>`;
+    } else {
+      targetDesc = `<span class="exit-linker-target has-neighbor">→ ${neighborRoom ? (neighborRoom.display_name || neighborRoom.name) : neighborRoomName} [${nc.col}, ${nc.row}]</span>`;
+    }
+
+    dirInfo.innerHTML = `
+      <span class="exit-linker-dirname">${d.label}</span>
+      ${targetDesc}
+    `;
+    card.appendChild(dirInfo);
+
+    const btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex; align-items:center; gap:6px;';
+
+    if (neighborRoom) {
+      if (hasOut && hasIn) {
+        // 2-Way Connected
+        const linkBtn = document.createElement('button');
+        linkBtn.type = 'button';
+        linkBtn.className = 'exit-link-btn connected-2way';
+        linkBtn.innerHTML = `✓ 2-Way Linked (${d.dir.toUpperCase()} ⇄ ${d.opp.toUpperCase()})`;
+        linkBtn.title = 'Click to disconnect reciprocal 2-way exit';
+        linkBtn.onclick = () => toggleTwoWayExit(room.name, neighborRoom.name, d.dir);
+        btnWrap.appendChild(linkBtn);
+      } else if (hasOut && !hasIn) {
+        // 1-Way Out only
+        const linkBtn = document.createElement('button');
+        linkBtn.type = 'button';
+        linkBtn.className = 'exit-link-btn broken-1way';
+        linkBtn.innerHTML = `⚡ Make 2-Way (+${d.opp.toUpperCase()} return)`;
+        linkBtn.title = `${room.name} has exit "${d.dir}", but neighbor has no return exit "${d.opp}". Click to complete 2-way connection.`;
+        linkBtn.onclick = () => toggleTwoWayExit(room.name, neighborRoom.name, d.dir);
+        btnWrap.appendChild(linkBtn);
+
+        const outTag = document.createElement('button');
+        outTag.type = 'button';
+        outTag.className = 'btn btn-dim';
+        outTag.style.padding = '3px 6px';
+        outTag.style.fontSize = '10px';
+        outTag.textContent = '✕ Remove Exit';
+        outTag.onclick = () => toggleOneWayExit(room.name, d.dir);
+        btnWrap.appendChild(outTag);
+      } else if (!hasOut && hasIn) {
+        // 1-Way In only
+        const linkBtn = document.createElement('button');
+        linkBtn.type = 'button';
+        linkBtn.className = 'exit-link-btn broken-1way';
+        linkBtn.innerHTML = `⚡ Make 2-Way (+${d.dir.toUpperCase()})`;
+        linkBtn.title = `Neighbor has exit pointing here, but this room cannot exit ${d.dir}. Click to reciprocate.`;
+        linkBtn.onclick = () => toggleTwoWayExit(room.name, neighborRoom.name, d.dir);
+        btnWrap.appendChild(linkBtn);
+      } else {
+        // Disconnected
+        const linkBtn = document.createElement('button');
+        linkBtn.type = 'button';
+        linkBtn.className = 'exit-link-btn';
+        linkBtn.innerHTML = `+ Connect 2-Way`;
+        linkBtn.title = `Add ${d.dir} to this room and ${d.opp} to ${neighborRoom.name}`;
+        linkBtn.onclick = () => toggleTwoWayExit(room.name, neighborRoom.name, d.dir);
+        btnWrap.appendChild(linkBtn);
+      }
+    } else {
+      // No room at target coordinate
+      if (hasOut) {
+        const warnBtn = document.createElement('button');
+        warnBtn.type = 'button';
+        warnBtn.className = 'exit-link-btn broken-1way';
+        warnBtn.innerHTML = `⚠ 1-Way into Void (✕ Remove)`;
+        warnBtn.title = `Exit "${d.dir}" exists but there is no room placed in that cell. Click to remove.`;
+        warnBtn.onclick = () => toggleOneWayExit(room.name, d.dir);
+        btnWrap.appendChild(warnBtn);
+      } else {
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'btn btn-dim';
+        addBtn.style.padding = '4px 8px';
+        addBtn.style.fontSize = '10px';
+        addBtn.textContent = `+ Add 1-Way (${d.dir})`;
+        addBtn.onclick = () => toggleOneWayExit(room.name, d.dir);
+        btnWrap.appendChild(addBtn);
+      }
+    }
+
+    card.appendChild(btnWrap);
+    cardinalsGrid.appendChild(card);
+  });
+
+  cardinalSec.appendChild(cardinalsGrid);
+  body.appendChild(cardinalSec);
+
+  // Section: Vertical Multistory Connections (Stairs Up / Down)
+  const verticalSec = document.createElement('div');
+  verticalSec.style.marginTop = '14px';
+  verticalSec.innerHTML = `<div style="font-family:var(--mono); font-size:11px; font-weight:700; color:var(--dim); letter-spacing:1px; margin-bottom:8px;">VERTICAL STAIRS CONNECTIONS (MULTISTORY)</div>`;
+
+  const vertGrid = document.createElement('div');
+  vertGrid.className = 'exit-linker-grid';
+
+  // Floor Up (+1)
+  if (data.floors && floorIdx + 1 < data.floors.length) {
+    const upGrid = data.floors[floorIdx + 1];
+    const upRoomName = upGrid && upGrid[row] && upGrid[row][col];
+    const upRoom = upRoomName ? (data.rooms || []).find(r => r.name === upRoomName) : null;
+
+    const upCard = document.createElement('div');
+    upCard.className = 'exit-linker-card';
+    const hasUp = rExits.includes('up');
+    const hasDownReturn = upRoom ? ensureRoomExitsList(upRoom).includes('down') : false;
+
+    upCard.innerHTML = `
+      <div class="exit-linker-dir">
+        <span class="exit-linker-dirname">UPSTAIRS (Floor ${floorIdx + 1})</span>
+        <span class="exit-linker-target ${upRoom ? 'has-neighbor' : ''}">
+          ${upRoom ? `▲ ${upRoom.display_name || upRoom.name}` : `(No room placed at [${col}, ${row}] on Floor ${floorIdx + 1})`}
+        </span>
+      </div>
+    `;
+
+    if (upRoom) {
+      const upBtn = document.createElement('button');
+      upBtn.type = 'button';
+      upBtn.className = 'exit-link-btn ' + (hasUp && hasDownReturn ? 'connected-2way' : (hasUp || hasDownReturn ? 'broken-1way' : ''));
+      upBtn.innerHTML = (hasUp && hasDownReturn) ? '✓ 2-Way Stairs (Up ⇄ Down)' : '+ Link Up ⇄ Down Stairs';
+      upBtn.onclick = () => toggleTwoWayExit(room.name, upRoom.name, 'up');
+      upCard.appendChild(upBtn);
+    }
+    vertGrid.appendChild(upCard);
+  }
+
+  // Floor Down (-1)
+  if (data.floors && floorIdx > 0) {
+    const downGrid = data.floors[floorIdx - 1];
+    const downRoomName = downGrid && downGrid[row] && downGrid[row][col];
+    const downRoom = downRoomName ? (data.rooms || []).find(r => r.name === downRoomName) : null;
+
+    const downCard = document.createElement('div');
+    downCard.className = 'exit-linker-card';
+    const hasDown = rExits.includes('down');
+    const hasUpReturn = downRoom ? ensureRoomExitsList(downRoom).includes('up') : false;
+
+    downCard.innerHTML = `
+      <div class="exit-linker-dir">
+        <span class="exit-linker-dirname">DOWNSTAIRS (Floor ${floorIdx - 1})</span>
+        <span class="exit-linker-target ${downRoom ? 'has-neighbor' : ''}">
+          ${downRoom ? `▼ ${downRoom.display_name || downRoom.name}` : `(No room placed at [${col}, ${row}] on Floor ${floorIdx - 1})`}
+        </span>
+      </div>
+    `;
+
+    if (downRoom) {
+      const downBtn = document.createElement('button');
+      downBtn.type = 'button';
+      downBtn.className = 'exit-link-btn ' + (hasDown && hasUpReturn ? 'connected-2way' : (hasDown || hasUpReturn ? 'broken-1way' : ''));
+      downBtn.innerHTML = (hasDown && hasUpReturn) ? '✓ 2-Way Stairs (Down ⇄ Up)' : '+ Link Down ⇄ Up Stairs';
+      downBtn.onclick = () => toggleTwoWayExit(room.name, downRoom.name, 'down');
+      downCard.appendChild(downBtn);
+    }
+    vertGrid.appendChild(downCard);
+  }
+
+  verticalSec.appendChild(vertGrid);
+  body.appendChild(verticalSec);
+
+  // Section: Custom / Special Exits (e.g. portal, ladder, in, out)
+  const customSec = document.createElement('div');
+  customSec.style.marginTop = '14px';
+  customSec.innerHTML = `<div style="font-family:var(--mono); font-size:11px; font-weight:700; color:var(--dim); letter-spacing:1px; margin-bottom:8px;">CUSTOM / SPECIAL EXITS</div>`;
+
+  const customWrap = document.createElement('div');
+  customWrap.style.cssText = 'background:var(--bg); border:1px solid var(--border-dim); border-radius:6px; padding:12px 14px;';
+
+  const nonCardinals = rExits.filter(x => !['north', 'south', 'east', 'west', 'up', 'down'].includes(String(x).toLowerCase().trim()));
+  let tagsHtml = '';
+  if (nonCardinals.length > 0) {
+    tagsHtml = `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">` +
+      nonCardinals.map(x => `
+        <span style="display:inline-flex; align-items:center; gap:6px; background:rgba(90,154,204,0.2); color:var(--blue); border:1px solid rgba(90,154,204,0.4); padding:3px 8px; border-radius:4px; font-family:var(--mono); font-size:11px;">
+          ${x}
+          <span style="cursor:pointer; font-weight:700; color:var(--bright);" onclick="toggleOneWayExit('${room.name}', '${x}')">✕</span>
+        </span>
+      `).join('') + `</div>`;
+  } else {
+    tagsHtml = `<div style="font-family:var(--mono); font-size:11px; color:var(--dim); margin-bottom:10px;">No custom exits configured (e.g., portal, warp, ladder, in, out).</div>`;
+  }
+
+  customWrap.innerHTML = `
+    ${tagsHtml}
+    <div style="display:flex; gap:8px;">
+      <input type="text" id="custom-exit-input" class="search-input" style="flex:1; border:1px solid var(--border); border-radius:4px; padding:5px 8px; font-family:var(--mono); font-size:11px;" placeholder="Add custom exit name (e.g. portal, ladder, in, out)..." onkeydown="if(event.key==='Enter') addCustomExitFromInput('${room.name}')">
+      <button type="button" class="btn btn-accent" style="padding:5px 12px; font-size:11px;" onclick="addCustomExitFromInput('${room.name}')">+ Add Exit</button>
+    </div>
+  `;
+  customSec.appendChild(customWrap);
+  body.appendChild(customSec);
+
+  const modal = document.getElementById('exit-linker-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function addCustomExitFromInput(roomName) {
+  const inp = document.getElementById('custom-exit-input');
+  if (!inp) return;
+  const val = inp.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  if (!val) return;
+  toggleOneWayExit(roomName, val);
+}
+
+function closeExitLinkerModal() {
+  const modal = document.getElementById('exit-linker-modal');
+  if (modal) modal.style.display = 'none';
+  activeExitModalInfo = null;
+}
+
 window.classifyItem = classifyItem;
 window.getRoomEvents = getRoomEvents;
 window.buildRoomPositions = buildRoomPositions;
@@ -727,3 +1305,14 @@ window.onMapSearchChange = onMapSearchChange;
 window.clearMapSearch = clearMapSearch;
 window.setPlayerStartLocation = setPlayerStartLocation;
 window.promptCreateRoom = promptCreateRoom;
+
+window.ensureRoomExitsList = ensureRoomExitsList;
+window.getNeighborCoords = getNeighborCoords;
+window.toggleTwoWayExit = toggleTwoWayExit;
+window.toggleOneWayExit = toggleOneWayExit;
+window.linkAllAdjacentNeighbors = linkAllAdjacentNeighbors;
+window.unlinkAllAdjacentExits = unlinkAllAdjacentExits;
+window.autoLinkFloorExits = autoLinkFloorExits;
+window.openExitLinkerModal = openExitLinkerModal;
+window.closeExitLinkerModal = closeExitLinkerModal;
+window.addCustomExitFromInput = addCustomExitFromInput;

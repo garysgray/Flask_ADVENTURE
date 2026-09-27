@@ -56,12 +56,20 @@ class EventManager:
                 items = res['add_item'] if isinstance(res['add_item'], list) else [res['add_item']]
                 from game.gameObjects import Item
                 for it in items:
-                    player.inventory.append(Item(name=it) if isinstance(it, str) else it)
+                    if isinstance(it, str):
+                        item_obj = self.ctrl.map.make_item(it) if self.ctrl and hasattr(self.ctrl, 'map') and hasattr(self.ctrl.map, 'make_item') else Item(name=it)
+                    else:
+                        item_obj = it
+                    player.inventory.append(item_obj)
             if 'add_items' in res:
                 items = res['add_items'] if isinstance(res['add_items'], list) else [res['add_items']]
                 from game.gameObjects import Item
                 for it in items:
-                    player.inventory.append(Item(name=it) if isinstance(it, str) else it)
+                    if isinstance(it, str):
+                        item_obj = self.ctrl.map.make_item(it) if self.ctrl and hasattr(self.ctrl, 'map') and hasattr(self.ctrl.map, 'make_item') else Item(name=it)
+                    else:
+                        item_obj = it
+                    player.inventory.append(item_obj)
             if 'set_state' in res and room:
                 for sc in res['set_state']:
                     if sc.get('room') == getattr(room, 'name', ''):
@@ -219,6 +227,23 @@ class EventManager:
                     for item in room.inventory:
                         if item.name == item_name:
                             item.set_state(new_state)
+
+        # Unlocking player actions
+        if 'unlock_action' in result and hasattr(self.ctrl, 'player') and hasattr(self.ctrl.player, 'unlock_action'):
+            raw_act = result['unlock_action']
+            if isinstance(raw_act, list):
+                for act in raw_act:
+                    self.ctrl.player.unlock_action(act)
+            elif isinstance(raw_act, str):
+                self.ctrl.player.unlock_action(raw_act)
+
+        if 'unlock_actions' in result and hasattr(self.ctrl, 'player') and hasattr(self.ctrl.player, 'unlock_action'):
+            raw_acts = result['unlock_actions']
+            if isinstance(raw_acts, list):
+                for act in raw_acts:
+                    self.ctrl.player.unlock_action(act)
+            elif isinstance(raw_acts, str):
+                self.ctrl.player.unlock_action(raw_acts)
 
         # Journal and completed_events tracking
         current_room = self.ctrl.get_room()
@@ -466,7 +491,15 @@ class EventManager:
                     elif isinstance(event, ItemUsedWithEvent):
                         room_name = event.room
                     if room_name and room_name != 'any':
-                        return f"You already did this in the {room_name}."
+                        display = None
+                        if hasattr(self.ctrl.map, 'list_of_rooms') and self.ctrl.map.list_of_rooms:
+                            for r in self.ctrl.map.list_of_rooms:
+                                if getattr(r, 'name', None) == room_name:
+                                    display = getattr(r, 'display_name', None)
+                                    break
+                        if not display:
+                            display = room_name.replace('_', ' ')
+                        return f"You already did this in the {display}."
                     return "You already did this."
         return None
 

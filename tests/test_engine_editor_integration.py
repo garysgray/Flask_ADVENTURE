@@ -463,3 +463,73 @@ class TestEditorEngineContract(unittest.TestCase):
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
+
+    def test_centralized_loader_tiered_validation(self):
+        """Verify centralized loader normalizes string exits, warns, and raises fatal error with context."""
+        import tempfile
+        import yaml
+        from game.loader import load_and_validate_adventure, YAMLValidationError
+
+        with open(TEST_ADVENTURE_PATH, "r") as f:
+            data = yaml.safe_load(f)
+
+        # 1. Normalization check: string exits "north, east" should normalize cleanly
+        data["rooms"][0]["exits"] = "north, east"
+        with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as tf:
+            yaml.safe_dump(data, tf)
+            norm_path = tf.name
+
+        try:
+            sanitized = load_and_validate_adventure(norm_path)
+            assert "north" in sanitized["rooms"][0]["exits"]
+            assert "east" in sanitized["rooms"][0]["exits"]
+        finally:
+            if os.path.exists(norm_path):
+                os.remove(norm_path)
+
+        # 2. Fatal check: empty starting location raises YAMLValidationError with clear message
+        data["player"]["starting_location"] = {"floor": 0, "x": 0, "y": 0}
+        with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as tf:
+            yaml.safe_dump(data, tf)
+            err_path = tf.name
+
+        try:
+            with pytest.raises(YAMLValidationError, match="is empty \\(null\\) or out of bounds"):
+                load_and_validate_adventure(err_path)
+        finally:
+            if os.path.exists(err_path):
+                os.remove(err_path)
+
+    def test_map_glyphs_integration_on_game_map(self):
+        """Verifies that custom map_glyphs are loaded onto the Map instance."""
+        import tempfile
+        import yaml
+        with open(TEST_ADVENTURE_PATH, "r") as f:
+            data = yaml.safe_load(f)
+
+        data["map_glyphs"] = {
+            "player": "🧙",
+            "locked": "⛔",
+            "stairs_up": "🪜",
+            "stairs_down": "🪜",
+            "portal": "✦",
+            "unexplored": "·"
+        }
+
+        with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as tf:
+            yaml.safe_dump(data, tf)
+            custom_path = tf.name
+
+        try:
+            m = Map(file_path=custom_path)
+            self.assertEqual(m.map_glyphs["player"], "🧙")
+            self.assertEqual(m.map_glyphs["locked"], "⛔")
+            self.assertEqual(m.map_glyphs["stairs_up"], "🪜")
+            self.assertEqual(m.map_glyphs["stairs_down"], "🪜")
+            self.assertEqual(m.map_glyphs["portal"], "✦")
+            self.assertEqual(m.map_glyphs["unexplored"], "·")
+        finally:
+            if os.path.exists(custom_path):
+                os.remove(custom_path)
+
+

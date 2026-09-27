@@ -22,7 +22,14 @@ class Controller:
         self.State  = State.LOAD
         self.map    = Map(file_path=file_path)
         start_loc   = getattr(self.map, 'starting_location', {'floor': 0, 'x': 0, 'y': 0})
-        self.player = Player(self.map.game_map, location=start_loc)
+        unlocked    = getattr(self.map, 'player_unlocked_actions', None)
+        locked_msgs = getattr(self.map, 'player_locked_messages', {})
+        self.player = Player(
+            self.map.game_map,
+            location=start_loc,
+            unlocked_actions=unlocked,
+            locked_messages=locked_msgs
+        )
         self.player.inventory = [self.map.make_item(item.name) for item in self.map.player_start_invent]
 
         self.room_info = {}
@@ -32,21 +39,23 @@ class Controller:
         self.events      = EventManager(self)
         self.persistence = PersistenceManager(self)
 
+        self.record_starting_room()
+
+    def record_starting_room(self):
+        """Records the starting room visit at game creation."""
+        room = self.get_room()
+        if room:
+            self.player.record_current_room(room)
+
     # ─── Map ──────────────────────────────────────────────────────────────────
 
     def get_room(self):
         try:
             floor = self.map.game_map[self.player.level]
             room  = floor[self.player.pos_y][self.player.pos_x]
-            pos   = (self.player.level, self.player.pos_y, self.player.pos_x)
-            if pos not in self.player.visited_rooms:
-                self.player.visited_rooms.append(pos)
-                self.player.visited_room_names.append(room.name)
-            return room
+            return room if room is not None else None
         except Exception:
-            return False
-    def get_new_map(self):
-        self.map = Map()
+            return None
 
     # ─── Command Pipeline ─────────────────────────────────────────────────────
 
@@ -65,6 +74,22 @@ class Controller:
 
         game_won = self.events.check_win()
         room     = self.get_room()
+
+        if not room:
+            self.room_info = {
+                'CMD_RESPONSE':     cmd_response,
+                'ROOM_NAME':        "Unknown",
+                'ROOM_EXITS':       [],
+                'ROOM_DESCRIPTION': "You are in an unknown area.",
+                'ROOM_INVENTORY':   [],
+                'SENT_CMD':         cmd,
+                'EVENT_MESSAGES':   event_messages,
+                'ROOM_EXIT_DEST':   {},
+                'GAME_WON':         game_won,
+                'SHOW_JOURNAL':     cmd == 'journal',
+                'GAME_TITLE':       getattr(self.map, 'intro', {}).get('title', 'Text Adventure'),
+            }
+            return
 
         self.room_info = {
             'CMD_RESPONSE':     cmd_response,
@@ -86,12 +111,6 @@ class Controller:
 
     def evaluate_use_with(self, item, target):
         return self.events.evaluate_use_with(item, target)
-
-    def evaluate_interaction(self, item, target):
-        return self.events.evaluate_use_with(item, target)
-
-    def check_use_with_events(self, item, target):
-        return self.events.check_use_with_events(item, target)
 
     def check_use_with_events_already_done(self, item, target):
         return self.events.check_use_with_events_already_done(item, target)

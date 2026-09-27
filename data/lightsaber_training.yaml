@@ -1,0 +1,481 @@
+# =============================================================================
+# JEDI TRIALS: LIGHTSABER COMBAT ADVENTURE
+# =============================================================================
+# Star Wars Jedi lightsaber combat training adventure demonstrating:
+#   1. Custom combat actions in custom_verbs ('strike', 'parry', 'deflect', 'thrust', 'flurry')
+#   2. Initial action gating via player.unlocked_actions ('strike', 'parry', 'meditate', 'talk')
+#   3. Custom locked action feedback via player.locked_messages ('deflect', 'thrust', 'flurry')
+#   4. Dynamic action progression via unlock_action in event results
+#   5. Natural locative phrasing ('deflect over droid', 'do thrust over sentry_droid')
+# =============================================================================
+
+theme:
+  accent: "#38bdf8"          # Plasma lightsaber cyan
+  bg: "#0b1120"              # Deep space navy
+  font: "'Share Tech Mono', monospace"
+
+player:
+  starting_inventory:
+    - training_saber
+    - jedi_tunic
+  unlocked_actions:
+    - strike
+    - parry
+    - meditate
+    - talk
+    - activate
+  locked_messages:
+    deflect: "You haven't mastered blaster deflection yet! Study the combat holocron in the Jedi Archives to learn Form III (Soresu)."
+    thrust: "You haven't mastered the precision thrust yet! Overcome the marksman remote droid to unlock advanced Makashi strikes."
+    flurry: "You haven't learned the multi-strike lightsaber flurry yet! Complete your fundamentals first."
+
+intro:
+  title: "JEDI TRIALS: LIGHTSABER COMBAT"
+  text: |
+    Sunlight streams through the soaring stained-glass archways of the Jedi Temple Training Atrium.
+    The peaceful humming of a crystal water fountain is joined by the deep, resonant SNAP-HISS
+    of your training lightsaber springing to life.
+    
+    A brilliant azure plasma blade glows steadily in your grip, casting dancing blue reflections
+    across polished marble flagstones.
+    
+    Today is the day of your Lightsaber Trials. You have learned the basic stance and strikes,
+    but facing advanced training droids and deflecting rapid-fire plasma bolts will require
+    discipline, study, and the guidance of the Force.
+  instructions: |
+    Combat Actions & Commands:
+      - Navigation: 'north', 'south', 'east', 'west' (or n, s, e, w)
+      - Inspect: 'look', 'examine dummy', 'examine holocron', 'examine droid', 'examine sentry'
+      - Unlocked Stances: 'strike dummy', 'parry dummy', 'meditate holocron'
+      - Locked Feedback: Try 'deflect over dummy' or 'thrust over dummy' to see the locked action gate!
+      - Learn Deflection: Head EAST to the Archives and 'activate holocron' to unlock 'deflect'!
+      - Remote Marksman: Go SOUTH to the Dueling Ring and 'deflect over droid' to unlock 'thrust'!
+      - Master Sentry: Go EAST into the Master Arena and 'thrust over sentry' to conquer the trial!
+
+win_conditions:
+  - strike_dummy
+  - study_deflection
+  - deflect_blaster
+  - defeat_sentry
+
+win_screen:
+  title: "JEDI KNIGHT RECOGNITION"
+  text: |
+    With a final, pinpoint thrust of your azure blade, the heavy combat sentry's power
+    matrix sparks softly and shuts down with a low harmonic chime.
+    
+    You extinguish your training lightsaber, bowing with calm reverence.
+    
+    The temple atrium fills with the warm applause of the Jedi Council.
+    Master Cin Drallig steps forward, placing a hand on your shoulder:
+    "You have demonstrated balance, control, and the true spirit of a Jedi guardian.
+    The Force is with you, young Knight."
+
+# =============================================================================
+# ITEMS
+# =============================================================================
+items:
+  training_saber:
+    display_name: "initiate lightsaber"
+    presence: "an elegant chrome hilt with an ignited azure plasma blade"
+    aliases:
+      - saber
+      - lightsaber
+      - blade
+      - hilt
+    keywords:
+      - saber
+      - lightsaber
+      - blade
+    states:
+      default:
+        description: |
+          A balanced initiate lightsaber with a machined chromium hilt and an Adegan kyber crystal core.
+          It hums with a focused, low-yield azure blade designed for intensive sparring.
+        use: |
+          You adjust your grip and sweep the blade in an elegant Shi-Cho opening salute. The air sizzles with ozone.
+
+  jedi_tunic:
+    display_name: "traditional jedi tunic"
+    presence: "crisp earth-toned linen robes with a leather utility sash"
+    aliases:
+      - tunic
+      - robes
+      - robe
+    keywords:
+      - tunic
+      - robes
+    states:
+      default:
+        description: |
+          Lightweight, breathable linen robes tailored for unhindered acrobatic movement and saber combat.
+        use: |
+          You center yourself, letting the robes settle as you slow your breathing to match the rhythm of the Force.
+
+  focus_crystal:
+    display_name: "glowing kyber fragment"
+    presence: "a glowing blue kyber crystal fragment resting on a velvet pedestal"
+    aliases:
+      - crystal
+      - kyber
+      - kyber crystal
+    keywords:
+      - crystal
+      - kyber
+    states:
+      default:
+        description: |
+          A tuned kyber crystal resonant with Force energy. It pulses in sync with your heartbeat.
+        use: |
+          You hold the crystal near your saber hilt; the plasma blade burns noticeably brighter and steadier.
+
+# =============================================================================
+# TARGET ALIASES
+# =============================================================================
+target_aliases:
+  training_dummy:
+    - dummy
+    - training dummy
+    - target dummy
+    - practice dummy
+    - automaton
+
+  combat_holocron:
+    - holocron
+    - combat holocron
+    - archives
+    - terminal
+    - pillar
+
+  remote_droid:
+    - droid
+    - remote
+    - marksman droid
+    - training remote
+    - sphere
+    - floating droid
+
+  sentry_droid:
+    - sentry
+    - sentry droid
+    - combat sentry
+    - mark iv sentry
+    - gladiator droid
+
+# =============================================================================
+# CUSTOM VERBS
+# =============================================================================
+custom_verbs:
+  single_object:
+    - strike
+    - parry
+    - deflect
+    - thrust
+    - flurry
+    - meditate
+    - talk
+    - activate
+  two_object:
+    - use
+    - strike
+    - parry
+    - deflect
+
+# =============================================================================
+# ROOMS
+# =============================================================================
+rooms:
+
+  # ---------------------------------------------------------------------------
+  # ROOM 1: TRAINING ATRIUM (Spawn point X=0, Y=0)
+  # Features: Training dummy (tests basic strike, parry, and locked actions)
+  # ---------------------------------------------------------------------------
+  - name: training_atrium
+    display_name: "Temple Training Atrium"
+    exits:
+      - east
+      - south
+
+    base_description: |
+      You stand upon the inlaid mosaic emblem in the center of the Temple Training Atrium.
+      High vaulted ceilings echo with the gentle chime of meditation bells.
+
+    fixtures:
+      training_dummy:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A heavy mechanical sparring dummy stands bolted to the floor, encased in carbonite plating.
+          slashed: |
+            The training dummy stands before you, bearing a glowing, cooling seam across its armored chestplate.
+        examine:
+          default: |
+            An articulated practice dummy designed for Form I (Shii-Cho) blade fundamentals.
+            Try: 'strike dummy' or 'strike over dummy' to warm up your blade.
+            (Or try 'deflect over dummy' or 'thrust over dummy' to test the locked action feedback!)
+          slashed: |
+            The dummy's armor plate hums with dissipating thermal energy where your saber carved through.
+
+    trailing_description: |
+      An arched doorway to the EAST opens into the glowing Jedi Archives.
+      To the SOUTH, the lowered perimeter leads into the Combat Dueling Ring.
+
+    items: []
+
+  # ---------------------------------------------------------------------------
+  # ROOM 2: JEDI ARCHIVES (East of Atrium, X=1, Y=0)
+  # Features: Combat Holocron (fires event to unlock 'deflect' action)
+  # ---------------------------------------------------------------------------
+  - name: jedi_archives
+    display_name: "Temple Archives & Holocron Chamber"
+    exits:
+      - west
+
+    base_description: |
+      You enter the tranquil, shadowed halls of the Temple Archives. Tall crystalline data-spires
+      bathe the chamber in soft cobalt luminescence.
+
+    fixtures:
+      combat_holocron:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A crystalline pyramidal Jedi Holocron hovers quietly above a bronze meditation pillar.
+          active: |
+            The holocron revolves slowly mid-air, casting an intricate geometric aura of light across the chamber.
+        examine:
+          default: |
+            The Holocron of Master Cin Drallig, renowned swordmaster of the Jedi Order.
+            Type 'activate holocron' or 'meditate holocron' to commune with its teachings on Form III blaster deflection!
+          active: |
+            The holocron projection remains active, reminding you: 'A Jedi deflects not with eyes, but through anticipation.'
+
+    trailing_description: |
+      The archway to the WEST leads back into the Training Atrium.
+
+    items:
+      - focus_crystal
+
+  # ---------------------------------------------------------------------------
+  # ROOM 3: COMBAT DUELING RING (South of Atrium, X=0, Y=1)
+  # Features: Marksman Remote Droid (requires deflect action, unlocks thrust)
+  # ---------------------------------------------------------------------------
+  - name: dueling_ring
+    display_name: "Combat Dueling Ring"
+    exits:
+      - north
+      - east
+
+    base_description: |
+      You step into the sunken circular Dueling Ring. Blast-shielded walls line the perimeter
+      to contain stray plasma discharges.
+
+    fixtures:
+      remote_droid:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A spherical marksman training remote hovers at eye level, its low-power blaster nozzle whirring as it tracks you.
+          disabled: |
+            The marksman remote droid floats serenely in low-power rest mode, its blaster lens safely darkened.
+        examine:
+          default: |
+            A hovering Mark-II Marksman Remote. It fires rapid sting-bolts in erratic sequences.
+            Once you have unlocked Form III, type 'deflect over droid' or 'do deflect over droid'!
+          disabled: |
+            The remote droid has registered your successful deflection and accepted defeat.
+
+    trailing_description: |
+      The stone steps NORTH lead back up to the Training Atrium.
+      An energy gate to the EAST opens into the Master Sentry Arena.
+
+    items: []
+
+  # ---------------------------------------------------------------------------
+  # ROOM 4: MASTER SENTRY ARENA (East of Dueling Ring, X=1, Y=1)
+  # Features: Mark IV Combat Sentry (requires thrust action, final win condition)
+  # ---------------------------------------------------------------------------
+  - name: master_arena
+    display_name: "Master Sentry Arena"
+    exits:
+      - west
+
+    base_description: |
+      You enter the reinforced Master Sentry Arena. The floor is scorched with old blast scars,
+      and high observation balconies overlook the battleground.
+
+    fixtures:
+      sentry_droid:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A hulking Mark IV combat sentry droid stands primed, armed with twin shock-batons and vibro-shields.
+          vanquished: |
+            The Mark IV sentry droid kneels motionless, its chassis humming down as its optic sensors flash amber.
+        examine:
+          default: |
+            An intimidating combat droid built to test senior padawans. Its vibro-shield guards its flanks,
+            leaving only a narrow frontal opening vulnerable to a decisive 'thrust over sentry'!
+          vanquished: |
+            The combat sentry has acknowledged your victory. A textbook Form II finish!
+
+    trailing_description: |
+      The reinforced portal to the WEST leads back into the Dueling Ring.
+
+    items: []
+
+# =============================================================================
+# EVENTS
+# =============================================================================
+events:
+
+  # ---------------------------------------------------------------------------
+  # EVENT 1: Strike the training dummy (Calibrate saber fundamentals)
+  # ---------------------------------------------------------------------------
+  - id: strike_dummy
+    trigger:
+      type: solo
+      target: training_dummy
+      action: strike
+    conditions:
+      - type: in_room
+        room: training_atrium
+        fail_hint: "The training dummy is located in the Training Atrium."
+    result:
+      set_fixture_state:
+        - room: training_atrium
+          fixture: training_dummy
+          state: slashed
+      journal:
+        room: training_atrium
+        message: "Executed a clean Form I Shii-Cho horizontal strike across the training dummy."
+      message: |
+        You pivot on your back foot, channeling the Force into a crisp horizontal slash!
+        BZZZZZZT! Your azure blade bites into the carbonite dummy, leaving a glowing molten seam.
+        The dummy's balance gyro stabilizes as you return to an open ready guard.
+
+  # ---------------------------------------------------------------------------
+  # EVENT 2: Activate Holocron in Archives -> UNLOCKS DEFLECT ACTION
+  # ---------------------------------------------------------------------------
+  - id: study_deflection
+    trigger:
+      type: solo
+      target: combat_holocron
+      action: activate
+    conditions:
+      - type: in_room
+        room: jedi_archives
+        fail_hint: "The combat holocron rests in the Temple Archives."
+    result:
+      set_fixture_state:
+        - room: jedi_archives
+          fixture: combat_holocron
+          state: active
+      unlock_action: deflect
+      journal:
+        room: jedi_archives
+        message: "Attuned to the Holocron of Master Cin Drallig. Deflect action unlocked!"
+      message: |
+        You touch the crystalline facets of the holocron and let your thoughts still.
+        The pyramid expands with a soft hum, projecting a life-sized sapphire silhouette of Master Drallig:
+        
+        "Form III—Soresu—is the art of absolute defense. You do not chase the blaster bolt with your eyes;
+        you anticipate its vector through the living Force. Keep your blade close to the body, angle the flat
+        of the plasma beam, and let the blaster energy rebound naturally."
+        
+        =======================================================
+        [ NEW COMBAT ACTION UNLOCKED: DEFLECT ]
+        You can now deflect incoming blaster fire! Test your reflexes in the Dueling Ring!
+        =======================================================
+
+  # ---------------------------------------------------------------------------
+  # EVENT 3: Deflect blaster fire from the remote droid -> UNLOCKS THRUST ACTION
+  # ---------------------------------------------------------------------------
+  - id: deflect_blaster
+    trigger:
+      type: solo
+      target: remote_droid
+      action: deflect
+    conditions:
+      - type: in_room
+        room: dueling_ring
+        fail_hint: "The marksman remote droid is hovering in the Dueling Ring."
+      - type: events_completed
+        events:
+          - study_deflection
+        fail_hint: "The remote's firing pace is too rapid! Visit the Archives to learn Form III deflection first."
+    result:
+      set_fixture_state:
+        - room: dueling_ring
+          fixture: remote_droid
+          state: disabled
+      unlock_action: thrust
+      journal:
+        room: dueling_ring
+        message: "Deflected a volley of blaster bolts from the remote droid. Thrust action unlocked!"
+      message: |
+        The remote chirps and unleashes a rapid three-round burst of crimson plasma!
+        
+        Closing your eyes, you yield to the flow of the Force. Your lightsaber snaps into position—
+        PING! PING! PING!
+        
+        The bolts rebound in shower of bright sparks. The third bolt redirects cleanly into the remote's
+        guidance sensor, prompting it to beep politely and lower into standby mode.
+        
+        =======================================================
+        [ NEW COMBAT ACTION UNLOCKED: THRUST ]
+        Your blade precision has reached Makashi mastery! You can now execute targeted thrusts!
+        =======================================================
+
+  # ---------------------------------------------------------------------------
+  # EVENT 4: Thrust at the sentry droid -> FINAL WIN CONDITION
+  # ---------------------------------------------------------------------------
+  - id: defeat_sentry
+    trigger:
+      type: solo
+      target: sentry_droid
+      action: thrust
+    conditions:
+      - type: in_room
+        room: master_arena
+        fail_hint: "The combat sentry droid stands in the Master Sentry Arena."
+      - type: events_completed
+        events:
+          - deflect_blaster
+        fail_hint: "The sentry's defenses are formidable! Defeat the marksman remote first to sharpen your precision."
+    result:
+      set_fixture_state:
+        - room: master_arena
+          fixture: sentry_droid
+          state: vanquished
+      journal:
+        room: master_arena
+        message: "Penetrated the combat sentry's defenses with a precise Form II thrust."
+      message: |
+        The Mark IV sentry roars into motion, sweeping its twin vibro-shields in a crushing pincer attack!
+        
+        You read the gap in its defense before the hydraulic servos even complete the swing.
+        With lightning footwork, you slip straight down the center corridor, extending your arm in a
+        surgical Form II Makashi thrust!
+        
+        TSZZZZZZZZZT!
+        
+        Your blue blade penetrates the centimeter-wide exhaust port directly between its armor plating.
+        The sentry halts instantly, sparks dancing across its joints as its systems chime in graceful surrender!
+
+# =============================================================================
+# MAP FLOORS & GRID LAYOUT
+# =============================================================================
+# Floor 0: 2x2 grid
+#   Row 0 (Y=0): training_atrium (0,0)  jedi_archives (1,0)
+#   Row 1 (Y=1): dueling_ring (0,1)     master_arena (1,1)
+# =============================================================================
+floors:
+  - - - training_atrium    # (X=0, Y=0) <- Player starting location
+      - jedi_archives      # (X=1, Y=0) <- East of Atrium
+    - - dueling_ring       # (X=0, Y=1) <- South of Atrium
+      - master_arena       # (X=1, Y=1) <- East of Dueling Ring

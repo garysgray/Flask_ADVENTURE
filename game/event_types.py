@@ -293,8 +293,14 @@ class ItemUsedWithEvent(Event):
 
     def check(self, ctrl, item, target):
         # item, target, room, and prerequisites must all be satisfied
+        current_room = ctrl.get_room()
+        room_matches = (
+            not self.room
+            or self.room == 'any'
+            or (bool(current_room) and getattr(current_room, 'name', None) == self.room)
+        )
         return (self.matches_interaction(item, target) and
-                (not self.room or self.room == 'any' or self.room == ctrl.get_room().name) and
+                room_matches and
                 self.check_prerequisites(ctrl))
     
 class AllEventsCompletedEvent(Event):

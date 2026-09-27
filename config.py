@@ -1,1 +1,1 @@
-DATA_FILE_PATH = "barebones4.yaml"
+DATA_FILE_PATH = "delictum.yaml"

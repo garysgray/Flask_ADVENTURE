@@ -33,6 +33,12 @@ function initWorkbench() {
 function switchMode(mode) {
   const State = window.State;
   if (!State) return;
+
+  // Support backward-compatible aliases
+  if (mode === 'story' || mode === 'dialog') {
+    mode = 'narrative';
+  }
+
   if (State.currentMode === 'yaml' && mode !== 'yaml') {
     if (State.isRawYamlDirty && window.applyYamlSource) {
       const ok = window.applyYamlSource(true);
@@ -44,21 +50,48 @@ function switchMode(mode) {
   }
 
   State.currentMode = mode;
-  ['map', 'story', 'dialog', 'yaml', 'validator'].forEach(m => {
+  ['map', 'narrative', 'yaml', 'validator'].forEach(m => {
     document.getElementById('btn-mode-' + m)?.classList.toggle('active', mode === m);
     document.getElementById('view-' + m)?.classList.toggle('active-view', mode === m);
   });
 
   if (mode === 'yaml') {
     if (window.syncToYamlEditor) window.syncToYamlEditor();
-  } else if (mode === 'dialog') {
-    if (window.renderDialogList) window.renderDialogList();
-  } else if (mode === 'story') {
+  } else if (mode === 'narrative') {
     if (window.renderStoryMetadataView) window.renderStoryMetadataView();
+    if (window.renderDialogList) window.renderDialogList();
   } else if (mode === 'validator') {
     if (window.runValidation) window.runValidation();
   }
 }
+
+function switchNarrativeSubTab(tabName) {
+  ['story', 'progression', 'script'].forEach(t => {
+    document.getElementById('subnav-narrative-' + t)?.classList.toggle('active', t === tabName);
+    document.getElementById('narrative-section-' + t)?.classList.toggle('active-subtab', t === tabName);
+  });
+  if (tabName === 'script' && window.renderDialogList) {
+    window.renderDialogList();
+  }
+}
+
+function toggleToolsDropdown() {
+  const menu = document.getElementById('tools-dropdown-menu');
+  if (menu) menu.classList.toggle('visible');
+}
+
+function closeToolsDropdown() {
+  const menu = document.getElementById('tools-dropdown-menu');
+  if (menu) menu.classList.remove('visible');
+}
+
+// Close dropdown on clicks outside
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.tools-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    closeToolsDropdown();
+  }
+});
 
 function resetToUpload() {
   const State = window.State;
@@ -264,6 +297,9 @@ window.resetToUpload = resetToUpload;
 window.createNewAdventure = createNewAdventure;
 window.promptRenameFile = promptRenameFile;
 window.switchMode = switchMode;
+window.switchNarrativeSubTab = switchNarrativeSubTab;
+window.toggleToolsDropdown = toggleToolsDropdown;
+window.closeToolsDropdown = closeToolsDropdown;
 window.exportYaml = exportYaml;
 
 window.addEventListener('beforeunload', (e) => {

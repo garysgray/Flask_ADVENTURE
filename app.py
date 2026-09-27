@@ -1,16 +1,47 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from functools import wraps
 from game import Controller, State
+from game.loader import load_and_validate_adventure, AdventureConfigError
 import os
+import sys
+import logging
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from config import DATA_FILE_PATH
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'delictum-facility-dev-secret-key-39281')
+
+# Adventure theme/title cache: maps (resolved_path_str, mtime) -> {'game_theme': dict, 'game_title': str}
+_ADVENTURE_THEME_CACHE = {}
+
+def _extract_and_cache_theme(data_path, mtime, adventure_data):
+    """Stores validated theme and title in the cache for (data_path, mtime)."""
+    theme = adventure_data.get('theme', {}) if isinstance(adventure_data, dict) else {}
+    intro = adventure_data.get('intro', {}) if isinstance(adventure_data, dict) else {}
+    title = intro.get('title', 'Text Adventure') if isinstance(intro, dict) else 'Text Adventure'
+    cached = {
+        'game_theme': theme if isinstance(theme, dict) else {},
+        'game_title': title if title else 'Text Adventure'
+    }
+    _ADVENTURE_THEME_CACHE[(str(data_path), mtime)] = cached
+    return cached
+
+# Startup validation: verify the active adventure YAML on boot
+try:
+    _startup_adventure_path = Path(__file__).resolve().parent / "data" / DATA_FILE_PATH
+    _validated_startup_data = load_and_validate_adventure(_startup_adventure_path)
+    _startup_mtime = _startup_adventure_path.stat().st_mtime if _startup_adventure_path.is_file() else None
+    if _startup_mtime is not None:
+        _extract_and_cache_theme(_startup_adventure_path, _startup_mtime, _validated_startup_data)
+except AdventureConfigError as _exc:
+    print(str(_exc), file=sys.stderr)
 
 
 
@@ -20,18 +51,25 @@ db = SQLAlchemy(app)
 def inject_theme():
     """Injects game theme settings and title defined in the adventure YAML into templates."""
     try:
-        import yaml
-        from pathlib import Path
-        data_path = Path(__file__).resolve().parent / "data" / DATA_FILE_PATH
-        with open(data_path, "r") as f:
-            d = yaml.safe_load(f) or {}
-            intro = d.get('intro', {})
-            title = intro.get('title', 'Text Adventure') if isinstance(intro, dict) else 'Text Adventure'
-            return {
-                'game_theme': d.get('theme', {}),
-                'game_title': title
-            }
+        raw_path = Path(DATA_FILE_PATH)
+        if raw_path.is_absolute():
+            data_path = raw_path
+        else:
+            data_path = Path(__file__).resolve().parent / "data" / DATA_FILE_PATH
+
+        if not data_path.is_file():
+            return {'game_theme': {}, 'game_title': 'Text Adventure'}
+
+        current_mtime = data_path.stat().st_mtime
+        cache_key = (str(data_path), current_mtime)
+        if cache_key in _ADVENTURE_THEME_CACHE:
+            return _ADVENTURE_THEME_CACHE[cache_key]
+
+        # Not yet cached or file modified: validate and extract theme
+        validated_data = load_and_validate_adventure(data_path)
+        return _extract_and_cache_theme(data_path, current_mtime, validated_data)
     except Exception:
+        # Never store fallback/error results in _ADVENTURE_THEME_CACHE
         return {'game_theme': {}, 'game_title': 'Text Adventure'}
 
 
@@ -70,9 +108,9 @@ class DB_Player(db.Model):
     id               = db.Column(db.Integer, primary_key=True)
     user_id          = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     save_name        = db.Column(db.String(30), nullable=False)
-    location         = db.Column(db.String(30))
-    player_inventory = db.Column(db.String(500))
-    room_inventory   = db.Column(db.String(3000))
+    location         = db.Column(db.Text)
+    player_inventory = db.Column(db.Text)
+    room_inventory   = db.Column(db.Text)
     cmd_info         = db.Column(db.String(30))
     date_create      = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -129,13 +167,21 @@ def get_controller(player_id):
     if not hasattr(app, 'controllers'):
         app.controllers = {}
     if player_id not in app.controllers:
-        app.controllers[player_id] = Controller()
+        try:
+            app.controllers[player_id] = Controller()
+        except AdventureConfigError as exc:
+            print(str(exc), file=sys.stderr)
+            raise
     else:
         # Safety check: if an existing controller in memory was loaded for a different player ID,
         # reset it to ensure state isolation
         ctrl = app.controllers[player_id]
         if ctrl.player.id is not None and ctrl.player.id != player_id:
-            app.controllers[player_id] = Controller()
+            try:
+                app.controllers[player_id] = Controller()
+            except AdventureConfigError as exc:
+                print(str(exc), file=sys.stderr)
+                raise
     return app.controllers[player_id]
 
 
@@ -206,7 +252,11 @@ def index():
         save_name = request.form['save_name'].strip() or 'New Save'
 
         # spin up a temporary controller just to generate starting save data
-        temp_ctrl = Controller()
+        try:
+            temp_ctrl = Controller()
+        except AdventureConfigError as exc:
+            print(str(exc), file=sys.stderr)
+            raise
         temp_ctrl.player.inventory = temp_ctrl.map.player_start_invent
         temp_ctrl.player.journal.append({
             'event_id': 'intro',
@@ -286,11 +336,20 @@ def game(id):
         cmd_info = ctrl.parse_it(cmd)
         ctrl.run_the_cmd(cmd_info)
 
-        loc, inv, rooms            = ctrl.save_stuff_to_data_base()
-        db_player.location         = loc
-        db_player.player_inventory = inv
-        db_player.room_inventory   = rooms
-        db.session.commit()
+        if not ctrl.get_room():
+            logger.warning(
+                "Player %s is in an invalid/empty room tile at floor=%s, y=%s, x=%s; skipping save to prevent state corruption.",
+                db_player.id,
+                getattr(ctrl.player, 'level', None),
+                getattr(ctrl.player, 'pos_y', None),
+                getattr(ctrl.player, 'pos_x', None)
+            )
+        else:
+            loc, inv, rooms            = ctrl.save_stuff_to_data_base()
+            db_player.location         = loc
+            db_player.player_inventory = inv
+            db_player.room_inventory   = rooms
+            db.session.commit()
 
         return redirect(url_for('game', id=db_player.id))
 
@@ -381,6 +440,7 @@ def game(id):
         intro          = ctrl.map.intro,
         win_screen     = ctrl.map.win_screen,
         game_title     = ctrl.map.intro.get('title', 'Text Adventure'),
+        map_glyphs     = getattr(ctrl.map, 'map_glyphs', {}),
     )
 
 
@@ -402,61 +462,6 @@ def delete(id):
     except Exception as e:
         return f'Error deleting save: {e}'
     return redirect('/')
-
-
-# =============================================================================
-# YAML EDITOR ROUTES & ERROR INTERCEPTOR
-# =============================================================================
-
-@app.route('/editor')
-@app.route('/editor/')
-@app.route('/yaml_editor')
-@app.route('/yaml_editor/')
-def serve_editor_index():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    return send_from_directory(os.path.join(base_dir, 'yaml_editor'), 'index.html')
-
-
-@app.route('/editor/<path:filename>')
-@app.route('/yaml_editor/<path:filename>')
-def serve_editor_static(filename):
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    return send_from_directory(os.path.join(base_dir, 'yaml_editor'), filename)
-
-
-@app.errorhandler(ValueError)
-def handle_value_error(e):
-    err_str = str(e)
-    if "YAML Validation Error:" in err_str:
-        return f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Adventure YAML Error</title>
-          <style>
-            body {{ background: #0c0e14; color: #e2e8f0; font-family: monospace; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }}
-            .card {{ background: #151921; border: 1px solid #ef4444; border-radius: 8px; padding: 24px 32px; max-width: 650px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }}
-            h1 {{ color: #ef4444; font-size: 18px; margin-top: 0; display: flex; align-items: center; gap: 8px; }}
-            p {{ font-size: 14px; line-height: 1.6; color: #cbd5e1; }}
-            .details {{ background: #0c0e14; border: 1px solid #2d3748; padding: 14px; border-radius: 6px; color: #f87171; margin: 16px 0; word-break: break-word; }}
-            .btn {{ display: inline-block; background: #38bdf8; color: #000; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; margin-top: 10px; }}
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <h1>⚠️ ADVENTURE YAML CONFIGURATION ERROR</h1>
-            <p>The game engine encountered an invalid adventure structure in your YAML file:</p>
-            <div class="details">{err_str}</div>
-            <p>To fix this, open the <strong>YAML Editor</strong>, review the pre-flight checks in the <strong>Sanity Validator</strong> or <strong>Map &amp; Roadmap</strong> tab, correct the placement/floor limits, and export the file.</p>
-            <div style="display:flex; gap:10px;">
-              <a href="/editor" class="btn">Open YAML Editor</a>
-              <a href="/" class="btn" style="background:#475569; color:#fff;">Back to Saves</a>
-            </div>
-          </div>
-        </body>
-        </html>
-        """, 400
-    raise e
 
 
 if __name__ == "__main__":

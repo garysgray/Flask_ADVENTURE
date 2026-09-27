@@ -1,0 +1,468 @@
+# =============================================================================
+# DOWNTOWN SKATEPARK ADVENTURE
+# =============================================================================
+# Demonstrates the new action-unlocking and preposition-parsing engine features:
+#   1. Custom trick actions declared in custom_verbs ('ollie', 'kickflip', 'manual', 'grind')
+#   2. Action gating via player.unlocked_actions (ollie & manual unlocked at start)
+#   3. Custom locked action feedback via player.locked_messages
+#   4. Dynamic action unlocking via event results ('unlock_action: kickflip', 'unlock_action: grind')
+#   5. Natural locative phrasing ('ollie over hubba', 'kickflip over gap', 'do kickflip over gap')
+# =============================================================================
+
+theme:
+  accent: "#38bdf8"          # Electric cyan / skate teal
+  bg: "#0f172a"              # Slate night terminal
+  font: "'Share Tech Mono', monospace"
+
+player:
+  starting_inventory:
+    - pro_deck
+    - skate_tool
+  unlocked_actions:
+    - ollie
+    - manual
+    - talk
+    - skate
+    - wax
+  locked_messages:
+    kickflip: "You haven't learned how to kickflip yet! Ask Coach at the skate shop to teach you the footwork."
+    grind: "You don't know how to grind yet! Clear the six-stair gap with a clean kickflip first to build your board control."
+
+intro:
+  title: "DOWNTOWN SKATEPARK"
+  text: |
+    The afternoon sun reflects off polished concrete ledges and painted steel curbs.
+    You drop your 7-ply maple pro deck onto the asphalt with a crisp, echoing SNAP.
+    
+    Welcome to Downtown Skatepark!
+    
+    You've already got your ollie and flatground manual dialed in. But the legendary
+    street stair gap and the steep kinked handrail demand skills you haven't mastered yet.
+    Explore the park, practice your pop, learn new tricks, and conquer the local spots!
+  instructions: |
+    Skate Actions & Commands to Try:
+      - Inspect: 'look', 'examine hubba', 'examine coach', 'examine gap', 'examine rail'
+      - Unlocked Tricks: 'ollie over hubba', 'do ollie over hubba', 'manual across hubba'
+      - Locked Feedback: Try 'kickflip over hubba' or 'grind rail' to test the locked action system!
+      - Learning Tricks: Go EAST to the Skate Shop and 'talk coach' to unlock the kickflip!
+      - Stomp the Gap: Head SOUTH to the Street Gap and 'kickflip over gap' to unlock the grind!
+      - Final Rail: Head EAST from the gap to the Downhill Rail and 'grind rail' to win!
+
+win_conditions:
+  - ollie_hubba
+  - learn_kickflip
+  - kickflip_gap
+  - grind_rail
+
+win_screen:
+  title: "DOWNTOWN SKATEPARK LEGEND!"
+  text: |
+    You stomped every single line in the park!
+    
+    From floating a clean ollie over the concrete hubba ledge, to learning the
+    proper flick from Coach Dave, clearing the formidable six-stair street gap,
+    and locking down a textbook 50-50 grind down the kinked handrail.
+    
+    The skaters around the bowl erupt in cheers, tapping their boards against the ramps!
+
+# =============================================================================
+# ITEMS
+# =============================================================================
+items:
+  pro_deck:
+    display_name: "maple pro deck"
+    presence: "a pristine 7-ply maple skateboard deck with fresh grip tape"
+    aliases:
+      - deck
+      - board
+      - skateboard
+      - pro deck
+    keywords:
+      - deck
+      - board
+      - skateboard
+    states:
+      default:
+        description: |
+          A 7-ply Canadian maple deck with fresh, gritty black grip tape,
+          hollow-axle trucks, and 52mm urethane street wheels.
+        use: |
+          You give the tail a sharp pop against the concrete. The board snaps up into your hand with perfect pop.
+
+  skate_tool:
+    display_name: "all-in-one skate tool"
+    presence: "a neon-blue T-shaped skate tool"
+    aliases:
+      - tool
+      - skate tool
+      - wrench
+    keywords:
+      - tool
+      - wrench
+    states:
+      default:
+        description: |
+          A heavy-duty T-tool equipped with deep sockets for axle nuts,
+          kingpin bolts, and hardware screws.
+        use: |
+          You give your rear kingpin a half-turn to tighten the bushings for high-speed stability.
+
+  skate_wax:
+    display_name: "bar of curb wax"
+    presence: "a round yellow block of buttery curb wax"
+    aliases:
+      - wax
+      - curb wax
+      - skate wax
+    keywords:
+      - wax
+    states:
+      default:
+        description: |
+          A bar of curb wax stamped with a skull logo. Super slick and perfect for sticky metal rails.
+        use: |
+          You rub a little wax between your fingers. It will make any steel rail slide like butter.
+
+# =============================================================================
+# TARGET ALIASES
+# =============================================================================
+target_aliases:
+  hubba:
+    - hubba
+    - hubba ledge
+    - ledge
+    - concrete ledge
+    - curb
+
+  coach:
+    - coach
+    - coach dave
+    - dave
+    - shop owner
+    - skater
+
+  street_gap:
+    - gap
+    - street gap
+    - stair gap
+    - stairs
+    - six stair
+    - 6 stair
+    - stair set
+
+  kinked_rail:
+    - rail
+    - handrail
+    - kinked rail
+    - yellow rail
+    - metal rail
+    - steel rail
+
+# =============================================================================
+# CUSTOM VERBS
+# =============================================================================
+custom_verbs:
+  single_object:
+    - ollie
+    - kickflip
+    - manual
+    - grind
+    - talk
+    - skate
+    - wax
+  two_object:
+    - use
+    - wax
+    - apply
+
+# =============================================================================
+# ROOMS
+# =============================================================================
+rooms:
+
+  # ---------------------------------------------------------------------------
+  # ROOM 1: CENTRAL PLAZA (Spawn point X=0, Y=0)
+  # Features: The concrete hubba ledge (tests ollie, manual, and locked kickflip)
+  # ---------------------------------------------------------------------------
+  - name: plaza
+    display_name: "Central Plaza"
+    exits:
+      - east
+      - south
+
+    base_description: |
+      You stand in the sunny Central Plaza of Downtown Skatepark. Smooth, polished concrete spreads out in every direction.
+
+    fixtures:
+      hubba:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A wide concrete hubba ledge slopes down beside a short set of stairs.
+          shredded: |
+            A concrete hubba ledge slopes down beside the stairs, sporting fresh black wheel tracks from your clean ollie.
+        examine:
+          default: |
+            A smooth concrete hubba ledge with beveled edges. Perfect for an ollie or a manual!
+            Try: 'ollie over hubba' or 'do ollie over hubba'.
+            (Or try 'kickflip over hubba' to see locked action feedback!)
+          shredded: |
+            The hubba ledge shows tire marks right down the center where you stomped your high-speed ollie.
+
+    trailing_description: |
+      The Pro Skate Shop door is open to the EAST.
+      The pathway SOUTH leads down toward the Street Stair Gap.
+
+    items: []
+
+  # ---------------------------------------------------------------------------
+  # ROOM 2: PRO SKATE SHOP (East of Plaza, X=1, Y=0)
+  # Features: Coach Dave (fires event to unlock 'kickflip' action)
+  # ---------------------------------------------------------------------------
+  - name: skate_shop
+    display_name: "Pro Skate Shop"
+    exits:
+      - west
+
+    base_description: |
+      You step into the air-conditioned Pro Skate Shop. The walls are covered in colorful graphic decks, shelves of urethane wheels, and skate magazines.
+
+    fixtures:
+      coach:
+        priority: 10
+        state: default
+        states:
+          default: |
+            Coach Dave leans against the glass counter, inspecting a fresh set of bearings with a friendly smile.
+          trained: |
+            Coach Dave gives you a nod of approval from behind the glass counter.
+        examine:
+          default: |
+            Coach Dave is a veteran street skater.
+            Type 'talk coach' or 'talk to coach' to ask him for kickflip pointers!
+          trained: |
+            Coach Dave flashes a grin: 'Keep that front foot flicking out sharp, kid. You've got that kickflip on lock!'
+
+    trailing_description: |
+      The glass door to the WEST leads back out to the Central Plaza.
+
+    items:
+      - skate_wax
+
+  # ---------------------------------------------------------------------------
+  # ROOM 3: STREET STAIR GAP (South of Plaza, X=0, Y=1)
+  # Features: Six-stair gap (requires kickflip, unlocks 'grind' action)
+  # ---------------------------------------------------------------------------
+  - name: street_gap
+    display_name: "Street Stair Gap"
+    exits:
+      - north
+      - east
+
+    base_description: |
+      You roll up to the brink of the Street Stair Gap. A wide six-stair concrete set drops steeply down into a banked runway.
+
+    fixtures:
+      street_gap:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A menacing six-stair concrete gap cuts across the path. Clearing it requires speed and a clean kickflip.
+          cleared: |
+            The six-stair gap sits behind you, thoroughly conquered by your stomped kickflip.
+        examine:
+          default: |
+            A wide six-stair drop. You'll need the kickflip you learned from Coach Dave.
+            Try: 'kickflip over gap' or 'do kickflip over gap'!
+          cleared: |
+            A legendary spot in the park, now in your highlight reel!
+
+    trailing_description: |
+      The hill NORTH returns up toward the Central Plaza.
+      A paved path to the EAST leads to the Downhill Rail Section.
+
+    items: []
+
+  # ---------------------------------------------------------------------------
+  # ROOM 4: DOWNHILL RAIL SECTION (East of Gap, X=1, Y=1)
+  # Features: Kinked handrail (requires grind action, final win condition)
+  # ---------------------------------------------------------------------------
+  - name: rail_spot
+    display_name: "Downhill Rail Section"
+    exits:
+      - west
+
+    base_description: |
+      You arrive at the bottom bowl of the park where a steep handrail runs down eight steps.
+
+    fixtures:
+      kinked_rail:
+        priority: 10
+        state: default
+        states:
+          default: |
+            A bright yellow steel handrail descends steeply alongside the steps.
+          grinded: |
+            The yellow handrail gleams with fresh metallic scrape marks where your trucks locked in and grinded the whole length!
+        examine:
+          default: |
+            A round steel rail with a sharp kink in the middle.
+            Once you have unlocked your grinds, type 'grind rail' or 'grind over handrail' to conquer it!
+          grinded: |
+            The rail has been conquered. A clean 50-50 grind from top to bottom.
+
+    trailing_description: |
+      The runway to the WEST leads back toward the Street Stair Gap.
+
+    items: []
+
+# =============================================================================
+# EVENTS
+# =============================================================================
+events:
+
+  # ---------------------------------------------------------------------------
+  # EVENT 1: Ollie over the hubba ledge (Solo trick)
+  # ---------------------------------------------------------------------------
+  - id: ollie_hubba
+    trigger:
+      type: solo
+      target: hubba
+      action: ollie
+    conditions:
+      - type: in_room
+        room: plaza
+        fail_hint: "The hubba ledge is located in the Central Plaza."
+    result:
+      set_fixture_state:
+        - room: plaza
+          fixture: hubba
+          state: shredded
+      journal:
+        room: plaza
+        message: "Stomped a clean, popping ollie over the central hubba ledge."
+      message: |
+        You push hard toward the stairs, crouch low, and pop your tail with a loud CLACK!
+        The board levels out at knee height as you float smoothly over the hubba ledge,
+        catching bolts on the landing and rolling away clean across the plaza.
+
+  # ---------------------------------------------------------------------------
+  # EVENT 2: Talk to Coach Dave in the skate shop -> UNLOCKS KICKFLIP ACTION
+  # ---------------------------------------------------------------------------
+  - id: learn_kickflip
+    trigger:
+      type: solo
+      target: coach
+      action: talk
+    conditions:
+      - type: in_room
+        room: skate_shop
+        fail_hint: "Coach Dave is inside the Pro Skate Shop."
+    result:
+      set_fixture_state:
+        - room: skate_shop
+          fixture: coach
+          state: trained
+      unlock_action: kickflip
+      journal:
+        room: skate_shop
+        message: "Coach Dave taught you the kickflip technique. Kickflip action unlocked!"
+      message: |
+        Coach Dave sets his wrench down and nods enthusiastically:
+        "Looking to level up your street game? Listen closely:
+        
+        Position your front foot just behind the front bolts, angled slightly toward the heel.
+        When you pop the tail, don't just slide your foot forward—flick it sharply off the
+        nose pocket at a 45-degree angle! Let the board flip underneath you, wait for the grip
+        tape to come back around, and catch it in mid-air!"
+        
+        =======================================================
+        [ NEW ACTION UNLOCKED: KICKFLIP ]
+        You can now perform kickflips! Try it out at the Street Stair Gap!
+        =======================================================
+
+  # ---------------------------------------------------------------------------
+  # EVENT 3: Kickflip over the street stair gap -> UNLOCKS GRIND ACTION
+  # ---------------------------------------------------------------------------
+  - id: kickflip_gap
+    trigger:
+      type: solo
+      target: street_gap
+      action: kickflip
+    conditions:
+      - type: in_room
+        room: street_gap
+        fail_hint: "The six-stair gap is at the Street Stair Gap spot."
+      - type: events_completed
+        events:
+          - learn_kickflip
+        fail_hint: "You hesitate at the top of the stairs. You need to talk to Coach Dave first to learn the kickflip technique!"
+    result:
+      set_fixture_state:
+        - room: street_gap
+          fixture: street_gap
+          state: cleared
+      unlock_action: grind
+      journal:
+        room: street_gap
+        message: "Cleared the six-stair street gap with a clean kickflip. Grind action unlocked!"
+      message: |
+        You get a running start, carving hard into the runway!
+        Right at the edge of the top step, you snap the tail and flick your front foot with surgical precision.
+        
+        The board spins gracefully beneath you—flip, catch!
+        You sail clean over all six stairs, stomping the bolts with a resounding BOOM!
+        
+        =======================================================
+        [ NEW ACTION UNLOCKED: GRIND ]
+        Your board control is through the roof! You can now lock into grinds on handrails!
+        =======================================================
+
+  # ---------------------------------------------------------------------------
+  # EVENT 4: Grind the kinked handrail -> FINAL WIN CONDITION
+  # ---------------------------------------------------------------------------
+  - id: grind_rail
+    trigger:
+      type: solo
+      target: kinked_rail
+      action: grind
+    conditions:
+      - type: in_room
+        room: rail_spot
+        fail_hint: "The yellow handrail is in the Downhill Rail Section."
+      - type: events_completed
+        events:
+          - kickflip_gap
+        fail_hint: "You need more board control before tackling this steep handrail! Clear the six-stair gap first."
+    result:
+      set_fixture_state:
+        - room: rail_spot
+          fixture: kinked_rail
+          state: grinded
+      journal:
+        room: rail_spot
+        message: "Locked in a textbook 50-50 grind down the entire kinked handrail."
+      message: |
+        You charge down the slope toward the stairs with blistering speed!
+        With laser focus, you pop an ollie, aim your trucks, and LOCK dead-center onto the yellow steel rail!
+        
+        SKRRRRRRRRRRRRRT!
+        
+        Sparks spray from your metal axles as you slide the full length, absorb the kink, and pop out
+        clean at the bottom steps into the bowl!
+        The entire skatepark goes wild!
+
+# =============================================================================
+# MAP FLOORS & GRID LAYOUT
+# =============================================================================
+# Floor 0: 2x2 grid
+#   Row 0 (Y=0): plaza (0,0)      skate_shop (1,0)
+#   Row 1 (Y=1): street_gap (0,1) rail_spot (1,1)
+# =============================================================================
+floors:
+  - - - plaza         # (X=0, Y=0) <- Player starting location
+      - skate_shop    # (X=1, Y=0) <- East of plaza
+    - - street_gap    # (X=0, Y=1) <- South of plaza
+      - rail_spot     # (X=1, Y=1) <- East of street_gap

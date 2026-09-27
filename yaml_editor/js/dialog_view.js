@@ -849,7 +849,7 @@ function closeRoomModal() {
   const modal = document.getElementById('room-modal');
   if (modal) modal.style.display = 'none';
   const State = window.State;
-  if (State && State.currentMode === 'dialog') renderDialogList();
+  if (State && (State.currentMode === 'dialog' || State.currentMode === 'narrative')) renderDialogList();
 }
 
 window.extractDialogEntries = extractDialogEntries;

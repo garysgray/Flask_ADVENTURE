@@ -1,14 +1,13 @@
-import json
 import os
 import yaml
 from game.event_types import (
-    Event, AllRoomsVisitedEvent, ItemUsedWithEvent, AllEventsCompletedEvent,
-    ECAEvent, Condition, InRoomCondition, EventsCompletedCondition,
+    ECAEvent, InRoomCondition, EventsCompletedCondition,
     RequiredItemsCondition, RoomsVisitedCondition
 )
 from pathlib import Path
 
 from config import DATA_FILE_PATH
+from game.loader import load_and_validate_adventure, DEFAULT_MAP_GLYPHS, AdventureConfigError
 
 # =============================================================================
 # FIXTURE
@@ -28,7 +27,9 @@ class Fixture:
         return self.states.get(self.current_state, '')
 
     def get_examine_text(self):
-        if self.examine:
+        if isinstance(self.examine, str) and self.examine.strip():
+            return self.examine
+        elif isinstance(self.examine, dict) and self.examine:
             if self.current_state in self.examine:
                 return self.examine[self.current_state]
             if 'default' in self.examine:
@@ -97,28 +98,29 @@ class Room:
 
     @property
     def description(self):
-        print("\n===== ROOM DESCRIPTION DEBUG =====")
-        print(f"Room: {self.name}")
-        print(f"Base: {repr(self.base_description)}")
-        print(f"Fixtures: {list(self.fixtures.keys())}")
-        print(f"Inventory count: {len(self.inventory)}")
-
-        for item in self.inventory:
-            print(
-                f"ITEM: name={item.name!r}, "
-                f"display_name={item.display_name!r}, "
-                f"presence={item.presence_description!r}"
-            )
-
-        print(f"Trailing: {repr(self.trailing_description)}")
-        print("==================================")
-
         parts = []
 
-        if self.base_description:
-            clean_base = self.base_description.strip()
-            if clean_base:
-                parts.append(clean_base)
+        active_desc = ""
+        if self.states and self.current_state in self.states:
+            state_val = self.states[self.current_state]
+            if isinstance(state_val, str):
+                active_desc = state_val
+            elif isinstance(state_val, dict):
+                active_desc = state_val.get('description', '')
+        elif self.states and 'default' in self.states:
+            state_val = self.states['default']
+            if isinstance(state_val, str):
+                active_desc = state_val
+            elif isinstance(state_val, dict):
+                active_desc = state_val.get('description', '')
+
+        if not active_desc and self.base_description:
+            active_desc = self.base_description
+
+        if active_desc:
+            clean_desc = active_desc.strip()
+            if clean_desc:
+                parts.append(clean_desc)
 
         if self.fixtures:
             sorted_fixtures = sorted(
@@ -135,12 +137,6 @@ class Room:
 
         for item in self.inventory:
             pres = item.presence_description.strip()
-
-            print(
-                f"ADDING ITEM TO DESCRIPTION: "
-                f"{item.name!r} -> {pres!r}"
-            )
-
             if pres:
                 item_descriptions.append(pres)
 
@@ -156,12 +152,7 @@ class Room:
             if clean_trailing:
                 parts.append(clean_trailing)
 
-        result = " ".join(parts)
-
-        print(f"FINAL ROOM DESCRIPTION: {result!r}")
-        print("==================================\n")
-
-        return result 
+        return " ".join(parts)
     
     @description.setter
     def description(self, value):
@@ -171,10 +162,7 @@ class Room:
             self.base_description = value
 
     def set_state(self, state):
-        if state in self.states:
-            self.current_state = state
-        else:
-            self.current_state = state
+        self.current_state = state
 
 # =============================================================================
 # MAP
@@ -194,6 +182,7 @@ class Map:
         self.intro          = data.get('intro', {})
         self.win_screen     = data.get('win_screen', {})
         self.theme          = data.get('theme', {})
+        self.map_glyphs     = data.get('map_glyphs') or dict(DEFAULT_MAP_GLYPHS)
 
         # Validation Guardrail: Maximum 6 floors limit
         if len(self.floor_recipes) > 6:
@@ -216,6 +205,8 @@ class Map:
 
         player_start_stuff = data.get('player', {}).get('starting_inventory', [])
         self.player_start_invent = [self.make_item(stuff) for stuff in player_start_stuff]
+        self.player_unlocked_actions = data.get('player', {}).get('unlocked_actions')
+        self.player_locked_messages = data.get('player', {}).get('locked_messages', {})
 
         self.event_recipes = [self.make_event(e) for e in data.get('events', [])]
 
@@ -247,8 +238,7 @@ class Map:
             base_dir = Path(__file__).resolve().parent
             data_path = base_dir.parent / "data" / DATA_FILE_PATH
 
-        with open(data_path, "r") as f:
-            return yaml.safe_load(f)
+        return load_and_validate_adventure(data_path)
 
     def make_item(self, item_name):
         if item_name in self.item_recipes:
@@ -264,28 +254,43 @@ class Map:
         return Item(name=item_name)
 
     def make_event(self, data):
-        if 'trigger' in data or 'conditions' in data:
-            trigger = data.get('trigger', {})
-            cond_list = []
-            for c_data in data.get('conditions', []):
-                c_type = c_data.get('type')
-                hint = c_data.get('on_fail_hint') or c_data.get('fail_hint', '')
-                if c_type == 'in_room':
-                    cond_list.append(InRoomCondition(c_data.get('room'), fail_hint=hint))
-                elif c_type in ('events_completed', 'all_events_completed'):
-                    cond_list.append(EventsCompletedCondition(c_data.get('events') or c_data.get('required_events'), fail_hint=hint))
-                elif c_type == 'required_items':
-                    cond_list.append(RequiredItemsCondition(c_data.get('required_items') or c_data.get('items'), fail_hint=hint))
-                elif c_type in ('rooms_visited', 'all_rooms_visited'):
-                    cond_list.append(RoomsVisitedCondition(c_data.get('required_rooms') or c_data.get('rooms')))
-            return ECAEvent(
-                id=data['id'],
-                trigger=trigger,
-                conditions=cond_list,
-                result=data.get('result', {}),
-                hints=data.get('hints', {})
+        if not isinstance(data, dict):
+            raise AdventureConfigError(
+                message=f"Event definition must be a dictionary, got: {type(data).__name__}",
+                filename=str(self.file_path) if hasattr(self, 'file_path') and self.file_path else None,
+                details=f"Malformed event recipe: {data}",
+                fix="Ensure all items under 'events:' in the YAML are mapping objects (key: value)."
             )
-        return data
+        if 'id' not in data:
+            raise AdventureConfigError(
+                message="Event definition missing required 'id' key.",
+                filename=str(self.file_path) if hasattr(self, 'file_path') and self.file_path else None,
+                details=f"Event recipe contents: {data}",
+                fix="Add a unique 'id:' field to the event definition."
+            )
+
+        trigger = data.get('trigger', {})
+        cond_list = []
+        for c_data in data.get('conditions', []):
+            if not isinstance(c_data, dict):
+                continue
+            c_type = c_data.get('type')
+            hint = c_data.get('on_fail_hint') or c_data.get('fail_hint', '')
+            if c_type == 'in_room':
+                cond_list.append(InRoomCondition(c_data.get('room'), fail_hint=hint))
+            elif c_type in ('events_completed', 'all_events_completed'):
+                cond_list.append(EventsCompletedCondition(c_data.get('events') or c_data.get('required_events'), fail_hint=hint))
+            elif c_type == 'required_items':
+                cond_list.append(RequiredItemsCondition(c_data.get('required_items') or c_data.get('items'), fail_hint=hint))
+            elif c_type in ('rooms_visited', 'all_rooms_visited'):
+                cond_list.append(RoomsVisitedCondition(c_data.get('required_rooms') or c_data.get('rooms')))
+        return ECAEvent(
+            id=data['id'],
+            trigger=trigger,
+            conditions=cond_list,
+            result=data.get('result', {}),
+            hints=data.get('hints', {})
+        )
 
     def create_fresh_rooms_from_recipes(self):
         rooms = []

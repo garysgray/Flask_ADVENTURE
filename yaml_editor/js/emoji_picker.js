@@ -1,16 +1,24 @@
 /**
- * Emoji & Symbol Palette Drawer
- * Provides a categorized browser for adventure authors to pick characters, items,
- * map markers, and retro terminal glyphs.
+ * Global Quick-Copy Floating Panel
+ * Lightweight overlay panel providing instant one-click copying of adventure emojis,
+ * monsters, items, environment symbols, and retro ASCII glyphs.
  */
 
 const EMOJI_PALETTE_DATA = {
-  characters: {
-    label: "Avatars & NPCs",
+  faces: {
+    label: "Faces & NPCs",
     emojis: [
-      "🚶", "🏃", "🕵️", "👤", "👥", "🤖", "👾", "🧙", "🧙‍♂️", "🧙‍♀️",
-      "👻", "💀", "☠️", "🐱", "🐕", "🐺", "🐉", "🐀", "🕷️", "🦇",
-      "🧛", "🧟", "🧜", "🧝", "💂", "👮", "🧑‍🔬", "🧑‍🚀", "👸", "🤴"
+      "👤", "🚶", "🏃", "🧙", "🧙‍♂️", "🧙‍♀️", "🤖", "🧝", "🧛", "🧟",
+      "🧜", "👸", "🤴", "🕵️", "👥", "💂", "👮", "🧑‍🔬", "🧑‍🚀", "🐱",
+      "🐕", "🐺", "🦇", "💀", "☠️", "👻", "🧞", "🧚", "🥷", "🤡"
+    ]
+  },
+  monsters: {
+    label: "Monsters & Beasts",
+    emojis: [
+      "🐉", "🦇", "🐺", "🕷️", "🐀", "🐍", "🦂", "🦈", "🐙", "🦑",
+      "🦁", "🐻", "🦖", "🦅", "🦉", "🐊", "🐗", "🦍", "🦟", "🪰",
+      "🦠", "🧟", "🧛", "👻", "💀", "☠️", "👾", "🤖", "👹", "👺"
     ]
   },
   items: {
@@ -18,29 +26,30 @@ const EMOJI_PALETTE_DATA = {
     emojis: [
       "🔑", "🗝️", "🔦", "📜", "📖", "💾", "🧪", "🧰", "🗡️", "⚔️",
       "🛡️", "🏹", "💎", "🪙", "📦", "🧭", "🪓", "🏺", "✉️", "⚙️",
-      "🔋", "🕯️", "🪞", "👑", "🔮", "📿", "💍", "🧪", "💉", "🧲"
+      "🔋", "🕯️", "🪞", "👑", "🔮", "📿", "💍", "💉", "🧲", "🪵"
     ]
   },
-  map: {
-    label: "Map & Hazards",
+  environment: {
+    label: "Environment & Map",
     emojis: [
       "🚪", "🪜", "🪟", "🔒", "🔓", "🌀", "📍", "🏢", "🏰", "🏛️",
       "🌲", "🪨", "🕸️", "💻", "🪑", "🛏️", "⚰️", "🚨", "⚠️", "🧱",
-      "🔥", "💧", "⚡", "🪜", "🕳️", "🪵", "🛖", "⛺", "🛸", "⛲"
+      "🔥", "💧", "⚡", "🕳️", "🛖", "⛺", "🛸", "⛲", "🌋", "🏔️"
     ]
   },
   glyphs: {
-    label: "Terminal & Retro Glyphs",
+    label: "UI & Glyphs",
     emojis: [
       "▲", "▼", "◀", "▶", "◆", "◇", "◈", "○", "●", "◎",
       "█", "▓", "▒", "░", "━", "┃", "┏", "┓", "┗", "┛",
       "┣", "┫", "┳", "┻", "╋", "✦", "★", "☆", "☠", "⚑",
-      "⌂", "✓", "✕", "§", "¶", "±", "∞", "≈", "≠", "≡"
+      "⌂", "✓", "✕", "§", "¶", "±", "∞", "≈", "≠", "≡",
+      "⇈", "⇊", "♞", "✵", "^", "v"
     ]
   }
 };
 
-let currentEmojiCategory = "characters";
+let currentEmojiCategory = "faces";
 let emojiSearchQuery = "";
 let lastFocusedInputElement = null;
 
@@ -50,34 +59,44 @@ function initEmojiPickerUI() {
     modal = document.createElement("div");
     modal.id = "emoji-picker-modal";
     modal.className = "emoji-picker-modal";
-    modal.onclick = (e) => {
-      if (e.target === modal) closeEmojiPicker();
-    };
 
     modal.innerHTML = `
       <div class="emoji-picker-card" onclick="event.stopPropagation()">
         <div class="emoji-picker-head">
-          <span class="emoji-picker-title">🎨 EMOJIS &amp; ADVENTURE CHARACTERS</span>
-          <button class="modal-close" onclick="closeEmojiPicker()">✕</button>
+          <span class="emoji-picker-title">✨ QUICK-COPY SYMBOLS</span>
+          <button class="modal-close" onclick="closeEmojiPicker()" title="Close Panel">✕</button>
         </div>
 
-        <div style="margin-bottom: 10px;">
-          <input type="text" id="emoji-search-input" class="search-input" style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; background: var(--panel-alt);" placeholder="Search characters, items, glyphs..." oninput="onEmojiSearch(this.value)">
+        <div style="margin-bottom: 8px;">
+          <input type="text" id="emoji-search-input" class="search-input"
+                 style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 12px; background: var(--panel-alt); color: var(--bright);"
+                 placeholder="Search characters, items, glyphs..." oninput="onEmojiSearch(this.value)">
         </div>
 
         <div class="emoji-categories-tabs" id="emoji-cat-tabs"></div>
 
-        <div class="emoji-grid-display" id="emoji-grid-cells"></div>
+        <div class="emoji-grid-display" id="emoji-grid-cells" style="max-height: 240px;"></div>
 
-        <div class="emoji-preview-box">
-          <div id="emoji-last-selected">Click any emoji to copy &amp; insert</div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-dim" style="padding: 4px 8px; font-size: 10px;" onclick="copyLastSelectedEmoji()">Copy Again</button>
+        <div class="emoji-preview-box" style="padding: 6px 10px; font-size: 11px;">
+          <div id="emoji-last-selected">Click any symbol to copy &amp; paste anywhere</div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-dim" style="padding: 2px 6px; font-size: 10px;" onclick="copyLastSelectedEmoji()">Copy Again</button>
           </div>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
+
+    // Dismiss on click outside if modal is visible
+    document.addEventListener("mousedown", (e) => {
+      const m = document.getElementById("emoji-picker-modal");
+      if (!m || !m.classList.contains("visible")) return;
+      // If clicked inside the card or on the toggle button, don't close
+      if (m.contains(e.target)) return;
+      const toggleBtn = document.getElementById("btn-quick-copy");
+      if (toggleBtn && toggleBtn.contains(e.target)) return;
+      closeEmojiPicker();
+    });
   }
 
   renderEmojiTabs();
@@ -96,6 +115,9 @@ function renderEmojiTabs() {
     btn.textContent = EMOJI_PALETTE_DATA[catKey].label;
     btn.onclick = () => {
       currentEmojiCategory = catKey;
+      emojiSearchQuery = "";
+      const searchInp = document.getElementById("emoji-search-input");
+      if (searchInp) searchInp.value = "";
       renderEmojiTabs();
       renderEmojiGrid();
     };
@@ -111,7 +133,6 @@ function renderEmojiGrid() {
   let list = EMOJI_PALETTE_DATA[currentEmojiCategory]?.emojis || [];
   if (emojiSearchQuery) {
     const q = emojiSearchQuery.toLowerCase();
-    // Search across all categories when filtering
     list = [];
     Object.keys(EMOJI_PALETTE_DATA).forEach(k => {
       EMOJI_PALETTE_DATA[k].emojis.forEach(em => {
@@ -125,7 +146,7 @@ function renderEmojiGrid() {
     btn.type = "button";
     btn.className = "emoji-btn-item";
     btn.textContent = emoji;
-    btn.title = `Insert ${emoji}`;
+    btn.title = `Click to copy ${emoji}`;
     btn.onclick = () => selectEmoji(emoji);
     grid.appendChild(btn);
   });
@@ -137,25 +158,28 @@ function selectEmoji(emoji) {
   lastSelectedEmojiStr = emoji;
   const prevBox = document.getElementById("emoji-last-selected");
   if (prevBox) {
-    prevBox.innerHTML = `Selected: <span style="font-size:18px;">${emoji}</span> &mdash; copied to clipboard!`;
+    prevBox.innerHTML = `Copied: <span style="font-size:16px;">${emoji}</span> to clipboard!`;
   }
 
-  // Copy to clipboard
+  // Copy to system clipboard
   try {
     navigator.clipboard.writeText(emoji).catch(() => {});
   } catch (_) {}
 
-  // If a textarea or input was active, insert into it
+  // If a text input or textarea was active, insert into it
   if (lastFocusedInputElement && typeof lastFocusedInputElement.focus === "function") {
     const el = lastFocusedInputElement;
-    const start = el.selectionStart || 0;
-    const end = el.selectionEnd || 0;
-    const text = el.value || "";
-    el.value = text.substring(0, start) + emoji + text.substring(end);
-    el.selectionStart = el.selectionEnd = start + emoji.length;
-    el.focus();
-    // Trigger input event for data bindings
-    el.dispatchEvent(new Event("input", { bubbles: true }));
+    try {
+      const start = el.selectionStart !== undefined ? el.selectionStart : el.value.length;
+      const end = el.selectionEnd !== undefined ? el.selectionEnd : el.value.length;
+      const text = el.value || "";
+      el.value = text.substring(0, start) + emoji + text.substring(end);
+      if (el.selectionStart !== undefined) {
+        el.selectionStart = el.selectionEnd = start + emoji.length;
+      }
+      el.focus();
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    } catch (_) {}
   }
 
   if (window.State && window.State.showToast) {
@@ -178,16 +202,32 @@ function onEmojiSearch(val) {
   renderEmojiGrid();
 }
 
+function toggleEmojiPicker() {
+  const modal = document.getElementById("emoji-picker-modal");
+  if (modal && modal.classList.contains("visible")) {
+    closeEmojiPicker();
+  } else {
+    openEmojiPicker();
+  }
+}
+
 function openEmojiPicker(targetElementId) {
   if (targetElementId) {
     lastFocusedInputElement = document.getElementById(targetElementId);
   } else if (document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")) {
-    lastFocusedInputElement = document.activeElement;
+    if (document.activeElement.id !== "emoji-search-input") {
+      lastFocusedInputElement = document.activeElement;
+    }
   }
 
   initEmojiPickerUI();
   const modal = document.getElementById("emoji-picker-modal");
   if (modal) modal.classList.add("visible");
+
+  const searchInp = document.getElementById("emoji-search-input");
+  if (searchInp) {
+    setTimeout(() => searchInp.focus(), 50);
+  }
 }
 
 function closeEmojiPicker() {
@@ -206,3 +246,5 @@ document.addEventListener("focusin", (e) => {
 
 window.openEmojiPicker = openEmojiPicker;
 window.closeEmojiPicker = closeEmojiPicker;
+window.toggleEmojiPicker = toggleEmojiPicker;
+window.selectEmoji = selectEmoji;

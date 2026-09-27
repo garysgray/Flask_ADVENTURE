@@ -90,6 +90,14 @@ function dumpYaml(data) {
 
 function createBarebonesAdventure() {
   return {
+    map_glyphs: {
+      player: "👤",
+      locked: "🔒",
+      stairs_up: "⬆️",
+      stairs_down: "⬇️",
+      portal: "🌀",
+      unexplored: "?"
+    },
     intro: {
       title: "New Adventure",
       text: "You awaken in a quiet entry hall. Dust motes drift in the faint light filtering through a high transom window.",

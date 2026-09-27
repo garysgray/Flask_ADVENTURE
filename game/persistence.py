@@ -1,5 +1,4 @@
 import json
-from game.gameObjects import Item
 
 
 class PersistenceManager:
@@ -42,6 +41,15 @@ class PersistenceManager:
         self.ctrl.player.completed_events = player_location.get('completed_events', [])
         self.ctrl.player.journal          = player_location.get('journal', [])
         self.ctrl.player.has_seen_intro   = player_location.get('has_seen_intro', False)
+        if 'unlocked_actions' in player_location:
+            raw_unlocked = player_location['unlocked_actions']
+            if raw_unlocked is None:
+                self.ctrl.player.unlocked_actions = None
+            else:
+                self.ctrl.player.unlocked_actions = set(raw_unlocked)
+
+        # Ensure current position/room is recorded if somehow missing from loaded state
+        self.ctrl.player.record_current_room()
 
         # rebuild player inventory from recipes and restore saved states
         self.ctrl.player.inventory = []
@@ -81,6 +89,9 @@ class PersistenceManager:
         Serializes current game state to JSON strings for database storage.
         Returns a tuple of (location, player_inventory, room_inventory).
         """
+        unlocked = getattr(self.ctrl.player, 'unlocked_actions', None)
+        saved_unlocked = sorted(list(unlocked)) if unlocked is not None else None
+
         player_data = {
             'X':               self.ctrl.player.pos_x,
             'Y':               self.ctrl.player.pos_y,
@@ -90,6 +101,7 @@ class PersistenceManager:
             'journal':         self.ctrl.player.journal,
             'has_seen_intro':  self.ctrl.player.has_seen_intro,
             'visited_room_names': self.ctrl.player.visited_room_names,
+            'unlocked_actions': saved_unlocked,
         }
 
         # save item name and current state only — descriptions rebuilt from recipes on load

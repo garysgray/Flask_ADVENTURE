@@ -49,21 +49,62 @@
 
     <!-- Mode Selector Tabs -->
     <div class="mode-switch">
-      <button class="mode-btn active" id="btn-mode-map" onclick="switchMode('map')">Map &amp; Roadmap</button>
-      <button class="mode-btn" id="btn-mode-story" onclick="switchMode('story')">Story &amp; Metadata</button>
-      <button class="mode-btn" id="btn-mode-dialog" onclick="switchMode('dialog')">Dialog &amp; Script</button>
-      <button class="mode-btn" id="btn-mode-yaml" onclick="switchMode('yaml')">YAML Source</button>
-      <button class="mode-btn" id="btn-mode-validator" onclick="switchMode('validator')">Sanity Validator</button>
+      <button class="mode-btn active" id="btn-mode-map" onclick="switchMode('map')">🗺️ Map &amp; Rooms</button>
+      <button class="mode-btn" id="btn-mode-narrative" onclick="switchMode('narrative')">📜 Narrative &amp; Events</button>
+      <button class="mode-btn" id="btn-mode-yaml" onclick="switchMode('yaml')">⚡ YAML Source</button>
+      <button class="mode-btn" id="btn-mode-validator" onclick="switchMode('validator')">🛡️ Sanity Validator</button>
     </div>
 
     <!-- Actions -->
     <div class="top-actions">
       <span class="val-top-badge val-badge-ok" id="top-val-badge" onclick="switchMode('validator')">✓ 0 ISSUES</span>
       <span class="unsaved-badge" id="unsaved-count">0 UNSAVED EDITS</span>
-      <button class="btn btn-dim" onclick="openEmojiPicker()" title="Browse emojis, characters, and glyphs">🎨 Emojis</button>
-      <button class="btn btn-dim" onclick="createNewAdventure()" title="Create fresh adventure template">+ New Adventure</button>
-      <button class="btn btn-dim" onclick="resetToUpload()">Open File</button>
-      <button class="btn btn-accent" onclick="exportYaml()">Export YAML</button>
+      <button class="btn btn-dim" onclick="openMapGlyphsModal()" title="Customize game map markers & glyphs">🗺️ Map Glyphs</button>
+      <button class="btn btn-dim" onclick="resetToUpload()" title="Open adventure YAML file">📁 Open File</button>
+      <button class="btn btn-accent" onclick="exportYaml()" title="Download validated adventure YAML">💾 Export YAML</button>
+
+      <!-- Tools Dropdown -->
+      <div class="tools-dropdown-wrap">
+        <button class="btn btn-dim" id="btn-tools-menu" onclick="toggleToolsDropdown()" title="Utilities, theme, quick-copy, and templates">⚙️ Tools ▾</button>
+        <div class="tools-dropdown-menu" id="tools-dropdown-menu">
+          <button class="tools-menu-item" onclick="openThemePicker(); closeToolsDropdown();">
+            <span class="tools-menu-icon">🎨</span>
+            <div class="tools-menu-text">
+              <span class="tools-menu-title">Theme Customizer</span>
+              <span class="tools-menu-desc">Color palette, terminal font &amp; CRT styling</span>
+            </div>
+          </button>
+          <button class="tools-menu-item" onclick="toggleEmojiPicker(); closeToolsDropdown();">
+            <span class="tools-menu-icon">✨</span>
+            <div class="tools-menu-text">
+              <span class="tools-menu-title">Quick-Copy Panel</span>
+              <span class="tools-menu-desc">Search &amp; one-click clipboard symbols</span>
+            </div>
+          </button>
+          <button class="tools-menu-item" onclick="createNewAdventure(); closeToolsDropdown();">
+            <span class="tools-menu-icon">➕</span>
+            <div class="tools-menu-text">
+              <span class="tools-menu-title">New Adventure Template</span>
+              <span class="tools-menu-desc">Create fresh starter template</span>
+            </div>
+          </button>
+          <div class="tools-menu-divider"></div>
+          <button class="tools-menu-item" onclick="promptRenameFile(); closeToolsDropdown();">
+            <span class="tools-menu-icon">🏷️</span>
+            <div class="tools-menu-text">
+              <span class="tools-menu-title">Rename File</span>
+              <span class="tools-menu-desc">Change adventure YAML filename</span>
+            </div>
+          </button>
+          <button class="tools-menu-item" onclick="discardAutosave(); closeToolsDropdown();">
+            <span class="tools-menu-icon">↺</span>
+            <div class="tools-menu-text">
+              <span class="tools-menu-title">Discard Saved Draft</span>
+              <span class="tools-menu-desc">Clear local draft storage</span>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -107,35 +148,45 @@
     <div id="item-list-section"></div>
   </div>
 
-  <!-- VIEW: STORY & METADATA EDITOR -->
-  <div class="view-container" id="view-story">
-    <div class="story-container">
-      <!-- Live Status & Summary Bar -->
-      <div class="story-meta-bar">
-        <div class="story-meta-item">
-          <span class="story-meta-label">FACILITY:</span>
-          <span class="story-meta-val" id="story-status-title">--</span>
-        </div>
-        <span class="top-sep">///</span>
-        <div class="story-meta-item">
-          <span class="story-meta-label">ARCHITECTURE:</span>
-          <span class="story-meta-val" style="color: var(--accent);">MODULAR ROOMS</span>
-        </div>
-        <span class="top-sep">///</span>
-        <div class="story-meta-item">
-          <span class="story-meta-label">SPAWN TILE:</span>
-          <span class="story-meta-val" id="story-status-spawn" style="color: var(--accent);">Floor 0 [0,0]</span>
-        </div>
-        <span class="top-sep">///</span>
-        <div class="story-meta-item">
-          <span class="story-meta-label">WIN CONDITIONS:</span>
-          <span class="story-meta-val" id="story-status-win-count" style="color: var(--amber);">0 Objectives</span>
-        </div>
-        <span class="top-sep">///</span>
-        <div class="story-meta-item" style="margin-left: auto;">
-          <span class="val-badge-pill val-badge-ok" id="story-status-val-pill">✓ VALIDATION PASSING</span>
-        </div>
+  <!-- VIEW: NARRATIVE & EVENTS (CONSOLIDATED PROSE, STORY & PROGRESSION) -->
+  <div class="view-container" id="view-narrative">
+    <!-- Narrative Sub-Navigation Tabs -->
+    <div class="narrative-subnav">
+      <button type="button" class="narrative-subnav-btn active" id="subnav-narrative-story" onclick="switchNarrativeSubTab('story')">📖 1. Story &amp; Dossier Setup</button>
+      <button type="button" class="narrative-subnav-btn" id="subnav-narrative-progression" onclick="switchNarrativeSubTab('progression')">🏆 2. Win Objectives &amp; Progression</button>
+      <button type="button" class="narrative-subnav-btn" id="subnav-narrative-script" onclick="switchNarrativeSubTab('script')">📜 3. Script &amp; Dialogue Registry</button>
+    </div>
+
+    <!-- Live Status & Summary Bar -->
+    <div class="story-meta-bar">
+      <div class="story-meta-item">
+        <span class="story-meta-label">FACILITY:</span>
+        <span class="story-meta-val" id="story-status-title">--</span>
       </div>
+      <span class="top-sep">///</span>
+      <div class="story-meta-item">
+        <span class="story-meta-label">ARCHITECTURE:</span>
+        <span class="story-meta-val" style="color: var(--accent);">MODULAR ROOMS</span>
+      </div>
+      <span class="top-sep">///</span>
+      <div class="story-meta-item">
+        <span class="story-meta-label">SPAWN TILE:</span>
+        <span class="story-meta-val" id="story-status-spawn" style="color: var(--accent);">Floor 0 [0,0]</span>
+      </div>
+      <span class="top-sep">///</span>
+      <div class="story-meta-item">
+        <span class="story-meta-label">WIN CONDITIONS:</span>
+        <span class="story-meta-val" id="story-status-win-count" style="color: var(--amber);">0 Objectives</span>
+      </div>
+      <span class="top-sep">///</span>
+      <div class="story-meta-item" style="margin-left: auto;">
+        <span class="val-badge-pill val-badge-ok" id="story-status-val-pill">✓ VALIDATION PASSING</span>
+      </div>
+    </div>
+
+    <!-- SUB-TAB 1: STORY & DOSSIER SETUP -->
+    <div class="narrative-subtab-content active-subtab" id="narrative-section-story">
+      <div class="story-container" style="padding-top: 0;">
 
       <!-- ROW 1: Game Title -->
       <div class="story-grid-2col">
@@ -259,89 +310,95 @@
         </div>
       </div>
 
-      <!-- ROW 4: Win Conditions -->
-      <div class="story-card">
-        <div class="story-card-header">
-          <span class="story-card-title">6. Win Conditions &amp; Objectives</span>
-          <span class="story-card-badge" style="background: rgba(232,196,106,0.15); color: var(--amber);">YAML: win_conditions</span>
-        </div>
-        <div class="story-card-body">
-          <div class="story-win-list" id="story-win-list"></div>
-          <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-            <select id="story-select-add-win" class="story-select" style="flex: 1;"></select>
-            <button type="button" class="btn btn-accent" style="padding: 10px 16px; white-space: nowrap;" onclick="onAddWinCondition()">+ ADD WIN OBJECTIVE</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ROW 5: Victory Screen & Epilogue -->
-      <div class="story-grid-2col">
-        <div class="story-card">
-          <div class="story-card-header">
-            <span class="story-card-title">7. Victory Epilogue Screen</span>
-            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">YAML: win_screen.*</span>
-          </div>
-          <div class="story-card-body">
-            <div class="story-field">
-              <label class="story-label" for="story-field-win-title">Victory Screen Title (win_screen.title)</label>
-              <input type="text" id="story-field-win-title" class="story-input" placeholder="YOU HAVE ESCAPED" oninput="onStoryWinTitleChange(this.value)">
+        <!-- ROW 5: Victory Screen & Epilogue -->
+        <div class="story-grid-2col">
+          <div class="story-card">
+            <div class="story-card-header">
+              <span class="story-card-title">5. Victory Epilogue Screen</span>
+              <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">YAML: win_screen.*</span>
             </div>
-            <div class="story-field">
-              <label class="story-label" for="story-field-win-text">Epilogue Narrative Prose (win_screen.text)</label>
-              <textarea id="story-field-win-text" class="story-textarea" rows="6" placeholder="Epilogue narrative..." oninput="onStoryWinTextChange(this.value)"></textarea>
+            <div class="story-card-body">
+              <div class="story-field">
+                <label class="story-label" for="story-field-win-title">Victory Screen Title (win_screen.title)</label>
+                <input type="text" id="story-field-win-title" class="story-input" placeholder="YOU HAVE ESCAPED" oninput="onStoryWinTitleChange(this.value)">
+              </div>
+              <div class="story-field">
+                <label class="story-label" for="story-field-win-text">Epilogue Narrative Prose (win_screen.text)</label>
+                <textarea id="story-field-win-text" class="story-textarea" rows="6" placeholder="Epilogue narrative..." oninput="onStoryWinTextChange(this.value)"></textarea>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="story-card">
-          <div class="story-card-header">
-            <span class="story-card-title">Live Epilogue Preview</span>
-            <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">EPILOGUE HUD</span>
-          </div>
-          <div class="story-card-body">
-            <div class="story-preview-container">
-              <span class="story-preview-badge">INCIDENT RESOLUTION</span>
-              <div class="story-preview-title" id="story-preview-win-title" style="color: var(--accent);">YOU HAVE ESCAPED</div>
-              <div class="story-preview-body" id="story-preview-win-text">Epilogue narrative...</div>
+          <div class="story-card">
+            <div class="story-card-header">
+              <span class="story-card-title">Live Epilogue Preview</span>
+              <span class="story-card-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">EPILOGUE HUD</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-preview-container">
+                <span class="story-preview-badge">INCIDENT RESOLUTION</span>
+                <div class="story-preview-title" id="story-preview-win-title" style="color: var(--accent);">YOU HAVE ESCAPED</div>
+                <div class="story-preview-body" id="story-preview-win-text">Epilogue narrative...</div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- ROW 6: Real-time Diagnostics -->
-      <div class="story-card">
-        <div class="story-card-header">
-          <span class="story-card-title">Sanity Diagnostics (Story &amp; Setup Checks)</span>
-          <span class="story-card-badge" id="story-diag-status-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">ALL CHECKS PASSING</span>
-        </div>
-        <div class="story-card-body">
-          <div class="story-diag-grid" id="story-diag-grid"></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- VIEW 2: DIALOG & SCRIPT EDITOR -->
-  <div class="view-container" id="view-dialog">
-    <div class="filter-bar">
-      <div class="filter-tabs">
-        <button class="filter-tab active" onclick="filterDialog('all', this)">ALL</button>
-        <button class="filter-tab" onclick="filterDialog('intro', this)">INTRO</button>
-        <button class="filter-tab" onclick="filterDialog('items', this)">ITEMS</button>
-        <button class="filter-tab" onclick="filterDialog('rooms', this)">ROOMS (MODULAR)</button>
-        <button class="filter-tab" onclick="filterDialog('events', this)">EVENTS</button>
-      </div>
+    <!-- SUB-TAB 2: WIN OBJECTIVES & PROGRESSION -->
+    <div class="narrative-subtab-content" id="narrative-section-progression">
+      <div class="story-container" style="padding-top: 0;">
+        <!-- Win Conditions -->
+        <div class="story-card">
+          <div class="story-card-header">
+            <span class="story-card-title">Win Conditions &amp; Objectives</span>
+            <span class="story-card-badge" style="background: rgba(232,196,106,0.15); color: var(--amber);">YAML: win_conditions</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-win-list" id="story-win-list"></div>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+              <select id="story-select-add-win" class="story-select" style="flex: 1;"></select>
+              <button type="button" class="btn btn-accent" style="padding: 10px 16px; white-space: nowrap;" onclick="onAddWinCondition()">+ ADD WIN OBJECTIVE</button>
+            </div>
+          </div>
+        </div>
 
-      <!-- Live Search Bar -->
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="dialog-search" class="search-input" placeholder="Search rooms, fixtures, prose..." oninput="onSearchChange(this.value)">
-        <span class="search-clear" id="search-clear" onclick="clearSearch()">✕</span>
+        <!-- Real-time Diagnostics -->
+        <div class="story-card" style="margin-top: 16px;">
+          <div class="story-card-header">
+            <span class="story-card-title">Sanity Diagnostics (Story &amp; Progression Checks)</span>
+            <span class="story-card-badge" id="story-diag-status-badge" style="background: rgba(74,240,192,0.15); color: var(--accent);">ALL CHECKS PASSING</span>
+          </div>
+          <div class="story-card-body">
+            <div class="story-diag-grid" id="story-diag-grid"></div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Dialog Entries / Modular Rooms List -->
-    <div class="dialog-list" id="dialog-entries"></div>
+    <!-- SUB-TAB 3: SCRIPT & DIALOGUE REGISTRY -->
+    <div class="narrative-subtab-content" id="narrative-section-script">
+      <div class="filter-bar">
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterDialog('all', this)">ALL</button>
+          <button class="filter-tab" onclick="filterDialog('intro', this)">INTRO</button>
+          <button class="filter-tab" onclick="filterDialog('items', this)">ITEMS</button>
+          <button class="filter-tab" onclick="filterDialog('rooms', this)">ROOMS (MODULAR)</button>
+          <button class="filter-tab" onclick="filterDialog('events', this)">EVENTS</button>
+        </div>
+
+        <!-- Live Search Bar -->
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="dialog-search" class="search-input" placeholder="Search rooms, fixtures, prose..." oninput="onSearchChange(this.value)">
+          <span class="search-clear" id="search-clear" onclick="clearSearch()">✕</span>
+        </div>
+      </div>
+
+      <!-- Dialog Entries / Modular Rooms List -->
+      <div class="dialog-list" id="dialog-entries"></div>
+    </div>
   </div>
 
   <!-- VIEW 3: RAW YAML SOURCE EDITOR -->
@@ -402,11 +459,22 @@
     <div class="modal-header">
       <span class="modal-title" id="modal-room-title">ROOM INSPECTOR</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <button type="button" class="btn btn-dim" style="padding: 3px 8px; font-size: 11px;" onclick="openEmojiPicker()">🎨 Emojis</button>
+        <button type="button" class="btn btn-dim" style="padding: 3px 8px; font-size: 11px;" onclick="openEmojiPicker()">✨ Quick-Copy</button>
         <button class="modal-close" onclick="closeRoomModal()">✕</button>
       </div>
     </div>
     <div class="modal-body" id="modal-room-body"></div>
+  </div>
+</div>
+
+<!-- CONTEXTUAL TWO-WAY EXIT LINKER MODAL -->
+<div id="exit-linker-modal" class="modal-backdrop" style="display:none;">
+  <div class="modal-card" style="max-width: 680px; width: 92%;">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-exit-title">⇄ TWO-WAY EXIT LINKER</span>
+      <button class="modal-close" onclick="closeExitLinkerModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-exit-body" style="padding: 16px;"></div>
   </div>
 </div>
 
@@ -420,7 +488,9 @@
 <script src="js/dialog_view.js"></script>
 <script src="js/story_view.js"></script>
 <script src="js/yaml_view.js"></script>
+<script src="js/glyph_editor.js"></script>
 <script src="js/emoji_picker.js"></script>
+<script src="js/theme_picker.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
